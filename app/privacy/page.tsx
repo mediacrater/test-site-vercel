@@ -1,0 +1,234 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Mediacrater',
+  description: 'How Mediacrater handles your data. We scan your ads for policy violations and permanently delete them after. Your creatives are never stored.',
+  robots: { index: true, follow: true },
+}
+
+export default function PrivacyPolicy() {
+  return (
+    <main className="max-w-3xl mx-auto px-6 py-16 text-base leading-relaxed">
+      <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
+      <p className="text-sm text-muted-foreground mb-10">Effective date: April 2026</p>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Who We Are</h2>
+        <p>
+          Mediacrater is a Chrome extension that scans video and image ads for policy violations
+          across platforms including Meta, TikTok, YouTube, Pinterest, and X. We are operated as
+          Mediacrater and can be reached at{' '}
+          <a href="mailto:hello.mediacrater@gmail.com" className="underline">
+            hello.mediacrater@gmail.com
+          </a>.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">What Data We Collect</h2>
+        <p className="mb-4">
+          We collect only what is necessary to operate the service. Below is a complete list of
+          the data we collect, why we collect it, and how it is stored.
+        </p>
+
+        <h3 className="text-lg font-semibold mb-2">Account Data (unencrypted)</h3>
+        <ul className="list-disc list-inside space-y-2 mb-6">
+          <li>
+            <strong>Email address</strong> — collected at registration to identify your account
+            and communicate with you about your service. Stored securely via Supabase.
+          </li>
+          <li>
+            <strong>Token balance</strong> — the number of scan tokens available on your account.
+            Updated after each scan and each purchase. Stored via Supabase.
+          </li>
+          <li>
+            <strong>Purchase records</strong> — when you make a purchase, we store the session ID,
+            number of tokens purchased, and purchase amount. This is used to credit your account
+            correctly and to support refund requests. Stored via Supabase.
+          </li>
+          <li>
+            <strong>Scan metadata</strong> — when you run a scan, we log the timestamp, tokens
+            consumed, platform selected, content type (video or image), and analysis duration.
+            No ad content, video files, or images are ever stored. This data is used solely to
+            diagnose technical issues and to evaluate refund requests. Stored via Supabase.
+          </li>
+        </ul>
+
+        <h3 className="text-lg font-semibold mb-2">Account Data (encrypted)</h3>
+        <ul className="list-disc list-inside space-y-2 mb-6">
+          <li>
+            <strong>Password</strong> — your password is encrypted using Supabase's authentication
+            system. We cannot view, access, or modify your password at any time.
+          </li>
+          <li>
+            <strong>Authentication tokens</strong> — session tokens used to keep you logged in are
+            stored locally on your device via Chrome's secure storage API. They are never transmitted
+            to or stored on our servers beyond what Supabase requires for session management.
+          </li>
+        </ul>
+
+        <h3 className="text-lg font-semibold mb-2">Payment Data</h3>
+        <ul className="list-disc list-inside space-y-2 mb-6">
+          <li>
+            <strong>Credit card and billing information</strong> — all payment processing is handled
+            exclusively by Stripe. We never receive, store, or have access to your card details.
+            Stripe is PCI-DSS compliant and maintains its own security standards.
+          </li>
+          <li>
+            <strong>Purchase and transaction records</strong> — retained for 6 years 
+            from the end of the tax year in which the transaction occurred, as required 
+            by the Canada Revenue Agency for tax and accounting compliance. This applies 
+            even if you delete your account.
+          </li>
+        </ul>
+
+        <h3 className="text-lg font-semibold mb-2">Creative Assets (video and image files)</h3>
+        <ul className="list-disc list-inside space-y-2">
+          <li>
+            <strong>Video and image files</strong> — files you submit for scanning are transmitted
+            to our servers solely for policy analysis. They are permanently and automatically deleted
+            the moment your scan results are returned to the extension. We do not store, retain,
+            review, or use your creative assets for any purpose beyond the scan you requested.
+          </li>
+        </ul>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">How We Use Your Data</h2>
+        <ul className="list-disc list-inside space-y-2">
+          <li>To authenticate you and maintain your account session</li>
+          <li>To scan your ad content and return a policy compliance report</li>
+          <li>To manage your token balance accurately across purchases and scans</li>
+          <li>To process payments and evaluate refund requests</li>
+          <li>To diagnose technical issues using anonymised scan metadata</li>
+          <li>To improve Mediacrater's accuracy and features over time</li>
+          <li>To respond to support requests sent to our email</li>
+        </ul>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Data Sharing</h2>
+        <p>
+          We do not sell, rent, or share your personal data with third parties for marketing
+          or advertising purposes. Data is shared only with the third-party service providers
+          listed below, and only to the extent necessary to operate the service.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Third-Party Services</h2>
+        <p className="mb-4">We use the following third-party services to operate Mediacrater:</p>
+        <ul className="list-disc list-inside space-y-2">
+          <li>
+            <strong>Supabase</strong> — user authentication, account data storage, and database
+            management. Supabase stores your email, token balance, purchase records, and scan
+            metadata on our behalf.
+          </li>
+          <li>
+            <strong>Stripe</strong> — payment processing. Stripe handles all credit card and
+            billing data. We do not store payment details.
+          </li>
+          <li>
+            <strong>Hostinger</strong> — server infrastructure. Your ad files pass through our
+            Hostinger-hosted server for scanning and are immediately deleted after results
+            are returned.
+          </li>
+          <li>
+            <strong>Netlify</strong> — website hosting and infrastructure for mediacrater.com.
+          </li>
+          <li>
+            <strong>Netlify Analytics</strong> — anonymous usage analytics for our website.
+            No personally identifiable information is collected.
+          </li>
+          <li>
+            <strong>OpenRouter</strong> — our analysis infrastructure routes content 
+            through OpenRouter for processing. Files are not retained by this provider 
+            beyond the duration of the request.
+          </li>
+        </ul>
+        <p className="mt-4">
+          Each provider maintains their own privacy policies and security standards.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Data Retention</h2>
+        <ul className="list-disc list-inside space-y-2">
+          <li>
+            <strong>Creative assets</strong> — deleted immediately and automatically after scan
+            results are delivered.
+          </li>
+          <li>
+            <strong>Account data</strong> — retained for as long as your account is active.
+          </li>
+          <li>
+            <strong>Scan metadata</strong> — retained for as long as your account is active and
+            used solely for diagnostics and refund evaluation.
+          </li>
+          <li>
+            <strong>Purchase records</strong> — retained for as long as your account is active
+            for billing and refund purposes.
+          </li>
+        </ul>
+        <p className="mt-4">
+          You may request deletion of your account and all associated data at any time by
+          emailing us.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Your Rights</h2>
+        <p className="mb-4">You have the right to:</p>
+        <ul className="list-disc list-inside space-y-2">
+          <li>Request a copy of the personal data we hold about you</li>
+          <li>Request correction of inaccurate data</li>
+          <li>Request deletion of your account and associated data</li>
+          <li>Withdraw consent at any time by closing your account</li>
+          <li>Lodge a complaint with your local data protection authority</li>
+        </ul>
+        <p className="mt-4">
+          To exercise any of these rights, email us at{' '}
+          <a href="mailto:hello.mediacrater@gmail.com" className="underline">
+            hello.mediacrater@gmail.com
+          </a>.
+        </p>
+        <p className="mt-4">
+          We will action all valid deletion requests within a reasonable timeframe. 
+          We reserve the right to decline requests that are manifestly unfounded, 
+          repetitive, or made in bad faith, in accordance with applicable data 
+          protection law.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Cookies and Local Storage</h2>
+        <p>
+          We use only essential cookies and Chrome local storage required for authentication
+          and session management. Your login session is stored locally on your device via
+          Chrome's secure storage API. We do not use advertising, tracking, or analytical
+          cookies within the extension.
+        </p>
+      </section>
+
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">Changes to This Policy</h2>
+        <p>
+          If we make material changes to this policy, we will update the effective date above
+          and, where appropriate, notify you by email. Continued use of Mediacrater after
+          changes constitutes acceptance of the updated policy.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-semibold mb-3">Contact</h2>
+        <p>
+          Questions about this policy? Email us at{' '}
+          <a href="mailto:hello.mediacrater@gmail.com" className="underline">
+            hello.mediacrater@gmail.com
+          </a>.
+        </p>
+      </section>
+
+    </main>
+  )
+}

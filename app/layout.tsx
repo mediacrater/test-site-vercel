@@ -6,55 +6,82 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["400", "500", "600", "700", "800"] });
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"]
+});
 
 export const metadata: Metadata = {
-  title: 'Mediacrater - AI Video Ad Policy Compliance Checker',
+  // ✅ Add metadataBase so Next.js can resolve absolute URLs
+  metadataBase: new URL('https://mediacrater.com'),
+
+  title: 'Video Ad Policy Checker — Scan Before You Upload | Mediacrater',
   description: 'Stop getting banned. Scan video ads for Meta & TikTok policy violations before you upload. Get instant AI confidence scores and actionable fixes.',
   keywords: [
-    // The Solution (Pro Terms)
-    'ad policy checker', 'video ad compliance', 'AI ad creative audit', 'ad scanner extension',
-    // The Symptom (Panic Terms)
-    'Facebook ad rejected', 'TikTok ad account ban', 'Meta ad violation', 'Google ads disapproved',
-    // The Specific Pain
-    'circumventing systems policy', 'unacceptable business practices', 'low quality ad score'
+  'video ad policy checker',
+  'scan ad before uploading',
+  'ad rejection checker',
+  'pre-upload ad compliance',
+  'meta ad policy violation checker',
+  'tiktok ad rejected fix',
+  'google ads disapproved video',
+  'ad creative compliance tool',
+  'facebook ad rejected no reason',
+  'ad account ban prevention',
   ],
   authors: [{ name: 'Mediacrater' }],
   creator: 'Mediacrater',
+  // ✅ Removed: generator: 'v0.app'
+
   openGraph: {
-    title: 'Mediacrater - AI Video Ad Policy Compliance Checker',
+    title: 'Video Ad Policy Checker — Scan Before You Upload | Mediacrater',
     description: 'Scan video ads for policy violations before uploading. Get AI confidence scores and actionable fixes instantly.',
     type: 'website',
     locale: 'en_US',
     siteName: 'Mediacrater',
+    url: 'https://mediacrater.com',
+    // ✅ Added OG image — create this file at /public/images/og-image.png (1200x630px)
+    images: [
+      {
+        url: '/images/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Mediacrater - Scan video ads for policy violations before uploading',
+      }
+    ],
   },
+
   twitter: {
     card: 'summary_large_image',
     title: 'Mediacrater - AI Video Ad Policy Compliance Checker',
     description: 'Scan video ads for policy violations before uploading. Get AI confidence scores and actionable fixes instantly.',
+    // ✅ Added Twitter image
+    images: ['/images/og-image.png'],
   },
+
   robots: {
     index: true,
     follow: true,
   },
+
   icons: {
     icon: [
       {
-        url: '/images/header-logo.png', // Main favicon
-        href: '/images/header-logo.png',
+        url: '/images/header-logo.png',
+        // ✅ Removed invalid 'href' property
       },
       {
-        url: '/images/header-logo-dark.png', // Favicon for dark mode/OS
+        url: '/images/header-logo-dark.png',
         media: '(prefers-color-scheme: dark)',
       },
     ],
     apple: [
       {
-        url: '/images/header-logo.png', // For iPhone home screens
+        url: '/images/header-logo.png',
       },
     ],
   },
-    generator: 'v0.app'
 }
 
 export default function RootLayout({
