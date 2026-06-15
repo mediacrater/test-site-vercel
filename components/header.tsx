@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Menu, X } from "lucide-react"
 
-const EXTENSION_LINK = "https://forms.gle/Di7xxvUSKebeAUDd6"
+const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_header"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -25,11 +25,10 @@ export function Header() {
 
   const navLinks = [
     { href: "#features", label: "Features" },
-    { href: "#how-it-works", label: "How It Works" },
+    { href: "https://www.youtube.com/watch?v=Jk_XtsN1N9I?utm_medium=website_how-it-works", label: "How It Works" },
     { href: "#pricing", label: "Pricing" },
     { href: "#faq", label: "FAQ" },
   ]
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -66,7 +65,7 @@ export function Header() {
             <ThemeToggle />
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
-                Join the waitlist
+                Chrome extension
               </a>
             </Button>
           </div>

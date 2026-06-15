@@ -5,13 +5,13 @@ const steps = [
     icon: Download,
     step: "01",
     title: "Install Extension",
-    description: "Add the Mediacrater Chrome extension with one click. No account required to start.",
+    description: "Add the Mediacrater Chrome extension with one click. Verify your email to start.",
   },
   {
     icon: Upload,
     step: "02",
     title: "Upload Your Ad",
-    description: "Drag and drop your video file. We support all common formats up to 300 seconds.",
+    description: "Drag and drop your video or image file. We support all common formats up to 120 seconds.",
   },
   {
     icon: Settings,

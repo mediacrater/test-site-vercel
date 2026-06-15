@@ -70,9 +70,9 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Visual Audit (3 Scan Depths)",
+    title: "Visual Audit (2 Scan Depths)",
     description:
-      "Choose from Basic (1fp3s) for rapid verification, Strategic (1fps) for detailed review, or Deep (3fps) for frame-by-frame scrutiny on high-risk verticals.",
+      "Choose from Basic for quicker verification with cuts lasting 1 second or more, or Deep for deeper scrutiny on high-risk verticals, which is best used for videos containing fast-paced edits that are less than 1 second long.",
   },
   {
     icon: Mic,
@@ -88,9 +88,9 @@ const features = [
   },
   {
     icon: Lock,
-    title: "Privacy-First Architecture",
+    title: "Scan-and-Forget Architecture",
     description:
-      "Your creative assets never leave your machine during processing. We use FFmpeg.wasm and local Whisper for complete client confidentiality.",
+      "Your creative assets are never stored on our servers. We scan your ad for policy violations and permanently delete it the moment results are returned to you.",
   },
   {
     icon: FileText,

@@ -14,9 +14,9 @@ const faqs = [
       "No. Mediacrater provides a confidence score based on publicly accessible ad policies. Your video is still subject to each platform's proprietary detection algorithms. We help you identify and fix potential issues before uploading, significantly reducing rejection risk, but final approval is always at the platform's discretion.",
   },
   {
-    question: "How does the token system work?",
+    question: "How does the scan system work?",
     answer:
-      "Each scan consumes tokens based on video length, scan depth, platforms, and audio analysis. A basic scan of a short video (<50s) on one platform costs just 1 token. Longer videos, deeper scans, or multi-platform checks add more tokens. You can see the exact token cost before each scan.",
+      "One scan deducts one from your scan amount regardless of scan type or video length. You can see the exact cost before each scan, always one.",
   },
   {
     question: "Is my video data secure?",
@@ -31,22 +31,22 @@ const faqs = [
   {
     question: "What's the difference between scan depths?",
     answer:
-      "Basic Scan (1fp3s) captures 1 frame every 3 seconds—ideal for simple product ads. Strategic Scan (1fps) captures 1 frame per second for detailed campaigns. Deep Scan (3fps) provides frame-by-frame analysis, perfect for high-risk verticals like Healthcare, Finance, or political advertising.",
+      "Basic Scan is ideal for simple product ads with no fast cuts. The Deep Scan is ideal for videos with cuts that last 1 second or less.",
   },
   {
     question: "Do unused tokens expire?",
     answer:
-      "For one-time purchases, tokens never expire. For monthly subscriptions, unused tokens roll over for 3 months. Annual subscribers enjoy tokens that never expire, plus significant discounts of up to 55% off.",
+      "For one-time purchases, tokens never expire. As we continue to improve the software, we may introduce monthly and yearly subscriptions with tokens that do expire without a set timeline as of now.",
   },
   {
     question: "Can I get a refund?",
     answer:
-      "Tokens are non-refundable once used for scans. Unused tokens from one-time purchases can be refunded within 14 days. For subscriptions, you can cancel anytime, and unused tokens remain valid according to the rollover policy.",
+      "Tokens cannot be reaccumulated once used for scans. Unused tokens from one-time purchases can be refunded within 14 days of purchase. We may deduct the unrecoverable processing fees from refunds. Subscriptions are non refundable, you can cancel anytime, and unused tokens remain valid according to the rollover policy.",
   },
   {
     question: "Is Mediacrater affiliated with Meta, TikTok, or Google?",
     answer:
-      "No. Mediacrater is an independent tool and is not affiliated with, endorsed by, or sponsored by any of the platforms we analyze. Platform logos are displayed solely for user experience to indicate which policies are being checked.",
+      "No. Mediacrater is an independent tool and is not affiliated with, endorsed by, or sponsored by any of the platforms we analyze including Meta. Platform logos are displayed solely for user experience to indicate which policies are being checked.",
   },
 ]
 

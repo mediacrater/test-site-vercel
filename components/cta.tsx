@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Shield } from "lucide-react"
 
-const EXTENSION_LINK = "https://forms.gle/Di7xxvUSKebeAUDd6"
+const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_footer_cta"
 
 export function CTA() {
   return (
@@ -22,13 +22,13 @@ export function CTA() {
           >
             <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
               <Shield className="w-5 h-5 mr-2" />
-              Join the waitlist today
+              Try for free
             </a>
           </Button>
         </div>
 
         <p className="mt-6 text-sm text-primary-foreground/60">
-          10 free tokens included. No credit card required.
+          3 free monthly scans included. No credit card required.
         </p>
       </div>
     </section>

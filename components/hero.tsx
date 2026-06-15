@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Shield, CheckCircle, Zap } from "lucide-react"
 
-const EXTENSION_LINK = "https://forms.gle/Di7xxvUSKebeAUDd6"
+const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_hero"
 
 export function Hero() {
   return (
@@ -18,7 +18,7 @@ export function Hero() {
           {/* Badge */}
           <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
             <Zap className="w-4 h-4 mr-2 text-accent" />
-            10 Free Tokens on Signup
+            3 Free Tokens on Signup
           </Badge>
 
           {/* Headline */}
@@ -33,7 +33,7 @@ export function Hero() {
           {/* Subheadline */}
           <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-pretty">
             Scan your video ads for Meta, TikTok, and Google policy violations before uploading.
-            Get instant AI confidence scores and actionable fixes in 60 seconds.
+            Get instant confidence scores and actionable fixes in 60 seconds.*
           </p>
 
           {/* CTA Buttons */}
@@ -45,7 +45,7 @@ export function Hero() {
             >
               <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
                 <Shield className="w-5 h-5 mr-2" />
-                Join the waitlist
+                Try for free
               </a>
             </Button>
             <Button
@@ -54,7 +54,7 @@ export function Hero() {
               size="lg"
               className="text-base px-8 py-6 border-border hover:bg-secondary bg-transparent"
             >
-              <a href="#how-it-works">See How It Works</a>
+              <a href="https://www.youtube.com/watch?v=Jk_XtsN1N9I?utm_medium=website_how-it-works">See How It Works</a>
             </Button>
           </div>
 
@@ -70,7 +70,7 @@ export function Hero() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-accent" />
-              <span>As low as $0.85/scan</span>
+              <span>As low as $0.19/scan</span>
             </div>
           </div>
 

@@ -35,7 +35,7 @@ export function Footer() {
               className="h-16 w-auto"
             />
             <p className="mt-4 text-background/70 max-w-md leading-relaxed">
-              The first comprehensive AI-driven Chrome extension designed to be the final gatekeeper for your ad creatives.
+              The first comprehensive Chrome extension designed to be the final gatekeeper for your ad creatives.
               Scan before you upload. Protect your ad accounts.
             </p>
           </div>
@@ -55,8 +55,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-background/70 hover:text-background transition-colors">
-                  Pricing
+                <Link href="/about" className="text-background/70 hover:text-background transition-colors">
+                  About Us
                 </Link>
               </li>
               <li>
@@ -100,7 +100,11 @@ export function Footer() {
             Platform logos are displayed solely for user experience. Mediacrater is not responsible for misuse of ad platforms or account bans.
           </p>
         </div>
-
+        <div className="mt-12 pt-8 border-t border-background/20">
+          <p className="text-xs text-background/50 leading-relaxed max-w-4xl">
+            *The "Get instant confidence scores and actionable fixes in 60 seconds" claim varies based on the length of your video.
+          </p>
+        </div>  
         {/* Copyright */}
         <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-background/60">

@@ -1,198 +1,286 @@
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Check } from "lucide-react"
+'use client'
 
-const EXTENSION_LINK = "https://forms.gle/Di7xxvUSKebeAUDd6"
+import { Check, Minus } from 'lucide-react'
 
-const pricingTiers = [
+const EXTENSION_URL =
+  'https://chromewebstore.google.com/detail/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_pricing'
+
+const plans = [
   {
-    name: "Starter",
-    price: "$19",
-    period: "one-time",
-    tokens: "10 tokens",
-    scans: "~5-10 scans",
-    perToken: "$1.90/token",
-    features: [
-      "All scan depths available",
-      "All platforms supported",
-      "Audio transcription",
-      "Frame-by-frame analysis",
-      "Fix recommendations",
-    ],
+    name: 'Free',
+    price: '$0',
+    period: '/mo',
+    scans: '3 scans / mo',
+    campaigns: '1 campaign / mo',
+    description: 'Get started with no commitment',
+    cta: 'Get started',
     popular: false,
   },
   {
-    name: "Pro",
-    price: "$90",
-    period: "one-time",
-    tokens: "60 tokens",
-    scans: "~40-60 scans",
-    perToken: "$1.50/token",
-    features: [
-      "Everything in Starter",
-      "Priority processing",
-      "Scan history saved",
-      "Export reports as PDF",
-      "Email support",
-    ],
-    popular: true,
+    name: 'Startup',
+    price: '$10',
+    period: '/mo',
+    scans: '20 scans / mo',
+    campaigns: '3–6 campaigns / mo',
+    description: 'For solo dropshippers testing creatives',
+    cta: 'Get Startup',
+    popular: false,
   },
   {
-    name: "Agency",
-    price: "$600",
-    period: "one-time",
-    tokens: "500 tokens",
-    scans: "~250-500 scans",
-    perToken: "$1.20/token",
-    savings: "Save 37%",
-    features: [
-      "Everything in Pro",
-      "Bulk scanning",
-      "Team management",
-      "API access",
-      "Dedicated support",
-    ],
+    name: 'Established',
+    price: '$40',
+    period: '/mo',
+    scans: '100 scans / mo',
+    campaigns: '20–33 campaigns / mo',
+    description: 'For brands running consistent paid campaigns',
+    cta: 'Get Established',
+    popular: false,
+  },
+  {
+    name: 'Scaler',
+    price: '$80',
+    period: '/mo',
+    scans: '250 scans / mo',
+    campaigns: '50–83 campaigns / mo',
+    description: 'For media buyers scaling across multiple offers',
+    cta: 'Get Scaler',
+    popular: false,
+  },
+  {
+    name: 'Agency',
+    price: '$200',
+    period: '/mo',
+    scans: '1000 scans / mo',
+    campaigns: '200–300+ campaigns / mo',
+    description: 'For agencies managing multiple client accounts',
+    cta: 'Get Agency',
     popular: false,
   },
 ]
+
+type CellValue = boolean | string
+
+const featureRows: { label: string; sub?: string; values: CellValue[] }[] = [
+  {
+    label: 'Video & image scanning',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'All platforms supported',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'Violation timestamps & fixes',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'Scan type',
+    values: ['Regular', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep'],
+  },
+  {
+    label: 'Monthly scans',
+    values: ['3', '20', '100', '250', '1000'],
+  },
+  {
+    label: 'Campaigns / month',
+    values: ['1', '3–6', '20–33', '50–83', '200-300+'],
+  },
+  {
+    label: 'Priority processing',
+    values: [false, true, true, true, true],
+  },
+  {
+    label: 'Scan history',
+    values: [false, true, true, true, true],
+  },
+  {
+    label: 'Dedicated account manager',
+    values: [false, false, false, false, true],
+  },
+]
+
+function Cell({ value }: { value: CellValue }) {
+  if (typeof value === 'boolean') {
+    return value ? (
+      <Check className="w-4 h-4 mx-auto text-emerald-500" strokeWidth={2.5} />
+    ) : (
+      <Minus className="w-4 h-4 mx-auto text-muted-foreground/30" strokeWidth={2} />
+    )
+  }
+  return (
+    <span className="text-sm font-medium text-foreground">
+      {value}
+    </span>
+  )
+}
+
+// How many plan columns come before the popular one (0-indexed)
+const popularIndex = plans.findIndex((p) => p.popular)
 
 export function Pricing() {
   return (
     <section id="pricing" className="py-20 md:py-32 bg-secondary/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance">
             Simple, Transparent Pricing
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
-            As low as $0.85 per scan. Pay only for what you use.
+            Pick a plan based on how many campaigns you run per month.
+            Cancel or change anytime. Subscriptions are managed through the{' '}
+            <a
+              href={EXTENSION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
+              Chrome extension
+            </a>
           </p>
+        </div>
 
-          {/* Token Explanation */}
-          <div className="mt-8 p-6 rounded-xl bg-card border border-border max-w-2xl mx-auto">
-            <h3 className="font-semibold text-foreground mb-3">How Tokens Work</h3>
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p>
-                <span className="font-medium text-foreground">Base Scan = 1 Token:</span> Videos under 50s, Basic scan, 1 platform
-              </p>
-              <p className="text-left">
-                <span className="font-medium text-foreground">Add tokens for:</span> Longer videos (+1-5), Deep scan (+2), Multi-platform (+2), Audio (+1)
-              </p>
+        <div className="relative pt-5">
+
+          {/* Most popular badge — positioned above the popular column header */}
+          <div
+            className="absolute top-0 left-0 right-0 pointer-events-none"
+            aria-hidden="true"
+          >
+            {/* We use a flex row that mirrors the table column widths to place the badge */}
+            <div className="flex min-w-[700px]">
+              {/* Feature label column: w-[220px] */}
+              <div className="w-[220px] shrink-0" />
+              {plans.map((plan) => (
+                <div key={plan.name} className="flex-1 flex justify-center">
+                  {plan.popular && (
+                    <span className="bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap uppercase tracking-wider">
+                      Most popular
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pricing table */}
+          <div className="rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] border-collapse">
+
+                {/* Plan headers */}
+                <thead>
+                  <tr>
+                    {/* Feature label column */}
+                    <th className="w-[220px] bg-card px-6 pt-8 pb-5 text-left align-bottom border-r border-border">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        Features
+                      </span>
+                    </th>
+
+                    {plans.map((plan) => (
+                      <th
+                        key={plan.name}
+                        className={`px-4 pt-8 pb-5 text-center align-bottom border-r last:border-r-0 border-border ${
+                          plan.popular ? 'bg-primary' : 'bg-card'
+                        }`}
+                      >
+                        <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${
+                          plan.popular ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        }`}>
+                          {plan.name}
+                        </div>
+                        <div className="flex items-baseline justify-center gap-0.5 mb-3">
+                          <span className={`text-2xl font-bold ${
+                            plan.popular ? 'text-primary-foreground' : 'text-foreground'
+                          }`}>
+                            {plan.price}
+                          </span>
+                          <span className={`text-xs ${
+                            plan.popular ? 'text-primary-foreground/60' : 'text-muted-foreground'
+                          }`}>
+                            {plan.period}
+                          </span>
+                        </div>
+                        <p className={`text-[11px] leading-relaxed mb-2.5 ${
+                          plan.popular ? 'text-primary-foreground/60' : 'text-muted-foreground'
+                        }`}>
+                          {plan.description}
+                        </p>
+                        <a
+                          href={EXTENSION_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`block w-full text-center py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90 ${
+                            plan.popular
+                              ? 'bg-accent text-accent-foreground'
+                              : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20'
+                          }`}
+                        >
+                          {plan.cta}
+                        </a>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                {/* Feature rows */}
+                <tbody>
+                  {featureRows.map((row, rowIdx) => (
+                    <tr
+                      key={row.label}
+                      className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}
+                    >
+                      {/* Feature label */}
+                      <td className="px-6 py-4 border-r border-border">
+                        <span className="text-sm text-foreground/80 font-medium">{row.label}</span>
+                        {row.sub && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{row.sub}</p>
+                        )}
+                      </td>
+
+                      {plans.map((plan, planIdx) => (
+                        <td
+                          key={plan.name}
+                          className={`px-4 py-4 text-center border-r last:border-r-0 border-border ${
+                            plan.popular ? 'bg-primary/5' : ''
+                          }`}
+                        >
+                          <Cell value={row.values[planIdx]} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
             </div>
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {pricingTiers.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative rounded-2xl p-8 ${
-                tier.popular
-                  ? "bg-primary text-primary-foreground ring-2 ring-primary"
-                  : "bg-card border border-border"
-              }`}
-            >
-              {tier.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
-                  Most Popular
-                </Badge>
-              )}
-
-              {tier.savings && (
-                <Badge
-                  variant="secondary"
-                  className={`absolute -top-3 left-1/2 -translate-x-1/2 ${
-                    tier.popular ? "bg-accent text-accent-foreground" : ""
-                  }`}
-                >
-                  {tier.savings}
-                </Badge>
-              )}
-
-              <div className="text-center mb-6">
-                <h3
-                  className={`text-xl font-bold mb-2 font-[family-name:var(--font-display)] ${
-                    tier.popular ? "text-primary-foreground" : "text-foreground"
-                  }`}
-                >
-                  {tier.name}
-                </h3>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span
-                    className={`text-4xl font-bold ${
-                      tier.popular ? "text-primary-foreground" : "text-foreground"
-                    }`}
-                  >
-                    {tier.price}
-                  </span>
-                  <span
-                    className={`text-sm ${
-                      tier.popular ? "text-primary-foreground/70" : "text-muted-foreground"
-                    }`}
-                  >
-                    {tier.period}
-                  </span>
-                </div>
-                <p
-                  className={`mt-2 text-sm ${
-                    tier.popular ? "text-primary-foreground/80" : "text-muted-foreground"
-                  }`}
-                >
-                  {tier.tokens} ({tier.scans})
-                </p>
-                <p
-                  className={`text-xs ${
-                    tier.popular ? "text-primary-foreground/60" : "text-muted-foreground"
-                  }`}
-                >
-                  {tier.perToken}
-                </p>
-              </div>
-
-              <ul className="space-y-3 mb-8">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check
-                      className={`w-5 h-5 shrink-0 mt-0.5 ${
-                        tier.popular ? "text-accent" : "text-accent"
-                      }`}
-                    />
-                    <span
-                      className={`text-sm ${
-                        tier.popular ? "text-primary-foreground/90" : "text-muted-foreground"
-                      }`}
-                    >
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                asChild
-                className={`w-full ${
-                  tier.popular
-                    ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                }`}
-              >
-                <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
-                  Get Started
-                </a>
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        {/* Annual Savings Note */}
-        <p className="text-center mt-8 text-sm text-muted-foreground">
-          Need more? Annual plans available with up to 55% savings.{" "}
-          <a href="#faq" className="text-primary hover:underline">
-            Learn more
-          </a>
+        {/* Trust line */}
+        <p className="text-center text-sm text-muted-foreground mt-10 flex items-center justify-center gap-2 flex-wrap">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-4 h-4"
+          >
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          Secure checkout via Stripe
+          <span className="text-border">·</span>
+          Cancel anytime
+          <span className="text-border">·</span>
+          No hidden fees
         </p>
+
       </div>
     </section>
   )
