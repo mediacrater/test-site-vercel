@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Mediacrater' }],
   creator: 'Mediacrater',
-  // ✅ Removed: generator: 'v0.app'
+
 
   openGraph: {
     title: 'Video Ad Policy Checker — Scan Before You Upload | Mediacrater',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     siteName: 'Mediacrater',
     url: 'https://mediacrater.com',
-    // ✅ Added OG image — create this file at /public/images/og-image.png (1200x630px)
+
     images: [
       {
         url: '/images/og-image.png',
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Mediacrater - AI Video Ad Policy Compliance Checker',
     description: 'Scan video ads for policy violations before uploading. Get AI confidence scores and actionable fixes instantly.',
-    // ✅ Added Twitter image
+
     images: ['/images/og-image.png'],
   },
 
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     icon: [
       {
         url: '/images/header-logo.png',
-        // ✅ Removed invalid 'href' property
+
       },
       {
         url: '/images/header-logo-dark.png',
