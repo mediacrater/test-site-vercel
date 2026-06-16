@@ -78,7 +78,7 @@ export function AdAccountInsurance() {
         {/* Closing CTA */}
         <div className="text-center">
           <p className="text-muted-foreground text-base mb-6 max-w-xl mx-auto text-pretty">
-            This isn’t just about protecting one ad. It’s about building the account history that platforms reward — the kind most of your competitors don’t have.
+            This isn’t just about protecting one ad. It’s about building the account history that platforms reward. The kind most of your competitors don’t have.
           </p>
           <a
             href={EXTENSION_URL}
