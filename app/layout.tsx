@@ -65,6 +65,10 @@ export const metadata: Metadata = {
     follow: true,
   },
 
+  alternates: {
+    canonical: 'https://mediacrater.com',
+  },
+  
   icons: {
     icon: [
       {
