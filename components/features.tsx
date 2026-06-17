@@ -1,6 +1,6 @@
 "use client"
 
-import { Shield, Eye, Mic, Zap, Lock, FileText, AlertTriangle, CheckCircle, ArrowRight, Notebook } from "lucide-react"
+import { Shield, Headphones, Mic, Zap, Lock, FileText, AlertTriangle, CheckCircle, ArrowRight, Notebook } from "lucide-react"
 import { useState, useEffect } from "react"
 
 // Animated Fix Recommendation Visual Component
@@ -75,10 +75,10 @@ const features = [
       "Choose from Basic for quicker verification with cuts lasting 1 second or more, or Deep for deeper scrutiny on high-risk verticals, which is best used for videos containing fast-paced edits that are less than 1 second long.",
   },
   {
-    icon: Eye,
+    icon: Headphones,
     title: "Script & Audio Analysis (Coming soon)",
     description:
-      "Integrated local Whisper transcription scans your ad's audio for restricted keywords, prohibited claims, and misleading guarantees without sending data externally.",
+      "Your ad's audio will be processed and analysed for restricted keywords, prohibited claims, and misleading guarantees without sending data externally.",
   },
   {
     icon: Zap,
