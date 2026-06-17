@@ -1,6 +1,6 @@
 "use client"
 
-import { Shield, Eye, Mic, Zap, Lock, FileText, AlertTriangle, CheckCircle, ArrowRight } from "lucide-react"
+import { Shield, Eye, Mic, Zap, Lock, FileText, AlertTriangle, CheckCircle, ArrowRight, Notebook } from "lucide-react"
 import { useState, useEffect } from "react"
 
 // Animated Fix Recommendation Visual Component
@@ -63,10 +63,10 @@ function FixAnimationVisual() {
 
 const features = [
   {
-    icon: Eye,
+    icon: Notebook,
     title: "Multi-Platform Policy Engine",
     description:
-      "Cross-references your ad against platform-specific rulebooks for YouTube, Meta, TikTok, and more. What passes on Pinterest might be rejected on TikTok—Mediacrater knows the difference.",
+      "Cross-references your ad against platform-specific rulebooks for YouTube, Meta, TikTok, and more. What passes on Pinterest might be rejected on TikTok, Mediacrater knows the difference.",
   },
   {
     icon: Shield,
@@ -75,8 +75,8 @@ const features = [
       "Choose from Basic for quicker verification with cuts lasting 1 second or more, or Deep for deeper scrutiny on high-risk verticals, which is best used for videos containing fast-paced edits that are less than 1 second long.",
   },
   {
-    icon: Mic,
-    title: "Script & Audio Analysis",
+    icon: Eye,
+    title: "Script & Audio Analysis (Coming soon)",
     description:
       "Integrated local Whisper transcription scans your ad's audio for restricted keywords, prohibited claims, and misleading guarantees without sending data externally.",
   },
@@ -96,7 +96,7 @@ const features = [
     icon: FileText,
     title: "Actionable Fix Recommendations",
     description:
-      "We don't just find problems—we solve them. Get specific suggestions like 'Focus on product benefits rather than implied instant results.'",
+      "We don't just find problems, we solve them. Get specific suggestions like 'Focus on product benefits rather than implied instant results.'",
     hasVisual: true,
   },
 ]
