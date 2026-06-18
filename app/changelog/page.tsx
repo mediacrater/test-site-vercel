@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Changelog – Mediacrater',
-  description: 'See what's new in each version of Mediacrater.',
+  description: 'See what is new in each version of Mediacrater.',
 };
 
 export default function ChangelogPage() {
