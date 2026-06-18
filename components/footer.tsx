@@ -64,6 +64,11 @@ export function Footer() {
                   FAQ
                 </Link>
               </li>
+                <li>
+                <Link href="/changelog" className="text-background/70 hover:text-background transition-colors">
+                  Changelogs
+                </Link>
+              </li>
             </ul>
           </div>
 
