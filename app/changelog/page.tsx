@@ -7,7 +7,7 @@ export default function ChangelogPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-bold mb-2">Changelog</h1>
-      <p className="text-muted-foreground mb-12">What's new in Mediacrater.</p>
+      <p className="text-muted-foreground mb-12">What is new in Mediacrater.</p>
 
       <div className="space-y-12">
         <section>
