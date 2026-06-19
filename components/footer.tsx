@@ -99,15 +99,15 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-background/20">
           <p className="text-xs text-background/50 leading-relaxed max-w-4xl">
             <strong>Disclaimer:</strong> Mediacrater does not make any promises or guarantees that a video ad will be approved.
-            Our software provides a general confidence score based on publicly accessible ad policies. Your video is still subject
+            Our software provides a general confidence assessment based on publicly accessible ad policies. Your video is still subject
             to each platform's detection algorithms. Mediacrater does not replace, mirror, or bypass advertising detection algorithms
-            of Meta, TikTok, YouTube/Google, Pinterest, or X. We are not affiliated with, endorsed by, or sponsored by any of these platforms.
+            of Facebook and Instagram (Meta), TikTok, YouTube, Google, Pinterest, or X. We are not affiliated with, endorsed by, or sponsored by any of these platforms.
             Platform logos are displayed solely for user experience. Mediacrater is not responsible for misuse of ad platforms or account bans.
           </p>
         </div>
         <div className="mt-12 pt-8 border-t border-background/20">
           <p className="text-xs text-background/50 leading-relaxed max-w-4xl">
-            *The "Get instant confidence scores and actionable fixes in 60 seconds" claim varies based on the length of your video.
+            *The "Get instant confidence scores and actionable fixes in 60 seconds" claim varies based on the length of your video and scan type.
           </p>
         </div>  
         {/* Copyright */}
