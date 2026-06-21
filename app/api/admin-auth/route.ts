@@ -1,85 +1,60 @@
-// app/api/admin-data/route.ts
-import { NextResponse } from 'next/server';
+// app/api/admin-auth/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
-import { verifySessionToken, SESSION_COOKIE_NAME } from '../../../lib/adminSession';
+import { signSessionToken, SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from '../../../lib/adminSession';
 
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function GET() {
-  // Re-verify the admin session on every data fetch — this route
-  // returns real business data, so it must never trust the client.
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const isAuthenticated = sessionToken ? verifySessionToken(sessionToken) : false;
-
-  if (!isAuthenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    // ── Revenue summary ──────────────────────────────────────
-    const { data: purchases, error: purchasesError } = await supabaseAdmin
-      .from('purchases')
-      .select('amount_paid, plan, created_at')
-      .order('created_at', { ascending: false });
+    const { email, password } = await req.json();
 
-    if (purchasesError) throw purchasesError;
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
+    }
 
-    const totalRevenue = (purchases || []).reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+    const { data: adminRow, error } = await supabaseAdmin
+      .from('admin')
+      .select('email, password_hash')
+      .eq('email', email)
+      .single();
 
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const revenueLast30Days = (purchases || [])
-      .filter(p => new Date(p.created_at) >= thirtyDaysAgo)
-      .reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+    if (error || !adminRow) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
 
-    // ── User / plan breakdown ────────────────────────────────
-    const { data: profiles, error: profilesError } = await supabaseAdmin
-      .from('profiles')
-      .select('plan, scans_made, created_at');
+    const passwordMatches = await bcrypt.compare(password, adminRow.password_hash);
 
-    if (profilesError) throw profilesError;
+    if (!passwordMatches) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
 
-    const totalUsers = (profiles || []).length;
+    const token = signSessionToken(adminRow.email);
+    const cookieStore = await cookies();
 
-    const planCounts: Record<string, number> = {};
-    (profiles || []).forEach(p => {
-      const plan = p.plan || 'free';
-      planCounts[plan] = (planCounts[plan] || 0) + 1;
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: SESSION_MAX_AGE_SECONDS,
+      path: '/',
     });
 
-    const paidUsers = (profiles || []).filter(p => p.plan && p.plan !== 'free').length;
+    return NextResponse.json({ success: true });
 
-    // ── Recent scans feed ─────────────────────────────────────
-    const { data: recentScans, error: scansError } = await supabaseAdmin
-      .from('scans')
-      .select('email, target_platform, scan_type, content_type, violations_found, analysis_duration_ms, created_at')
-      .order('created_at', { ascending: false })
-      .limit(25);
-
-    if (scansError) throw scansError;
-
-    return NextResponse.json({
-      revenue: {
-        total: totalRevenue,
-        last30Days: revenueLast30Days,
-        totalPurchases: (purchases || []).length,
-      },
-      users: {
-        total: totalUsers,
-        paid: paidUsers,
-        free: totalUsers - paidUsers,
-        byPlan: planCounts,
-      },
-      recentScans: recentScans || [],
-    });
-
-  } catch (error: any) {
-    console.error('Admin data fetch error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch dashboard data' }, { status: 500 });
+  } catch (err) {
+    console.error('Admin auth error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+  return NextResponse.json({ success: true });
 }
