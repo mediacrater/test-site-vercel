@@ -1,7 +1,7 @@
 // lib/adminSession.ts
 import crypto from 'crypto';
 
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET!;
+const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12; // 12 hours
 
 export const SESSION_COOKIE_NAME = 'mc_admin_session';
