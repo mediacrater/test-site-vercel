@@ -68,9 +68,20 @@ export default function TermsOfService() {
           <li>Resell or redistribute scan results without permission</li>
         </ul>
       </section>
+      
+      <section className="mb-10">
+        <h2 className="text-xl font-semibold mb-3">6. Abuse</h2>
+        <p>
+          We want to keep our free plan for those who truly need it. Whether it's for the small dropshipper 
+          just starting out or a new media buyer running their first ads, the free plan is for you. To enforce
+          this and to prevent abuse, we collect and store your IP address upon account creation. If there are 2
+          or more accounts that have the same IP address that are both on the free plan, we reserve the right to
+          deny access to our services indefinitely. Please use responsibly.
+        </p>
+      </section>
 
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">6. Your Content</h2>
+        <h2 className="text-xl font-semibold mb-3">7. Your Content</h2>
         <p>
           You retain full ownership of any video files you submit. By submitting a file, you grant
           Mediacrater a limited, temporary license to process it for the purpose of delivering your
@@ -80,7 +91,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">7. Intellectual Property</h2>
+        <h2 className="text-xl font-semibold mb-3">8. Intellectual Property</h2>
         <p>
           All Mediacrater software, branding, and content is owned by Mediacrater. You may not
           copy, modify, or distribute any part of the service without written permission.
@@ -90,7 +101,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">8. Limitation of Liability</h2>
+        <h2 className="text-xl font-semibold mb-3">9. Limitation of Liability</h2>
         <p>
           Mediacrater is provided "as is." We are not liable for ad rejections, account bans,
           revenue loss, or any other damages arising from your use of the service or reliance
@@ -100,7 +111,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">9. Changes to the Service</h2>
+        <h2 className="text-xl font-semibold mb-3">10. Changes to the Service</h2>
         <p>
           We reserve the right to modify or discontinue the service at any time. We will make
           reasonable efforts to notify users of significant changes. Continued use after changes
@@ -109,7 +120,7 @@ export default function TermsOfService() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-3">10. Contact</h2>
+        <h2 className="text-xl font-semibold mb-3">11. Contact</h2>
         <p>
           For questions about these terms, email{' '}
           <a href="mailto:hello.mediacrater@gmail.com" className="underline">
