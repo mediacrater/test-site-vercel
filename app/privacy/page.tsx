@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
             diagnose technical issues and to evaluate refund requests. Stored via Supabase.
           </li>
           <li>
-            <strong>Queue metadate</strong> — Our queuing system is designed to allocate our limited 
+            <strong>Queue metadata</strong> — Our queuing system is designed to allocate our limited 
             server resources appropriately so everyone gets a chance to scan their ads. When you run 
             a scan and you're placed in our queuing system, we generate a queue ID and your scan
             metadata is logged with it. This includes your plan, user ID, scan type, content type, status,
