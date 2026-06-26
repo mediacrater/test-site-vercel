@@ -7,18 +7,20 @@ export default function ChangelogPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-bold mb-2">Changelog</h1>
-      <p className="text-muted-foreground mb-12">What is new in Mediacrater.</p>
+      <p className="text-muted-foreground mb-12">Everything we've added to Mediacrater so far.</p>
 
       <div className="space-y-12">
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-semibold">Alpha 1.1.1</h2>
-            <span className="text-xs text-muted-foreground">June 2026</span>
+            <h2 className="text-xl font-semibold">Alpha 1.5</h2>
+            <span className="text-xs text-muted-foreground">July 2026</span>
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
             <li>Added keyboard shortcuts (W / A / S / D) for panel navigation</li>
             <li>Fixed header disappearing when switching from History to Settings</li>
             <li>Scan history no longer opens a new tab</li>
+            <li>Abuse prevention measures added</li>
+            <li>Queueing system added</li>
           </ul>
         </section>
         <section>
@@ -32,6 +34,7 @@ export default function ChangelogPage() {
             <li>UI improvements</li>
             <li>Bug fixes</li>
             <li>Contact support and rate us links in the settings page for easy access</li>
+            <li>Email verification now required</li>
           </ul>
         </section>
 
