@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
                 href="https://mediacrater.com/terms"
                 style={{ textDecoration: 'underline', cursor: 'pointer' }}
               >
-                Terms and Conditions
+                Terms of Service
               </a>.
           </li>   
         </ul>
