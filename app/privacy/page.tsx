@@ -68,6 +68,9 @@ export default function PrivacyPolicy() {
             stored locally on your device via Chrome's secure storage API. They are never transmitted
             to or stored on our servers beyond what Supabase requires for session management.
           </li>
+          <li>
+            <strong>Device address</strong> — we collect your device IP address at the time of account creation solely to prevent abuse of our free tier. Read more about this in our <a href="https://mediacrater.com/terms">Terms and Conditions</a>.
+          </li>   
         </ul>
 
         <h3 className="text-lg font-semibold mb-2">Payment Data</h3>
