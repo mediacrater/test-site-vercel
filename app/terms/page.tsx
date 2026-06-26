@@ -73,7 +73,7 @@ export default function TermsOfService() {
         <h2 className="text-xl font-semibold mb-3">6. Abuse</h2>
         <p>
           We want to keep our free plan for those who truly need it. Whether it's for the small dropshipper 
-          just starting out or a new media buyer running their first ads, the free plan is for you. To enforce
+          just starting out or a new media buyer running their first campaign of creatives, the free plan is for you. To enforce
           this and to prevent abuse, we collect and store your IP address upon account creation. If there are 2
           or more accounts that have the same IP address that are both on the free plan, we reserve the right to
           deny access to our services indefinitely. Please use responsibly.
