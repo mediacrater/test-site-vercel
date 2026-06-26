@@ -69,7 +69,13 @@ export default function PrivacyPolicy() {
             to or stored on our servers beyond what Supabase requires for session management.
           </li>
           <li>
-            <strong>Device address</strong> — we collect your device IP address at the time of account creation solely to prevent abuse of our free tier. Read more about this in our <a href="https://mediacrater.com/terms">Terms and Conditions</a>.
+            <strong>Device address</strong> — we collect your device IP address at the time of account creation solely to prevent abuse of our free tier. Read more about this in our{' '}
+              <a
+                href="https://mediacrater.com/terms"
+                style={{ textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                Terms and Conditions
+              </a>.
           </li>   
         </ul>
 
