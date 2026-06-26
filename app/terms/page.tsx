@@ -74,10 +74,11 @@ export default function TermsOfService() {
         <p>
           We want to keep our free plan for those who truly need it. Whether it's for the small dropshipper 
           just starting out or a new media buyer running their first campaign of creatives, the free plan is for you. To enforce
-          this and to prevent abuse, we collect and store your IP address upon account creation. If there are 2
+          this and to prevent abuse, we collect and store your IP address upon account creation. If we detect 2
           or more accounts that have the same IP address that are both on the free plan, we reserve the right to
-          deny access to our services indefinitely. Please use responsibly.
+          deny access to our services indefinitely to comply and adhere to our policy. Please use responsibly.
         </p>
+        <p><strong>Note:</strong> Mediacrater accepts the use of 2 or more accounts when they're all registered on any paid plan.</p>
       </section>
 
       <section className="mb-10">
