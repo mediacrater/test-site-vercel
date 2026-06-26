@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
           the data we collect, why we collect it, and how it is stored.
         </p>
 
-        <h3 className="text-lg font-semibold mb-2">Account Data (unencrypted)</h3>
+        <h3 className="text-lg font-semibold mb-2">Account Data</h3>
         <ul className="list-disc list-inside space-y-2 mb-6">
           <li>
             <strong>Email address</strong> — collected at registration to identify your account
@@ -52,10 +52,13 @@ export default function PrivacyPolicy() {
             No ad content, video files, or images are ever stored. This data is used solely to
             diagnose technical issues and to evaluate refund requests. Stored via Supabase.
           </li>
-        </ul>
-
-        <h3 className="text-lg font-semibold mb-2">Account Data (encrypted)</h3>
-        <ul className="list-disc list-inside space-y-2 mb-6">
+          <li>
+            <strong>Queue metadate</strong> — Our queuing system is designed to allocate our limited 
+            server resources appropriately so everyone gets a chance to scan their ads. When you run 
+            a scan and you're placed in our queuing system, we generate a queue ID and your scan
+            metadata is logged with it. This includes your plan, user ID, scan type, content type, status,
+            timestamps, how long you waited in queue and payload size.
+          </li>
           <li>
             <strong>Password</strong> — your password is encrypted using Supabase's authentication
             system. We cannot view, access, or modify your password at any time.
@@ -134,16 +137,11 @@ export default function PrivacyPolicy() {
             are returned.
           </li>
           <li>
-            <strong>Netlify</strong> — website hosting and infrastructure for mediacrater.com.
+            <strong>Vercel</strong> — website hosting and infrastructure for mediacrater.com.
           </li>
           <li>
-            <strong>Netlify Analytics</strong> — anonymous usage analytics for our website.
+            <strong>Vercel Analytics</strong> — anonymous usage analytics for our website.
             No personally identifiable information is collected.
-          </li>
-          <li>
-            <strong>OpenRouter</strong> — our analysis infrastructure routes content 
-            through OpenRouter for processing. Files are not retained by this provider 
-            beyond the duration of the request.
           </li>
         </ul>
         <p className="mt-4">
