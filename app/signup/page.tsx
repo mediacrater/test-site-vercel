@@ -17,53 +17,37 @@ export default function SignupPage() {
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setLoading(false);
-      return;
+  if (password.length < 6) {
+    setError('Password must be at least 6 characters');
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/signup', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Signup failed');
     }
 
-    try {
-      // Generate a browser ID for tracking (optional, can be null for web signups)
-      const browserId = null; // We don't track browser for web signups
+    setSuccess(true);
 
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({ 
-          email, 
-          password,
-          options: {
-            data: {
-              browser_id: browserId,
-              signup_source: 'website'
-            }
-          }
-        })
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || data.msg || 'Signup failed');
-      }
-
-      // Success! Show email verification message
-      setSuccess(true);
-
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err: any) {
+    setError(err.message || 'Failed to create account. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (success) {
     return (
