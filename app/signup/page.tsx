@@ -167,9 +167,6 @@ export default function SignupPage() {
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
-              <p className="mt-6 text-sm text-primary-foreground/60">
-              Email verification required.
-              </p>
             </form>
 
             <div className="mt-6 pt-6 border-t border-border text-center">
