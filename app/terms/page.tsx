@@ -73,12 +73,9 @@ export default function TermsOfService() {
         <h2 className="text-xl font-semibold mb-3">6. Abuse</h2>
         <p>
           We want to keep our free plan for those who truly need it. Whether it's for the small dropshipper 
-          just starting out or a new media buyer running their first campaign of creatives, the free plan is for you. To enforce
-          this and to prevent abuse, we collect and store your IP address upon account creation. If we detect 2
-          or more accounts that have the same IP address that are both on the free plan, we reserve the right to
-          deny access to our services indefinitely to comply and adhere to our policy. Please use responsibly.
+          just starting out or a new media buyer running their first campaign of creatives, the free plan is for you. To enforce this and to prevent abuse, we collect and store your IP address upon account creation. If we detect 2 or more accounts sharing the same IP address that are all on the free plan, we will notify the affected users via email and provide the option to either upgrade to a paid plan or request deletion of one of the accounts. If no response is received and no action is taken within a reasonable timeframe, we reserve the right to suspend access to our services to comply and adhere to our policy. Please use responsibly.
         </p>
-        <p><strong>Note:</strong> Mediacrater accepts the use of 2 or more accounts when they're all registered on any paid plan.</p>
+        <p><strong>Note:</strong> Mediacrater accepts the use of 2 or more accounts when they're all registered on any paid plan. If you believe your account was flagged in error, contact us at hello.mediacrater@gmail.com.</p>
       </section>
 
       <section className="mb-10">
