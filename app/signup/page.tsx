@@ -150,7 +150,7 @@ export default function SignupPage() {
                   {', '}
                   <a href="/refund" target="_blank" className="text-primary hover:underline">Refund Policy</a>
                   {' and '}
-                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>, and I consent to receiving a one time verification link to confirm my email address.
+                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>. I consent to receiving a one time verification link to confirm my email address.
                 </label>
               </div>
 
