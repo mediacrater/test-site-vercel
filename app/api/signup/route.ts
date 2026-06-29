@@ -13,6 +13,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const { email, password, acceptedTerms } = await req.json();
+
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
 
