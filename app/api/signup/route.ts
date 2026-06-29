@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         ip_at_creation: ip || null,
-        accept_terms_and_privacy: new Date().toISOString() // NEW
+        accept_tos_privacy_refund_emailconsent: new Date().toISOString()
       })
       .eq('id', userId)
       .is('ip_at_creation', null);
