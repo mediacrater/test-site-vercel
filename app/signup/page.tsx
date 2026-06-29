@@ -11,6 +11,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -21,6 +22,12 @@ export default function SignupPage() {
   setError('');
   setLoading(true);
 
+  if (!acceptedTerms) {
+    setError('You must accept the terms of service and privacy policy to create an account');
+    setLoading(false);
+    return;
+  }
+    
   if (password.length < 6) {
     setError('Password must be at least 6 characters');
     setLoading(false);
@@ -166,6 +173,23 @@ export default function SignupPage() {
                   <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
                 </div>
               )}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-input accent-primary cursor-pointer"
+                />
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
+                  I accept the{' '}
+                  <a href="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</a>
+                  {', '}
+                  <a href="/refund" target="_blank" className="text-primary hover:underline">Refund Policy</a>
+                  {' and '}
+                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>
+                </label>
+              </div>
 
               <button
                 type="submit"
