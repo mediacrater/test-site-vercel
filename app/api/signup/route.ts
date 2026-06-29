@@ -1,31 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Anon client to sign the user up normally
 const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Admin client to write IP (bypasses RLS)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const { email, password, acceptedTerms } = await req.json();
-
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
 
-  // Grab the real IP server-side
+  // Server-side guard — can't be bypassed by calling the API directly
+  if (!acceptedTerms) {
+    return NextResponse.json({ error: 'Terms of service must be accepted' }, { status: 400 });
+  }
+
   const ip = (
     req.headers.get('x-forwarded-for') ||
     req.headers.get('x-real-ip') ||
     ''
   ).split(',')[0].trim();
 
-  // Sign up the user exactly as before
   const { data, error } = await supabaseAnon.auth.signUp({
     email,
     password,
@@ -41,12 +40,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  // Write IP to profiles immediately — profile row exists thanks to your DB trigger
   const userId = data.user?.id;
-  if (ip && userId) {
+  if (userId) {
     await supabaseAdmin
       .from('profiles')
-      .update({ ip_at_creation: ip })
+      .update({
+        ip_at_creation: ip || null,
+        accept_terms_and_privacy: new Date().toISOString() // NEW
+      })
       .eq('id', userId)
       .is('ip_at_creation', null);
   }
