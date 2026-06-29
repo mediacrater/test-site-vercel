@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import disposableDomains from 'disposable-email-domains';
 
 const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,11 +13,16 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
+  const { email, password, acceptedTerms } = await req.json();
 
-  // Server-side guard — can't be bypassed by calling the API directly
   if (!acceptedTerms) {
     return NextResponse.json({ error: 'Terms of service must be accepted' }, { status: 400 });
+  }
+
+  // Block disposable/temp emails
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain || disposableDomains.includes(domain)) {
+    return NextResponse.json({ error: 'Temporary or disposable email addresses are not allowed. Please use a permanent email.' }, { status: 400 });
   }
 
   const ip = (
@@ -46,7 +52,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         ip_at_creation: ip || null,
-        accept_tos_privacypolicy_refundpolicy_emailconsent: new Date().toISOString() // NEW
+        accept_terms_and_privacy: new Date().toISOString()
       })
       .eq('id', userId)
       .is('ip_at_creation', null);
