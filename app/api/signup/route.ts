@@ -41,16 +41,21 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = data.user?.id;
-  if (userId) {
-    await supabaseAdmin
-      .from('profiles')
-      .update({
-        ip_at_creation: ip || null,
-        accept_tos_privacy_refund_emailconsent: new Date().toISOString()
-      })
-      .eq('id', userId)
-      .is('ip_at_creation', null);
-  }
+    if (userId) {
+      const { error: upsertError } = await supabaseAdmin
+        .from('profiles')
+        .upsert({
+          id: userId,
+          ip_at_creation: ip || null,
+          accept_tos_privacy_refund_emailconsent: new Date().toISOString()
+        }, {
+          onConflict: 'id',        // if row with this id exists, update it
+          ignoreDuplicates: false   // don't skip, actually update
+        });
 
+      if (upsertError) {
+        console.error('[SIGNUP] Failed to write profile data:', upsertError.message);
+      }
+    }
   return NextResponse.json({ success: true });
 }
