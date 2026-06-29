@@ -18,19 +18,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Terms of service must be accepted' }, { status: 400 });
   }
 
-  // Block disposable/temp emails
-  // Block disposable/temp emails using Kickbox's free API (no key required)
-  const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain) {
-    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
-  }
-
-  const kickboxRes = await fetch(`https://open.kickbox.com/v1/disposable/${domain}`);
-  const kickboxData = await kickboxRes.json();
-  if (kickboxData.disposable === true) {
-    return NextResponse.json({ error: 'Temporary or disposable email addresses are not allowed. Please use a permanent email.' }, { status: 400 });
-  }
-
   const ip = (
     req.headers.get('x-forwarded-for') ||
     req.headers.get('x-real-ip') ||
