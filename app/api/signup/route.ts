@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-const disposableDomains: string[] = require('disposable-email-domains');
 
 const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,8 +19,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Block disposable/temp emails
+  // Block disposable/temp emails using Kickbox's free API (no key required)
   const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain || disposableDomains.includes(domain)) {
+  if (!domain) {
+    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+  }
+
+  const kickboxRes = await fetch(`https://open.kickbox.com/v1/disposable/${domain}`);
+  const kickboxData = await kickboxRes.json();
+  if (kickboxData.disposable === true) {
     return NextResponse.json({ error: 'Temporary or disposable email addresses are not allowed. Please use a permanent email.' }, { status: 400 });
   }
 
