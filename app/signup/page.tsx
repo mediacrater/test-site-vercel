@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +74,7 @@ export default function SignupPage() {
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-blue-900 dark:text-blue-300 font-semibold mb-2">Next Steps:</p>
                 <ol className="text-sm text-blue-800 dark:text-blue-400 space-y-1 ml-4">
-                  <li>1. Click the verification link in your email (expires in 1 hour for security)</li>
+                  <li>1. Click the verification link in your email</li>
                   <li>2. Open the Mediacrater extension</li>
                   <li>3. Sign in with your email and password</li>
                   <li>4. Start scanning with your 3 free scans!</li>
@@ -86,7 +83,7 @@ export default function SignupPage() {
               <div className="bg-primary/10 border-l-4 border-primary rounded p-3 mb-6">
                 <p className="text-sm font-semibold text-card-foreground">You'll receive 3 monthly scans after verification</p>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">Don't see the email? Check your spam folder.</p>
+              <p className="text-xs text-muted-foreground mb-4">Don't see the email? Check your spam folder.</p>
               <Link href="/" className="block w-full bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-secondary/80 transition-colors">
                 Back to Homepage
               </Link>
@@ -168,13 +165,6 @@ export default function SignupPage() {
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
             </form>
-
-            <div className="mt-6 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link href="/signin" className="text-primary hover:underline font-semibold">Sign In</Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
