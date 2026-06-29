@@ -150,7 +150,7 @@ export default function SignupPage() {
                   {', '}
                   <a href="/refund" target="_blank" className="text-primary hover:underline">Refund Policy</a>
                   {' and '}
-                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>
+                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>, and I consent to receiving a one time verification link to confirm my email address.
                 </label>
               </div>
 
@@ -167,6 +167,9 @@ export default function SignupPage() {
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
+              <p className="mt-6 text-sm text-primary-foreground/60">
+              Email verification required.
+              </p>
             </form>
 
             <div className="mt-6 pt-6 border-t border-border text-center">
