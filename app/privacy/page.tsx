@@ -141,9 +141,7 @@ export default function PrivacyPolicy() {
             billing data. We do not store payment details.
           </li>
           <li>
-            <strong>Hostinger</strong> — server infrastructure. Your ad files pass through our
-            Hostinger-hosted server for scanning and are immediately deleted after results
-            are returned.
+            <strong>Cloud infrastructure provider</strong> — server hosting and processing infrastructure.
           </li>
           <li>
             <strong>Vercel</strong> — website hosting and infrastructure for mediacrater.com.
