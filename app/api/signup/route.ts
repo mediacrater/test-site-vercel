@@ -11,6 +11,7 @@ const supabaseAdmin = createClient(
 );
 
 const SIGNUP_RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_ATTEMPTS_PER_WINDOW = 4;
 
 export async function POST(req: NextRequest) {
   const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
@@ -33,19 +34,32 @@ export async function POST(req: NextRequest) {
   if (ip) {
     const { data: existingLimit } = await supabaseAdmin
       .from('signup_rate_limits')
-      .select('last_attempt_at')
+      .select('last_attempt_at, attempt_count')
       .eq('ip', ip)
       .maybeSingle();
 
+    const now = new Date();
+    let newCount = 1;
+    let windowStart = now.toISOString();
+
     if (existingLimit) {
-      const elapsedMs = Date.now() - new Date(existingLimit.last_attempt_at).getTime();
+      const elapsedMs = now.getTime() - new Date(existingLimit.last_attempt_at).getTime();
+
       if (elapsedMs < SIGNUP_RATE_LIMIT_MS) {
-        const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
-        return NextResponse.json(
-          { error: 'Too many signup attempts. Please try again later.' },
-          { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
-        );
+        if (existingLimit.attempt_count >= MAX_ATTEMPTS_PER_WINDOW) {
+          const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
+          return NextResponse.json(
+            { error: 'Too many signup attempts. Please try again later.' },
+            { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+          );
+        }
+        
+        // Still within the 15-minute window, so increment count and keep the original start time
+        newCount = (existingLimit.attempt_count || 0) + 1;
+        windowStart = existingLimit.last_attempt_at;
       }
+      // If elapsedMs >= 15 minutes, the flow naturally uses the default values 
+      // (newCount = 1, windowStart = now), effectively resetting the window.
     }
 
     // Record this attempt immediately, before calling Supabase auth,
@@ -54,7 +68,7 @@ export async function POST(req: NextRequest) {
     const { error: rateLimitError } = await supabaseAdmin
       .from('signup_rate_limits')
       .upsert(
-        { ip, last_attempt_at: new Date().toISOString() },
+        { ip, last_attempt_at: windowStart, attempt_count: newCount },
         { onConflict: 'ip' }
       );
 
