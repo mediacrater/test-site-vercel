@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Header } from '@/components/header';
 
 function ForgotPasswordForm() {
   const searchParams = useSearchParams();
