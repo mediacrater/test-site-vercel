@@ -5,11 +5,12 @@ const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+const SIGNUP_RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function POST(req: NextRequest) {
   const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
@@ -24,6 +25,44 @@ export async function POST(req: NextRequest) {
     req.headers.get('x-real-ip') ||
     ''
   ).split(',')[0].trim();
+
+  // ── Per-IP signup rate limit ──────────────────────────────
+  // Checked before any Supabase auth call, using a small table
+  // since Vercel functions are stateless across invocations —
+  // an in-memory limiter would not persist between requests.
+  if (ip) {
+    const { data: existingLimit } = await supabaseAdmin
+      .from('signup_rate_limits')
+      .select('last_attempt_at')
+      .eq('ip', ip)
+      .maybeSingle();
+
+    if (existingLimit) {
+      const elapsedMs = Date.now() - new Date(existingLimit.last_attempt_at).getTime();
+      if (elapsedMs < SIGNUP_RATE_LIMIT_MS) {
+        const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
+        return NextResponse.json(
+          { error: 'Too many signup attempts. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+        );
+      }
+    }
+
+    // Record this attempt immediately, before calling Supabase auth,
+    // to close the race window between near-simultaneous requests
+    // from the same IP.
+    const { error: rateLimitError } = await supabaseAdmin
+      .from('signup_rate_limits')
+      .upsert(
+        { ip, last_attempt_at: new Date().toISOString() },
+        { onConflict: 'ip' }
+      );
+
+    if (rateLimitError) {
+      console.error('[SIGNUP] Failed to record rate limit attempt:', rateLimitError.message);
+      // Non-fatal — don't block signup over a logging failure
+    }
+  }
 
   const { data, error } = await supabaseAnon.auth.signUp({
     email,
@@ -58,5 +97,6 @@ export async function POST(req: NextRequest) {
       console.error('[SIGNUP] Failed to write profile data:', upsertError.message);
     }
   }
+
   return NextResponse.json({ success: true });
 }
