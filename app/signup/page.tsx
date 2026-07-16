@@ -1,27 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export default function SignupPage() {
+function ForgotPasswordForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false); // NEW
-  const router = useRouter();
 
-  // NEW: resend verification state
+  // Resend recovery link state (matching signup flow)
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resendError, setResendError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // NEW: cooldown ticker
+  // Pre-fill email from extension URL query if available
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+    }
+  }, [searchParams]);
+
+  // Cooldown ticker
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -30,71 +36,57 @@ export default function SignupPage() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setLoading(false);
-      return;
-    }
-
-    // NEW
-    if (!acceptedTerms) {
-      setError('You must accept the terms of service and privacy policy to create an account');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch('/api/signup', {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, acceptedTerms }) // acceptedTerms added
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
+        throw new Error(data.error || 'Failed to send reset link');
       }
 
       setSuccess(true);
-
     } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+      setError(err.message || 'Failed to request password reset. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // NEW: resend verification handler
-  const handleResendVerification = async () => {
+  // Resend recovery link handler
+  const handleResendReset = async () => {
     if (resendCooldown > 0 || resendStatus === 'sending') return;
 
     setResendStatus('sending');
     setResendError('');
 
     try {
-      const response = await fetch('/api/resend-verification', {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend verification email');
+        throw new Error(data.error || 'Failed to resend recovery email');
       }
 
       setResendStatus('sent');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err: any) {
       setResendStatus('error');
-      setResendError(err.message || 'Failed to resend verification email');
+      setResendError(err.message || 'Failed to resend recovery email');
     }
   };
 
@@ -113,38 +105,37 @@ export default function SignupPage() {
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-card-foreground mb-4">Check Your Email!</h1>
-              <p className="text-muted-foreground mb-6">We've sent a verification link to:</p>
+              <p className="text-muted-foreground mb-6">We've sent a recovery link to:</p>
               <p className="text-lg font-semibold text-foreground mb-6">{email}</p>
+              
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-blue-900 dark:text-blue-300 font-semibold mb-2">Next Steps:</p>
                 <ol className="text-sm text-blue-800 dark:text-blue-400 space-y-1 ml-4">
-                  <li>1. Click the verification link in your email</li>
-                  <li>2. Open the Mediacrater extension</li>
-                  <li>3. Sign in with your email and password</li>
-                  <li>4. Start scanning with your 3 free scans!</li>
+                  <li>1. Click the recovery link inside your email</li>
+                  <li>2. Enter a new secure password on the page</li>
+                  <li>3. Open your Mediacrater extension</li>
+                  <li>4. Sign in with your new password and continue!</li>
                 </ol>
               </div>
-              <div className="bg-primary/10 border-l-4 border-primary rounded p-3 mb-6">
-                <p className="text-sm font-semibold text-card-foreground">You'll receive 3 monthly scans after verification</p>
-              </div>
+
               <p className="text-xs text-muted-foreground mb-2">Don't see the email? Check your spam folder.</p>
 
-              {/* NEW: resend verification button */}
+              {/* Resend recovery link button */}
               <button
-                onClick={handleResendVerification}
+                onClick={handleResendReset}
                 disabled={resendCooldown > 0 || resendStatus === 'sending'}
-                className="text-sm font-semibold text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline mb-4"
+                className="text-sm font-semibold text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline mb-6 block w-full text-center"
               >
                 {resendStatus === 'sending'
                   ? 'Sending...'
                   : resendCooldown > 0
                   ? `Resend available in ${resendCooldown}s`
-                  : 'Resend verification email'}
+                  : 'Resend recovery email'}
               </button>
 
               {resendStatus === 'sent' && resendCooldown === RESEND_COOLDOWN_SECONDS && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-green-800 dark:text-green-400">Verification email resent. Check your inbox.</p>
+                  <p className="text-sm text-green-800 dark:text-green-400">Recovery link resent. Check your inbox.</p>
                 </div>
               )}
 
@@ -170,10 +161,10 @@ export default function SignupPage() {
       <div className="flex items-center justify-center min-h-screen px-4 pt-16">
         <div className="w-full max-w-md">
           <div className="bg-card border border-border rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">Create Your Account</h1>
-            <p className="text-muted-foreground text-center mb-8">Get started with 3 free scans</p>
+            <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">Reset Your Password</h1>
+            <p className="text-muted-foreground text-center mb-8">Enter your details to request a secure recovery link</p>
 
-            <form onSubmit={handleSignup} className="space-y-6">
+            <form onSubmit={handleResetRequest} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-card-foreground mb-2">Email Address</label>
                 <input
@@ -187,40 +178,6 @@ export default function SignupPage() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-card-foreground mb-2">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Minimum 6 characters"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Must be at least 6 characters long</p>
-              </div>
-
-              {/* NEW: Terms checkbox */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-input accent-primary cursor-pointer"
-                />
-                <label htmlFor="terms" className="text-sm text-muted-foreground">
-                  I accept the{' '}
-                  <a href="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</a>
-                  {', '}
-                  <a href="/refund" target="_blank" className="text-primary hover:underline">Refund Policy</a>
-                  {' and '}
-                  <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>. I consent to receiving a one time verification link to confirm my email address.
-                </label>
-              </div>
-
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                   <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
@@ -232,12 +189,33 @@ export default function SignupPage() {
                 disabled={loading}
                 className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? 'Sending Recovery Link...' : 'Send Recovery Link'}
               </button>
             </form>
+
+            <div className="mt-6 text-center text-sm">
+              <Link href="/" className="text-primary hover:underline font-semibold">
+                ← Back to Login
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// Next.js App Router requires useSearchParams to be wrapped inside a Suspense Boundary
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      }
+    >
+      <ForgotPasswordForm />
+    </Suspense>
   );
 }
