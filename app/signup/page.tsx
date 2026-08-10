@@ -13,15 +13,13 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false); // NEW
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
 
-  // NEW: resend verification state
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resendError, setResendError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // NEW: cooldown ticker
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -41,7 +39,6 @@ export default function SignupPage() {
       return;
     }
 
-    // NEW
     if (!acceptedTerms) {
       setError('You must accept the terms of service and privacy policy to create an account');
       setLoading(false);
@@ -52,7 +49,7 @@ export default function SignupPage() {
       const response = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, acceptedTerms }) // acceptedTerms added
+        body: JSON.stringify({ email, password, acceptedTerms })
       });
 
       const data = await response.json();
@@ -70,7 +67,6 @@ export default function SignupPage() {
     }
   };
 
-  // NEW: resend verification handler
   const handleResendVerification = async () => {
     if (resendCooldown > 0 || resendStatus === 'sending') return;
 
@@ -115,21 +111,22 @@ export default function SignupPage() {
               <h1 className="text-3xl font-bold text-card-foreground mb-4">Check Your Email!</h1>
               <p className="text-muted-foreground mb-6">We've sent a verification link to:</p>
               <p className="text-lg font-semibold text-foreground mb-6">{email}</p>
+              
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-blue-900 dark:text-blue-300 font-semibold mb-2">Next Steps:</p>
                 <ol className="text-sm text-blue-800 dark:text-blue-400 space-y-1 ml-4">
                   <li>1. Click the verification link in your email</li>
-                  <li>2. Open the Mediacrater extension</li>
-                  <li>3. Sign in with your email and password</li>
-                  <li>4. Start scanning with your 3 free scans!</li>
+                  <li>2. You will be automatically redirected to your Web App Dashboard</li>
+                  <li>3. Start scanning directly on the web or download the Chrome extension</li>
                 </ol>
               </div>
+
               <div className="bg-primary/10 border-l-4 border-primary rounded p-3 mb-6">
-                <p className="text-sm font-semibold text-card-foreground">You'll receive 3 monthly scans after verification</p>
+                <p className="text-sm font-semibold text-card-foreground">3 free monthly scans will be credited to your account</p>
               </div>
+              
               <p className="text-xs text-muted-foreground mb-2">Don't see the email? Check your spam folder.</p>
 
-              {/* NEW: resend verification button */}
               <button
                 onClick={handleResendVerification}
                 disabled={resendCooldown > 0 || resendStatus === 'sending'}
@@ -202,7 +199,6 @@ export default function SignupPage() {
                 <p className="text-xs text-muted-foreground mt-1">Must be at least 6 characters long</p>
               </div>
 
-              {/* NEW: Terms checkbox */}
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
