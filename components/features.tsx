@@ -109,14 +109,14 @@ export function Features() {
             </p>
           </div>
 
-          {/* Card 4 */}
+          {/* Card 4: 3-Tier Risk Zone Assessment */}
           <div className="p-7 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all">
             <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-5">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Instant Confidence Score</h3>
+            <h3 className="text-xl font-bold text-foreground mb-2">3-Tier Risk Assessment</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Get an immediate 0-100 confidence score on ad approval likelihood. Low scores trigger specific timestamp red flags.
+              Categorizes your ad into Low Risk (Clean), Medium Risk (Single issue), or High Risk (Multiple issues) so you know exactly what to fix before going live.
             </p>
           </div>
 
