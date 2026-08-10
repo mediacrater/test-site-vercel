@@ -32,7 +32,7 @@ export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  // Auto-cycle through steps like the Actionable Fixes visual
+  // Auto-cycle through steps without causing layout shifts
   useEffect(() => {
     if (isPlaying) return
 
@@ -44,7 +44,7 @@ export function HowItWorks() {
   }, [isPlaying])
 
   return (
-    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20">
+    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -61,7 +61,7 @@ export function HowItWorks() {
         {/* Split Section: Interactive Steps Left + YouTube Facade Right */}
         <div className="grid lg:grid-cols-12 gap-10 items-center">
           
-          {/* Left Column: Step List with Auto-cycling */}
+          {/* Left Column: Step List with Fixed Heights */}
           <div className="lg:col-span-5 space-y-3">
             {steps.map((item, idx) => {
               const isActive = activeStep === idx
@@ -76,7 +76,7 @@ export function HowItWorks() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded transition-colors duration-300 ${
+                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded transition-colors duration-300 shrink-0 ${
                       isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                     }`}>
                       {item.step}
@@ -112,7 +112,7 @@ export function HowItWorks() {
               </div>
 
               {/* Player Container */}
-              <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-video bg-black overflow-hidden">
                 {isPlaying ? (
                   <iframe
                     src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
@@ -124,28 +124,27 @@ export function HowItWorks() {
                 ) : (
                   <div 
                     onClick={() => setIsPlaying(true)}
-                    className="relative w-full h-full cursor-pointer group flex items-center justify-center"
+                    className="relative w-full h-full cursor-pointer group overflow-hidden"
                   >
-                    {/* YouTube High-Res Thumbnail */}
+                    {/* Reliable YouTube Thumbnail */}
                     <img
-                      src={`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`}
+                      src={`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`}
                       alt="Mediacrater Video Walkthrough Thumbnail"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80"
                     />
 
-                    {/* Dark Overlay Tint */}
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
-
-                    {/* Styled Play Button Badge */}
-                    <div className="relative z-10 flex items-center gap-3 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-2xl group-hover:scale-105 transition-transform">
-                      <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                        <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
+                    {/* Dark Overlay Tint & Centered Play Badge */}
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex items-center justify-center p-4">
+                      <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-2xl group-hover:scale-105 transition-transform z-10">
+                        <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0">
+                          <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
+                        </div>
+                        <span className="text-sm whitespace-nowrap">Watch 60s Demo</span>
                       </div>
-                      <span className="text-sm">Watch 60s Demo</span>
                     </div>
 
                     {/* Bottom Status Badge */}
-                    <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground flex items-center gap-1.5">
+                    <div className="absolute bottom-3 right-3 z-10 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground flex items-center gap-1.5">
                       <CheckCircle2 className="w-3 h-3 text-emerald-500" /> YouTube HD Walkthrough
                     </div>
                   </div>
