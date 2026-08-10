@@ -1,57 +1,148 @@
-import { Download, Upload, Settings, CheckCircle } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import { Play, CheckCircle2 } from "lucide-react"
+
+const YOUTUBE_VIDEO_ID = "Jk_XtsN1N9I"
 
 const steps = [
   {
     step: "01",
     title: "Install Extension",
-    description: "Add the Mediacrater Chrome extension with one click. Verify your email to start.",
+    description: "Add the Mediacrater Chrome extension in one click and verify your account.",
   },
   {
     step: "02",
-    title: "Upload Your Ad",
-    description: "Drag and drop your video or image file. We support all common formats up to 120 seconds.",
+    title: "Upload & Select Platforms",
+    description: "Drag in your video creative and select whether you are targeting Meta, TikTok, or YouTube.",
   },
   {
     step: "03",
-    title: "Configure Scan",
-    description: "Select your target platforms and scan depth based on your campaign needs.",
+    title: "Configure Scan Depth",
+    description: "Choose Basic for regular ads or Deep Scan for fast-paced edits with rapid cuts.",
   },
   {
     step: "04",
-    title: "Get Results",
-    description: "Review your risk assessment report, apply recommended fixes, and upload with certainty.",
+    title: "Get Instant Risk Breakdown",
+    description: "Review detected risk zones, jump to violation timestamps, and copy suggested fixes.",
   },
 ]
 
 export function HowItWorks() {
+  const [activeStep, setActiveStep] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+
   return (
-    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50">
+    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
-        <div className="max-w-3xl mb-16">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Simple Process</p>
+        {/* Section Header */}
+        <div className="max-w-3xl mb-14 text-left">
+          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">60-Second Workflow</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)]">
-            Get Started in 60 Seconds
+            How Mediacrater Works
           </h2>
           <p className="mt-3 text-lg text-muted-foreground">
-            From installation to your first compliance report in under a minute.
+            From installation to your first policy risk report in under a minute.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((item) => (
-            <div key={item.step} className="p-6 rounded-xl bg-card border border-border flex flex-col justify-between">
-              <div>
-                <span className="text-3xl font-extrabold text-primary/40 font-mono mb-4 block">
-                  {item.step}
-                </span>
-                <h3 className="text-lg font-bold text-foreground mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+        {/* Split Section: Interactive Steps Left + YouTube Facade Right */}
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
+          
+          {/* Left Column: Step List */}
+          <div className="lg:col-span-5 space-y-3">
+            {steps.map((item, idx) => {
+              const isActive = activeStep === idx
+              return (
+                <div
+                  key={item.step}
+                  onClick={() => setActiveStep(idx)}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                    isActive 
+                      ? "bg-card border-primary/50 shadow-sm ring-1 ring-primary/20" 
+                      : "bg-card/50 border-border hover:bg-card hover:border-border/80"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded ${
+                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {item.step}
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-foreground mb-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Right Column: YouTube Click-to-Play Mockup Frame */}
+          <div className="lg:col-span-7">
+            <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden relative">
+              {/* Window Bar */}
+              <div className="px-4 py-2.5 bg-muted/60 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                </div>
+                <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1">
+                  mediacrater_walkthrough.mp4
+                </div>
+                <div className="w-12" />
+              </div>
+
+              {/* Player Container */}
+              <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+                {isPlaying ? (
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
+                    title="Mediacrater Product Walkthrough"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div 
+                    onClick={() => setIsPlaying(true)}
+                    className="relative w-full h-full cursor-pointer group flex items-center justify-center"
+                  >
+                    {/* YouTube High-Res Thumbnail */}
+                    <img
+                      src={`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`}
+                      alt="Mediacrater Video Walkthrough Thumbnail"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90"
+                    />
+
+                    {/* Dark Overlay Tint */}
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
+
+                    {/* Styled Play Button Badge */}
+                    <div className="relative z-10 flex items-center gap-3 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-2xl group-hover:scale-105 transition-transform">
+                      <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                        <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
+                      </div>
+                      <span className="text-sm">Watch 60s Demo</span>
+                    </div>
+
+                    {/* Bottom Status Badge */}
+                    <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> YouTube HD Walkthrough
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          </div>
+
         </div>
 
       </div>
