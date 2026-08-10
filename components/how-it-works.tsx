@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Play, CheckCircle2 } from "lucide-react"
 
 const YOUTUBE_VIDEO_ID = "Jk_XtsN1N9I"
@@ -32,6 +32,17 @@ export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
+  // Auto-cycle through steps like the Actionable Fixes visual
+  useEffect(() => {
+    if (isPlaying) return
+
+    const timer = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length)
+    }, 3500)
+
+    return () => clearInterval(timer)
+  }, [isPlaying])
+
   return (
     <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -50,7 +61,7 @@ export function HowItWorks() {
         {/* Split Section: Interactive Steps Left + YouTube Facade Right */}
         <div className="grid lg:grid-cols-12 gap-10 items-center">
           
-          {/* Left Column: Step List */}
+          {/* Left Column: Step List with Auto-cycling */}
           <div className="lg:col-span-5 space-y-3">
             {steps.map((item, idx) => {
               const isActive = activeStep === idx
@@ -58,14 +69,14 @@ export function HowItWorks() {
                 <div
                   key={item.step}
                   onClick={() => setActiveStep(idx)}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                     isActive 
-                      ? "bg-card border-primary/50 shadow-sm ring-1 ring-primary/20" 
-                      : "bg-card/50 border-border hover:bg-card hover:border-border/80"
+                      ? "bg-card border-primary/50 shadow-sm ring-1 ring-inset ring-primary/20" 
+                      : "bg-card/50 border-border/60 hover:bg-card hover:border-border"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded ${
+                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded transition-colors duration-300 ${
                       isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                     }`}>
                       {item.step}
