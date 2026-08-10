@@ -129,7 +129,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Session expired. Please sign in again.');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_VPS_API_URL || ''}/api/scan-image`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_VPS_API_URL || ''}/scan-image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
