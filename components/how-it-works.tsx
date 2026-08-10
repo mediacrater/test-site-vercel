@@ -19,7 +19,7 @@ const steps = [
   {
     step: "04",
     title: "Get Results",
-    description: "Review your confidence report, apply recommended fixes, and upload with certainty.",
+    description: "Review your risk assessment report, apply recommended fixes, and upload with certainty.",
   },
 ]
 
