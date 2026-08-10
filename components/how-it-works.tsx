@@ -139,7 +139,7 @@ export function HowItWorks() {
                         <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0">
                           <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
                         </div>
-                        <span className="text-sm whitespace-nowrap">Watch 60s Demo</span>
+                        <span className="text-sm whitespace-nowrap">Watch Demo</span>
                       </div>
                     </div>
 
