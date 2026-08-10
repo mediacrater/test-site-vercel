@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     question: "Do unused tokens expire?",
-    answer: "For one-time purchases, tokens never expire. As we continue to improve the software, we may introduce monthly and yearly subscriptions with tokens that do expire without a set timeline as of now.",
+    answer: "Tokens expire and renew at the end of your billing cycle, they do not carry over to the next month.",
   },
   {
     question: "Can I get a refund?",
