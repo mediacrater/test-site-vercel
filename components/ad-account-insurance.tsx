@@ -13,7 +13,7 @@ export function AdAccountInsurance() {
             </p>
 
             <h2 className="max-w-3xl font-[family-name:var(--font-display)] text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              Everyone hates insurance.
+              Everyone hates insurance...
               <br />
               <span className="text-accent">
                 Until something goes wrong.
