@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { Header } from '@/components/header';
+import { extractFrames } from '@/utils/videoProcessing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,6 +40,8 @@ export default function DashboardPage() {
   const [platform, setPlatform] = useState('facebook');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<'image' | 'video' | null>(null);
+  const [scanType, setScanType] = useState('regular');
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanError, setScanError] = useState('');
@@ -105,22 +108,26 @@ export default function DashboardPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setSelectedFile(file);
     setScanResult(null);
     setScanError('');
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFilePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (file.type.startsWith('video/')) {
+      setFileType('video');
+      setFilePreview(URL.createObjectURL(file));
+    } else {
+      setFileType('image');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleRunScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !filePreview || !user) return;
-
     setScanning(true);
     setScanError('');
     setScanResult(null);
@@ -129,29 +136,50 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Session expired. Please sign in again.');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_VPS_API_URL || ''}/scan-image`, {
+      let endpoint = '';
+      let payload = {};
+
+      if (fileType === 'video') {
+        const frames = await extractFrames(selectedFile, null, scanType);
+        endpoint = `${process.env.NEXT_PUBLIC_VPS_API_URL || ''}/scan-video`;
+        payload = {
+          frames,
+          platform,
+          scanType,
+          jobId: null
+        };
+      } else {
+        endpoint = `${process.env.NEXT_PUBLIC_VPS_API_URL || ''}/scan-image`;
+        payload = {
+          imageData: filePreview,
+          platform
+        };
+      }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
           'x-scan-origin': 'webapp'
         },
-        body: JSON.stringify({
-          imageData: filePreview,
-          platform: platform
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
+
+      if (response.status === 202) {
+        throw new Error('Scan queued. Polling interface is required to view results.');
+      }
 
       if (!response.ok) {
         throw new Error(data.message || data.error || 'Scan failed to complete');
       }
 
-      setScanResult(data.result);
+      setScanResult(data.result || data);
+    
       // Refresh metrics and log table after successful scan
       await fetchUserData(user.id, session.access_token);
-
     } catch (err: any) {
       setScanError(err.message || 'An error occurred while scanning.');
     } finally {
@@ -214,50 +242,65 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold mb-4">Run Ad Compliance Scan</h2>
             
             <form onSubmit={handleRunScan} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium mb-2">Target Platform</label>
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className="w-full px-4 py-2.5 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+              >
+                <option value="facebook">Meta (Facebook / Instagram)</option>
+                <option value="tiktok">TikTok</option>
+                <option value="google">Google Ads</option>
+                <option value="youtube">YouTube</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Ad Creative (Image or Video)</label>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+              />
+            </div>
+
+            {fileType === 'video' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Target Platform</label>
+                <label className="block text-sm font-medium mb-2">Scan Depth</label>
                 <select
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
+                  value={scanType}
+                  onChange={(e) => setScanType(e.target.value)}
                   className="w-full px-4 py-2.5 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                 >
-                  <option value="facebook">Meta (Facebook / Instagram)</option>
-                  <option value="tiktok">TikTok</option>
-                  <option value="google">Google Ads</option>
-                  <option value="youtube">YouTube</option>
+                  <option value="regular">Regular (Faster, fewer tokens)</option>
+                  <option value="deep">Deep (More thorough, costs more)</option>
                 </select>
               </div>
+            )}
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Ad Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-2 bg-background border border-input rounded-lg text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-                />
-              </div>
-
-              {filePreview && (
-                <div className="mt-4 border border-border rounded-lg p-2 max-h-64 flex justify-center bg-muted/20">
+            {filePreview && (
+              <div className="mt-4 border border-border rounded-lg p-2 max-h-64 flex justify-center bg-muted/20">
+                {fileType === 'video' ? (
+                  <video src={filePreview} controls className="max-h-56 object-contain rounded" />
+                ) : (
                   <img src={filePreview} alt="Preview" className="max-h-56 object-contain rounded" />
-                </div>
-              )}
-
-              {scanError && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-400">{scanError}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={scanning || !selectedFile || (profile?.scans_remaining ?? 0) <= 0}
-                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {scanning ? 'Analyzing Ad Policy Compliance...' : 'Analyze Compliance'}
-              </button>
-            </form>
+                )}
+              </div>
+            )}
+            {scanError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
+                <p className="text-sm text-red-800 dark:text-red-400">{scanError}</p>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={scanning || !selectedFile || (profile?.scans_remaining ?? 0) <= 0}
+              className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {scanning ? 'Analyzing Ad Policy Compliance...' : 'Analyze Compliance'}
+            </button>
+          </form>
           </div>
 
           {/* Results Display */}
