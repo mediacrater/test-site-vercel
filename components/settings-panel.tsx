@@ -27,7 +27,7 @@
 //                  as a natural cross-promotion in the other direction
 
 import { useState } from 'react';
-import { getBillingPortalUrl, buildUpgradeUrl } from '@/lib/mediacrater/billing';
+import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
 
 export interface SettingsProfile {
   plan: string;
@@ -88,7 +88,7 @@ export function SettingsPanel({
     }
   }
 
-  const upgradeUrl = buildUpgradeUrl({ userId, email, currentPlan: profile.plan || 'free' });
+  const upgradeUrl = '/buy-scans';
 
   return (
     <div className="max-w-2xl mx-auto">
