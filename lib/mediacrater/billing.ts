@@ -34,26 +34,8 @@ export async function getBillingPortalUrl(): Promise<string> {
 }
 
 /**
- * Builds the same /buy-tokens URL the extension's handleBuyTokens() opens,
- * just with source=webapp instead of source=extension so it's
- * distinguishable in analytics the same way abuse-email upgrades already
- * are (source=abuse_email). Same destination page, same query param
- * contract — nothing new on the pricing-page side needed.
+ * NOTE: buildUpgradeUrl() used to build a /buy-tokens URL with userId/email/
+ * currentPlan as query params. That's gone — the web app's upgrade path is
+ * now the authenticated /buy-scans page, which reads the session directly
+ * the same way the rest of the dashboard does. No identity in the URL.
  */
-export function buildUpgradeUrl({
-  userId,
-  email,
-  currentPlan,
-}: {
-  userId: string;
-  email: string;
-  currentPlan: string;
-}): string {
-  const params = new URLSearchParams({
-    source: 'webapp',
-    userId,
-    email,
-    currentPlan,
-  });
-  return `/buy-tokens?${params.toString()}`;
-}
