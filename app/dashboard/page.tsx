@@ -4,12 +4,24 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { ScanWorkspace, type WorkspaceProfile } from '@/components/scan-workspace';
+import { SettingsPanel } from '@/components/settings-panel';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 interface UserProfile extends WorkspaceProfile {
   id: string;
   scans_made: number;
   account_status: string;
+  subscription_cancel_at?: string | null;
+  subscription_renews_at?: string | null;
+}
+
+function SettingsGearIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
 }
 
 interface ScanRecord {
@@ -28,6 +40,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -107,21 +120,34 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+      <main className="w-full px-4 sm:px-8 lg:px-12 pt-24 pb-16">
         {/* Header section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>
+            <h1 className="text-3xl font-bold">{showSettings ? 'Settings' : 'Dashboard'}</h1>
+            {!showSettings && <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>}
           </div>
-          <button
-            onClick={handleSignOut}
-            className="self-start md:self-auto px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 transition-colors"
-          >
-            Sign Out
-          </button>
+          {!showSettings && (
+            <button
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              className="self-start md:self-auto p-2.5 rounded-lg border border-border hover:bg-secondary transition-colors text-foreground"
+            >
+              <SettingsGearIcon />
+            </button>
+          )}
         </div>
 
+        {showSettings && user && profile ? (
+          <SettingsPanel
+            userId={user.id}
+            email={user.email}
+            profile={profile}
+            onBack={() => setShowSettings(false)}
+            onSignOut={handleSignOut}
+          />
+        ) : (
+          <>
         {/* User Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
           <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
@@ -190,6 +216,8 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+          </>
+        )}
       </main>
     </div>
   );
