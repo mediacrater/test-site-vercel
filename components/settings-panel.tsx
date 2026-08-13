@@ -1,0 +1,199 @@
+'use client';
+
+// components/settings-panel.tsx
+//
+// Ports the extension's <!-- Settings Panel --> from popup.html/popup.js,
+// section by section:
+//
+//   Account      → kept, fully wired (this is the piece that actually
+//                  needed backend wiring — see lib/mediacrater/billing.ts)
+//   Appearance   → dropped per instruction (dark mode already lives in
+//                  the site header)
+//   Shortcuts    → dropped — those keybinds (W/A/S/D) are popup-navigation
+//                  shortcuts specific to a small extension popup; on a
+//                  full webpage they'd either do nothing or collide with
+//                  actual browser/OS shortcuts, so there's no faithful
+//                  web equivalent to port
+//   Scan History → dropped — the extension's copy here explicitly says
+//                  "stored on your device... deleted if you uninstall
+//                  the extension," which is only true for the extension's
+//                  chrome.storage.local history. The web app's history is
+//                  already visible on the dashboard (server-side, shared
+//                  with the extension), so this section doesn't map to
+//                  anything else it needs to say
+//   About        → kept (version dropped — a website doesn't version the
+//                  same way a shipped package does), "Rate us" (Chrome
+//                  Web Store link) swapped for "Get the Chrome extension"
+//                  as a natural cross-promotion in the other direction
+
+import { useState } from 'react';
+import { getBillingPortalUrl, buildUpgradeUrl } from '@/lib/mediacrater/billing';
+
+export interface SettingsProfile {
+  plan: string;
+  scans_remaining: number;
+  subscription_cancel_at?: string | null;
+  subscription_renews_at?: string | null;
+}
+
+function formatPlanLabel(profile: SettingsProfile): string {
+  const plan = profile.plan || 'free';
+  const isPaid = plan !== 'free';
+  let label = plan.charAt(0).toUpperCase() + plan.slice(1);
+
+  const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+    new Date(iso).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
+
+  if (plan === 'free' && profile.subscription_cancel_at) {
+    label = `Free · Resets ${fmt(profile.subscription_cancel_at, { month: 'long', day: 'numeric', year: 'numeric' })}`;
+  } else if (plan === 'free' && profile.subscription_renews_at) {
+    label = `Free · Resets ${fmt(profile.subscription_renews_at, { month: 'long', day: 'numeric', year: 'numeric' })}`;
+  } else if (isPaid && profile.subscription_cancel_at) {
+    label += ` · Cancels ${fmt(profile.subscription_cancel_at, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  } else if (isPaid && profile.subscription_renews_at) {
+    label += ` · Renews ${fmt(profile.subscription_renews_at, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  }
+
+  return label;
+}
+
+export function SettingsPanel({
+  userId,
+  email,
+  profile,
+  onBack,
+  onSignOut,
+}: {
+  userId: string;
+  email: string;
+  profile: SettingsProfile;
+  onBack: () => void;
+  onSignOut: () => void;
+}) {
+  const [managePlanLoading, setManagePlanLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isPaid = (profile.plan || 'free') !== 'free';
+
+  async function handleManagePlan() {
+    setError(null);
+    setManagePlanLoading(true);
+    try {
+      const url = await getBillingPortalUrl();
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      setError(err.message || 'Could not open billing portal. Please try again.');
+    } finally {
+      setManagePlanLoading(false);
+    }
+  }
+
+  const upgradeUrl = buildUpgradeUrl({ userId, email, currentPlan: profile.plan || 'free' });
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-4 transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Back
+      </button>
+
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+        {/* Account */}
+        <div className="p-5 border-b border-border">
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">Account</h3>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Signed in as</span>
+              <span className="text-xs text-muted-foreground">{email}</span>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Scans remaining</span>
+              <span className="text-xs text-muted-foreground">{profile.scans_remaining ?? 0} scans</span>
+            </div>
+            <a
+              href={upgradeUrl}
+              className="px-4 py-2 text-[13px] font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              {isPaid ? 'Change Plan' : 'Upgrade Plan'}
+            </a>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Plan</span>
+              <span className="text-xs text-muted-foreground">{formatPlanLabel(profile)}</span>
+            </div>
+            {isPaid && (
+              <button
+                onClick={handleManagePlan}
+                disabled={managePlanLoading}
+                className="px-4 py-2 text-[13px] font-semibold rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-60"
+              >
+                {managePlanLoading ? 'Loading...' : 'Manage Plan'}
+              </button>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center py-2.5">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Session</span>
+              <span className="text-xs text-green-600 dark:text-green-400">Active</span>
+            </div>
+            <button
+              onClick={onSignOut}
+              className="px-4 py-2 text-[13px] font-semibold rounded-lg border border-border hover:bg-secondary transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+
+          {error && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{error}</p>}
+        </div>
+
+        {/* About */}
+        <div className="p-5">
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">About</h3>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <span className="text-sm font-medium">Contact support</span>
+            <a href="mailto:hello.mediacrater@gmail.com" className="text-[13px] font-medium text-primary hover:underline">
+              hello.mediacrater@gmail.com
+            </a>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <span className="text-sm font-medium">Changelog</span>
+            <a href="/changelog" className="text-[13px] font-medium text-primary hover:underline">
+              What&apos;s new ↗
+            </a>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5">
+            <span className="text-sm font-medium">Also on Chrome</span>
+            <a
+              href="https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] font-medium text-primary hover:underline"
+            >
+              Get the extension ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-xs text-muted-foreground text-center mt-4">
+        Note: Mediacrater analysis provides guidance only and does not guarantee ad approval.
+      </p>
+    </div>
+  );
+}
