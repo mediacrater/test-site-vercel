@@ -1,15 +1,18 @@
 'use client';
 
+// app/signin/page.tsx
+//
+// Deliberately does NOT use the full marketing <Header /> (Features/How
+// It Works/Pricing/FAQ) — every one of those is a way to navigate away
+// from a page whose only job is "get this person signed in." Just a
+// minimal top strip: logo (links home) + dark mode toggle. Full nav
+// comes back the moment they're actually inside the dashboard.
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-import { Header } from '@/components/header';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,7 +20,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- 
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -32,18 +35,18 @@ export default function SignInPage() {
       setLoading(false);
     }
   }
- 
+
   return (
     <div className="min-h-screen flex">
       <AuthShowcasePanel variant="signin" />
- 
+
       <div className="w-full lg:w-1/2 flex flex-col min-h-screen bg-background">
         <div className="flex items-center justify-between px-6 py-5 lg:hidden">
           <Link href="/" className="font-bold text-foreground">
             Mediacrater
           </Link>
         </div>
- 
+
         <div className="flex-1 flex items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm">
             <h2 className="text-2xl font-bold mb-1">Sign in</h2>
@@ -53,7 +56,7 @@ export default function SignInPage() {
                 Create an account
               </Link>
             </p>
- 
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5">Email</label>
@@ -66,7 +69,7 @@ export default function SignInPage() {
                   placeholder="you@company.com"
                 />
               </div>
- 
+
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-sm font-medium">Password</label>
@@ -83,13 +86,13 @@ export default function SignInPage() {
                   placeholder="••••••••"
                 />
               </div>
- 
+
               {error && (
                 <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400">
                   {error}
                 </div>
               )}
- 
+
               <button
                 type="submit"
                 disabled={loading}
