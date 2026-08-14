@@ -12,111 +12,92 @@ const supabase = createClient(
 );
 
 export default function SignInPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-
-  const handleSignIn = async (e: React.FormEvent) => {
+  const [error, setError] = useState<string | null>(null);
+ 
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setError(null);
     setLoading(true);
-
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        throw new Error(signInError.message);
-      }
-
-      if (data.session) {
-        router.push('/dashboard');
-        router.refresh();
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
       setLoading(false);
     }
-  };
-
+  }
+ 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <div className="flex items-center justify-center min-h-screen px-4 pt-16">
-        <div className="w-full max-w-md">
-          <div className="bg-card border border-border rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">
-              Sign In to Web App
-            </h1>
-            <p className="text-muted-foreground text-center mb-8">
-              Access your scans, tokens, and compliance reports
+    <div className="min-h-screen flex">
+      <AuthShowcasePanel variant="signin" />
+ 
+      <div className="w-full lg:w-1/2 flex flex-col min-h-screen bg-background">
+        <div className="flex items-center justify-between px-6 py-5 lg:hidden">
+          <Link href="/" className="font-bold text-foreground">
+            Mediacrater
+          </Link>
+        </div>
+ 
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">
+            <h2 className="text-2xl font-bold mb-1">Sign in</h2>
+            <p className="text-sm text-muted-foreground mb-8">
+              New here?{' '}
+              <Link href="/signup" className="text-primary font-medium hover:underline">
+                Create an account
+              </Link>
             </p>
-
-            <form onSubmit={handleSignIn} className="space-y-6">
+ 
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-card-foreground mb-2">
-                  Email Address
-                </label>
+                <label className="block text-sm font-medium mb-1.5">Email</label>
                 <input
                   type="email"
-                  id="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="your.email@example.com"
+                  className="w-full px-3.5 py-2.5 bg-card border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="you@company.com"
                 />
               </div>
-
+ 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label htmlFor="password" className="block text-sm font-medium text-card-foreground">
-                    Password
-                  </label>
-                  <Link href="/reset-password" className="text-xs text-primary hover:underline">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium">Password</label>
+                  <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                     Forgot password?
                   </Link>
                 </div>
                 <input
                   type="password"
-                  id="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3.5 py-2.5 bg-card border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="••••••••"
                 />
               </div>
-
+ 
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
+                <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400">
+                  {error}
                 </div>
               )}
-
+ 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-
-            <div className="mt-6 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link href="/signup" className="text-primary hover:underline font-semibold">
-                  Create Account
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
