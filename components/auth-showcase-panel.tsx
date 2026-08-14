@@ -48,6 +48,7 @@ export function AuthShowcasePanel({ variant }: { variant: 'signin' | 'signup' })
     <div className="hidden lg:flex flex-col justify-between w-1/2 min-h-screen px-12 py-16 bg-gradient-to-br from-[#0d1b2a] to-[#1a2e44] text-white">
       <div>
         <a href="/" className="inline-flex items-center gap-2">
+          <img src="/images/header-logo-dark.png" alt="Mediacrater" className="h-9 w-9" />
           <span className="text-lg font-bold">Mediacrater</span>
         </a>
 
