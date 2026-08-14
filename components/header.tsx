@@ -110,6 +110,14 @@ export function Header() {
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-card shadow-lg py-1.5 z-50">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                    >
+                      Go to dashboard
+                    </Link>
+                    <div className="my-1 border-t border-border" />
                     <a
                       href={EXTENSION_LINK}
                       target="_blank"
@@ -179,6 +187,13 @@ export function Header() {
                   <div className="text-sm font-medium text-foreground truncate pt-2 border-t border-border">
                     {userEmail}
                   </div>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Go to dashboard
+                  </Link>
                   <a
                     href={EXTENSION_LINK}
                     target="_blank"
