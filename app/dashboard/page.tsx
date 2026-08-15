@@ -2,45 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '@/components/header';
+import Link from 'next/link';
+import { AppShell } from '@/components/app-shell';
 import { ScanWorkspace, type WorkspaceProfile } from '@/components/scan-workspace';
-import { SettingsPanel } from '@/components/settings-panel';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 interface UserProfile extends WorkspaceProfile {
   id: string;
   scans_made: number;
   account_status: string;
+  scan_history: boolean;
   subscription_cancel_at?: string | null;
   subscription_renews_at?: string | null;
-}
-
-function SettingsGearIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-interface ScanRecord {
-  id: string;
-  created_at: string;
-  target_platform: string;
-  content_type: string;
-  violations_found: number;
-  status: string;
-  origin: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [scanHistory, setScanHistory] = useState<ScanRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -57,11 +37,6 @@ export default function DashboardPage() {
     };
     initAuth();
 
-    // Listen for auth state changes (token expiration, sign-out in another
-    // tab, or — since this is the same Supabase project as the extension —
-    // this only reflects THIS tab's session; it does not sign this tab out
-    // just because the extension's session changed. The two are independent
-    // sessions against the same account, same as two browser tabs would be.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -85,140 +60,65 @@ export default function DashboardPage() {
       if (!profileErr && profileData) {
         setProfile(profileData);
       }
-
-      // NOTE: the real table (per schema) is `scans`, not `scan_logs`.
-      // Every scan — from the extension AND this web app — writes here
-      // via helpers.js's logScan(), so this table is already the single
-      // shared source of truth for scan history across both clients.
-      const { data: logsData, error: logsErr } = await supabase
-        .from('scans')
-        .select('id, created_at, target_platform, content_type, violations_found, status, origin')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (!logsErr && logsData) {
-        setScanHistory(logsData);
-      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/signin');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
-      </div>
+      <AppShell userEmail={null}>
+        <p className="text-muted-foreground text-sm">Loading your dashboard...</p>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      <main className="w-full px-4 sm:px-8 lg:px-12 pt-24 pb-16">
-        {/* Header section */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">{showSettings ? 'Settings' : 'Dashboard'}</h1>
-            {!showSettings && <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>}
-          </div>
-          {!showSettings && (
-            <button
-              onClick={() => setShowSettings(true)}
-              title="Settings"
-              className="self-start md:self-auto p-2.5 rounded-lg border border-border hover:bg-secondary transition-colors text-foreground"
-            >
-              <SettingsGearIcon />
-            </button>
-          )}
-        </div>
+    <AppShell userEmail={user?.email ?? null}>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>
+      </div>
 
-        {showSettings && user && profile ? (
-          <SettingsPanel
-            userId={user.id}
-            email={user.email}
-            profile={profile}
-            onBack={() => setShowSettings(false)}
-            onSignOut={handleSignOut}
-          />
-        ) : (
-          <>
-        {/* User Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">Current Plan</p>
-            <p className="text-2xl font-bold mt-2 capitalize">{profile?.plan || 'Free'}</p>
-          </div>
-          <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">Scans Remaining</p>
-            <p className="text-2xl font-bold mt-2 text-primary">{profile?.scans_remaining ?? 0}</p>
-          </div>
-          <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">Total Scans Performed</p>
-            <p className="text-2xl font-bold mt-2">{profile?.scans_made ?? 0}</p>
-          </div>
+      {/* User Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Current Plan</p>
+          <p className="text-2xl font-bold mt-2 capitalize">{profile?.plan || 'Free'}</p>
         </div>
+        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Scans Remaining</p>
+          <p className="text-2xl font-bold mt-2 text-primary">{profile?.scans_remaining ?? 0}</p>
+        </div>
+        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Total Scans Performed</p>
+          <p className="text-2xl font-bold mt-2">{profile?.scans_made ?? 0}</p>
+        </div>
+      </div>
 
-        {/* Scan Workspace — video + image, same flow/config as the extension */}
-        <div className="mb-12">
-          <h2 className="text-xl font-bold mb-4">Run Ad Compliance Scan</h2>
-          <ScanWorkspace profile={profile} onScanComplete={() => user && fetchUserData(user.id)} />
-        </div>
+      {/* Scan Workspace */}
+      <div className="mb-10">
+        <h2 className="text-lg font-bold mb-4">Run Ad Compliance Scan</h2>
+        <ScanWorkspace profile={profile} onScanComplete={() => user && fetchUserData(user.id)} />
+      </div>
 
-        {/* Scan History Table */}
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Recent Scan History</h2>
-          {scanHistory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No recent scans found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground">
-                    <th className="pb-3 font-medium">Date</th>
-                    <th className="pb-3 font-medium">Platform</th>
-                    <th className="pb-3 font-medium">Type</th>
-                    <th className="pb-3 font-medium">Origin</th>
-                    <th className="pb-3 font-medium">Violations</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {scanHistory.map((scan) => (
-                    <tr key={scan.id}>
-                      <td className="py-3">{new Date(scan.created_at).toLocaleDateString()}</td>
-                      <td className="py-3 capitalize">{scan.target_platform}</td>
-                      <td className="py-3 capitalize">{scan.content_type}</td>
-                      <td className="py-3">
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded ${
-                            scan.origin === 'extension'
-                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                          }`}
-                        >
-                          {scan.origin || 'webapp'}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span className={scan.violations_found > 0 ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
-                          {scan.violations_found}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+      {/* Scan History teaser — full table lives at /scan-history now */}
+      <div className="bg-card border border-border rounded-xl p-6 flex items-center justify-between gap-4">
+        <div>
+          <p className="font-semibold text-sm">Scan History</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {profile?.scan_history
+              ? 'Every scan you run is saved automatically.'
+              : 'Available on paid plans — automatically saves every scan you run.'}
+          </p>
         </div>
-          </>
-        )}
-      </main>
-    </div>
+        <Link
+          href="/scan-history"
+          className="shrink-0 px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:bg-secondary transition-colors"
+        >
+          {profile?.scan_history ? 'View History' : 'Learn more'}
+        </Link>
+      </div>
+    </AppShell>
   );
 }
