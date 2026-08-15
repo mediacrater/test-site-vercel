@@ -7,20 +7,27 @@
 // C, not built yet. Leaving the hook point marked now so Phase C doesn't
 // require re-reading this file to figure out where it plugs in.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,7 +71,8 @@ export default function SignUpPage() {
 
       <div className="w-full lg:w-1/2 flex flex-col min-h-screen bg-background">
         <div className="flex items-center justify-between px-6 py-5 lg:hidden">
-          <Link href="/" className="font-bold text-foreground">
+          <Link href="/" className="flex items-center gap-2 font-bold text-foreground">
+            <img src={logoSrc} alt="Mediacrater" className="h-8 w-8" />
             Mediacrater
           </Link>
         </div>
