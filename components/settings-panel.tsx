@@ -27,7 +27,9 @@
 //                  as a natural cross-promotion in the other direction
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
+import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 export interface SettingsProfile {
   plan: string;
@@ -61,15 +63,12 @@ export function SettingsPanel({
   userId,
   email,
   profile,
-  onBack,
-  onSignOut,
 }: {
   userId: string;
   email: string;
   profile: SettingsProfile;
-  onBack: () => void;
-  onSignOut: () => void;
 }) {
+  const router = useRouter();
   const [managePlanLoading, setManagePlanLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,19 +87,17 @@ export function SettingsPanel({
     }
   }
 
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push('/signin');
+  }
+
   const upgradeUrl = '/buy-scans';
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-4 transition-colors"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Back
-      </button>
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+
 
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         {/* Account */}
@@ -149,7 +146,7 @@ export function SettingsPanel({
               <span className="text-xs text-green-600 dark:text-green-400">Active</span>
             </div>
             <button
-              onClick={onSignOut}
+              onClick={handleSignOut}
               className="px-4 py-2 text-[13px] font-semibold rounded-lg border border-border hover:bg-secondary transition-colors"
             >
               Sign Out
