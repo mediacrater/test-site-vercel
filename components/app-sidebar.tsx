@@ -9,7 +9,10 @@
 // the homepage."
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import { LayoutDashboard, History, Settings as SettingsIcon } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -20,10 +23,17 @@ const NAV_ITEMS = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
 
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border bg-card">
       <Link href="/" className="flex items-center gap-2 px-6 h-16 border-b border-border">
+        <Image src={logoSrc} alt="Mediacrater" width={32} height={32} className="h-8 w-8" />
         <span className="text-lg font-bold text-foreground">Mediacrater</span>
       </Link>
 
