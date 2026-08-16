@@ -28,6 +28,7 @@ export default function ScanHistoryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [scansRemaining, setScansRemaining] = useState<number | null>(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [history, setHistory] = useState<ScanRecord[]>([]);
 
@@ -44,10 +45,11 @@ export default function ScanHistoryPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('scan_history')
+        .select('scan_history, scans_remaining')
         .eq('id', session.user.id)
         .single();
 
+      setScansRemaining(profile?.scans_remaining ?? null);
       const access = Boolean(profile?.scan_history);
       setHasAccess(access);
 
@@ -75,7 +77,7 @@ export default function ScanHistoryPage() {
   }
 
   return (
-    <AppShell userEmail={email}>
+    <AppShell userEmail={email} scansRemaining={scansRemaining}>
       <h1 className="text-2xl font-bold mb-6">Scan History</h1>
 
       {!hasAccess ? (
