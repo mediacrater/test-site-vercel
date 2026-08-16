@@ -2,18 +2,26 @@
 
 // components/app-shell.tsx
 //
-// Wraps every authenticated app page. Sidebar handles desktop nav; below
-// the lg breakpoint (where the sidebar is hidden) a slim top bar with a
-// dropdown covers the same ground so mobile isn't left without navigation.
-// Content area has a real max-width (not full-bleed) — full-bleed on an
-// ultra-wide monitor was the original "too wide" problem, not a lack of
-// horizontal fill.
+// Sidebar (nav) + top bar (scan count, dark mode, account) together —
+// the standard combo, not an either/or. CommandPalette and
+// KeyboardShortcuts mount once here so every page under the shell gets
+// both automatically without wiring them individually.
+//
+// Mobile: sidebar and top bar are both desktop-only (lg: breakpoint).
+// Below that, a single compact strip covers navigation + scan count +
+// account in one hamburger panel — full parity, just consolidated for
+// the smaller screen instead of two separate desktop-style bars stacked
+// on top of each other.
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, LayoutDashboard, History, Settings as SettingsIcon } from 'lucide-react';
 import { AppSidebar } from '@/components/app-sidebar';
+import { AppTopBar } from '@/components/app-topbar';
+import { CommandPalette } from '@/components/command-palette';
+import { KeyboardShortcuts } from '@/components/keyboard-shortcuts';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 const EXTENSION_LINK =
@@ -25,7 +33,15 @@ const NAV_ITEMS = [
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-export function AppShell({ userEmail, children }: { userEmail: string | null; children: React.ReactNode }) {
+export function AppShell({
+  userEmail,
+  scansRemaining = null,
+  children,
+}: {
+  userEmail: string | null;
+  scansRemaining?: number | null;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -37,22 +53,33 @@ export function AppShell({ userEmail, children }: { userEmail: string | null; ch
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <AppSidebar userEmail={userEmail} />
+      <AppSidebar />
+      <CommandPalette />
+      <KeyboardShortcuts />
 
       <div className="flex-1 min-w-0">
-        {/* Mobile top bar — only shown below the lg breakpoint where the sidebar is hidden */}
+        <AppTopBar userEmail={userEmail} scansRemaining={scansRemaining} />
+
+        {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
-          <Link href="/dashboard" className="font-bold text-sm">
+          <Link href="/" className="font-bold text-sm">
             Mediacrater
           </Link>
-          <button
-            type="button"
-            onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="p-2 text-muted-foreground hover:text-foreground"
-            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
-          >
-            {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {scansRemaining !== null && (
+              <span className="font-mono text-xs tabular-nums px-2 py-1 rounded-full bg-[#0d1b2a] dark:bg-primary/15 text-white dark:text-primary">
+                {scansRemaining} left
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="p-2 text-muted-foreground hover:text-foreground"
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {mobileNavOpen && (
@@ -75,7 +102,10 @@ export function AppShell({ userEmail, children }: { userEmail: string | null; ch
               );
             })}
             <div className="pt-2 mt-2 border-t border-border space-y-1">
-              {userEmail && <p className="px-3 py-1 text-xs text-muted-foreground truncate">{userEmail}</p>}
+              <div className="flex items-center justify-between px-3 py-1">
+                {userEmail && <p className="text-xs text-muted-foreground truncate">{userEmail}</p>}
+                <ThemeToggle />
+              </div>
               <a
                 href={EXTENSION_LINK}
                 target="_blank"
