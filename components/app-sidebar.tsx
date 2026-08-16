@@ -2,23 +2,15 @@
 
 // components/app-sidebar.tsx
 //
-// Replaces the marketing <Header/> inside the authenticated app. A
-// logged-in dashboard showing Features/Pricing/FAQ nav never made sense —
-// this is app-specific navigation instead: Dashboard, Scan History,
-// Settings, plus a compact account block at the bottom.
-//
-// Deliberately does NOT include "Go to dashboard" (meaningless once
-// you're already inside the app) but keeps "Get extension" and "Sign
-// out" immediately visible rather than nested — same reasoning as the
-// marketing header's dropdown.
+// Pure navigation now — account actions (email, extension link, sign
+// out) moved entirely to app-topbar.tsx to avoid having two places that
+// do the same thing. Logo links to '/' (actual homepage) — it was
+// linking to /dashboard before, which is what caused "no way back to
+// the homepage."
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { LayoutDashboard, History, Settings as SettingsIcon } from 'lucide-react';
-import { supabase } from '@/lib/mediacrater/supabaseClient';
-
-const EXTENSION_LINK =
-  'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=app_sidebar';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,18 +18,12 @@ const NAV_ITEMS = [
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-export function AppSidebar({ userEmail }: { userEmail: string | null }) {
+export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push('/signin');
-  }
 
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border bg-card">
-      <Link href="/dashboard" className="flex items-center gap-2 px-6 h-16 border-b border-border">
+      <Link href="/" className="flex items-center gap-2 px-6 h-16 border-b border-border">
         <span className="text-lg font-bold text-foreground">Mediacrater</span>
       </Link>
 
@@ -61,25 +47,6 @@ export function AppSidebar({ userEmail }: { userEmail: string | null }) {
           );
         })}
       </nav>
-
-      <div className="px-3 py-4 border-t border-border space-y-0.5">
-        {userEmail && <p className="px-3 py-1 text-xs text-muted-foreground truncate">{userEmail}</p>}
-        <a
-          href={EXTENSION_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        >
-          Get the Chrome extension ↗
-        </a>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="block w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-secondary transition-colors"
-        >
-          Sign Out
-        </button>
-      </div>
     </aside>
   );
 }
