@@ -74,26 +74,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <AppShell userEmail={user?.email ?? null}>
+    <AppShell userEmail={user?.email ?? null} plan={profile?.plan ?? null} scansRemaining={profile?.scans_remaining ?? null}>
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>
-      </div>
-
-      {/* User Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-          <p className="text-sm font-medium text-muted-foreground">Current Plan</p>
-          <p className="text-2xl font-bold mt-2 capitalize">{profile?.plan || 'Free'}</p>
-        </div>
-        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-          <p className="text-sm font-medium text-muted-foreground">Scans Remaining</p>
-          <p className="text-2xl font-bold mt-2 text-primary">{profile?.scans_remaining ?? 0}</p>
-        </div>
-        <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
-          <p className="text-sm font-medium text-muted-foreground">Total Scans Performed</p>
-          <p className="text-2xl font-bold mt-2">{profile?.scans_made ?? 0}</p>
-        </div>
       </div>
 
       {/* Scan Workspace */}
