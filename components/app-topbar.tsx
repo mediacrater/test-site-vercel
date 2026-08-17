@@ -24,9 +24,11 @@ const EXTENSION_LINK =
 
 export function AppTopBar({
   userEmail,
+  plan,
   scansRemaining,
 }: {
   userEmail: string | null;
+  plan: string | null;
   scansRemaining: number | null;
 }) {
   const router = useRouter();
@@ -51,10 +53,16 @@ export function AppTopBar({
 
   return (
     <div className="hidden lg:flex items-center justify-end gap-3 h-16 px-8 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-30">
+      {plan && (
+        <div className="px-3 py-1.5 rounded-full border border-border text-xs font-medium text-foreground capitalize">
+          {plan}
+        </div>
+      )}
+
       {scansRemaining !== null && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0d1b2a] dark:bg-primary/15 text-white dark:text-primary">
-          <span className="font-mono text-xs tabular-nums font-medium">{scansRemaining}</span>
-          <span className="text-xs text-white/70 dark:text-primary/70">scans left</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
+          <span className="font-mono text-xs tabular-nums font-semibold">{scansRemaining}</span>
+          <span className="text-xs text-primary/80">scans left</span>
         </div>
       )}
 
