@@ -34,11 +34,11 @@ import {
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 const PLATFORMS = [
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'meta', label: 'Meta (FB/IG)' },
-  { value: 'tiktok', label: 'TikTok' },
-  { value: 'pinterest', label: 'Pinterest' },
-  { value: 'x', label: 'X (Twitter)' },
+  { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
+  { value: 'meta', label: 'Meta (FB/IG)', icon: '/images/platform-icons/meta.png' },
+  { value: 'tiktok', label: 'TikTok', icon: '/images/platform-icons/tiktok.png' },
+  { value: 'pinterest', label: 'Pinterest', icon: '/images/platform-icons/pinterest.png' },
+  { value: 'x', label: 'X (Twitter)', icon: '/images/platform-icons/x.png' },
 ] as const;
 
 const VALID_TYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'image/png', 'image/jpeg', 'image/gif'];
@@ -560,6 +560,7 @@ export function ScanWorkspace({
                       onChange={() => togglePlatform(p.value)}
                       className="accent-current"
                     />
+                    <img src={p.icon} alt="" className="w-4 h-4 object-contain" />
                     {p.label}
                   </label>
                 ))}
