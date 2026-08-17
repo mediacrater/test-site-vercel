@@ -52,7 +52,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <AppShell userEmail={email} scansRemaining={profile.scans_remaining ?? null}>
+    <AppShell userEmail={email} plan={profile.plan ?? null} scansRemaining={profile.scans_remaining ?? null}>
       <SettingsPanel userId={userId} email={email} profile={profile} />
     </AppShell>
   );
