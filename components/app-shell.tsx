@@ -35,10 +35,12 @@ const NAV_ITEMS = [
 
 export function AppShell({
   userEmail,
+  plan = null,
   scansRemaining = null,
   children,
 }: {
   userEmail: string | null;
+  plan?: string | null;
   scansRemaining?: number | null;
   children: React.ReactNode;
 }) {
@@ -58,7 +60,7 @@ export function AppShell({
       <KeyboardShortcuts />
 
       <div className="flex-1 min-w-0">
-        <AppTopBar userEmail={userEmail} scansRemaining={scansRemaining} />
+        <AppTopBar userEmail={userEmail} plan={plan} scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -66,8 +68,13 @@ export function AppShell({
             Mediacrater
           </Link>
           <div className="flex items-center gap-2">
+            {plan && (
+              <span className="text-xs font-medium text-foreground border border-border rounded-full px-2 py-1 capitalize">
+                {plan}
+              </span>
+            )}
             {scansRemaining !== null && (
-              <span className="font-mono text-xs tabular-nums px-2 py-1 rounded-full bg-[#0d1b2a] dark:bg-primary/15 text-white dark:text-primary">
+              <span className="font-mono text-xs tabular-nums px-2 py-1 rounded-full bg-primary/10 text-primary">
                 {scansRemaining} left
               </span>
             )}
