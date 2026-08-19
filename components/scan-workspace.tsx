@@ -32,6 +32,7 @@ import {
   waitForQueueTurn,
 } from '@/lib/mediacrater/scanApi';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { uploadScanThumbnail } from '@/lib/mediacrater/thumbnails';
 
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
@@ -50,6 +51,7 @@ export interface WorkspaceProfile {
   scans_remaining: number;
   scans_per_month?: number;
   deep_scan_enabled?: boolean;
+  scan_history?: boolean;
   last_notified_at?: string | null;
 }
 
@@ -297,15 +299,33 @@ export function ScanWorkspace({
       setProgressText('Image processed');
     }
 
+    // Upload one thumbnail for this scan session (same first frame across
+    // every platform being scanned) rather than once per platform — a
+    // scan against 3 platforms shouldn't upload the same image 3 times.
+    // Best-effort: a failed upload just means no thumbnail, never blocks
+    // the actual scan. Only attempted for paid users (scan_history gate)
+    // since free-tier scans never show up in history anyway.
+    let thumbnailPath: string | null = null;
+    if (profile?.scan_history && frames[0]) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const thumbnailScanId = crypto.randomUUID();
+        thumbnailPath = await uploadScanThumbnail(user.id, thumbnailScanId, frames[0].data);
+      }
+    }
+
     const framesWaitMs = framesExtractedTime ? framesExtractedTime - scanStartTime : 0;
     const platformList = platforms.join(', ').toUpperCase();
     setProgressText(`Analyzing your content against ${platformList} policies...`);
 
     const rawResults = await Promise.all(
       platforms.map(async (platform) => {
+        const scanId = crypto.randomUUID();
         let response = isVideo
-          ? await scanVideo(frames, platform, scanType, null, signal)
-          : await scanImage(frames[0].data, platform, null, signal);
+          ? await scanVideo(frames, platform, scanType, null, signal, scanId, thumbnailPath)
+          : await scanImage(frames[0].data, platform, null, signal, scanId, thumbnailPath);
 
         let queueEnteredAt: number | null = null;
         let queueWaitMs = 0;
@@ -326,8 +346,8 @@ export function ScanWorkspace({
           setProgressText(`Analyzing your content against ${platform.toUpperCase()} policies...`);
 
           response = isVideo
-            ? await scanVideo(frames, platform, scanType, jobId, signal)
-            : await scanImage(frames[0].data, platform, jobId, signal);
+            ? await scanVideo(frames, platform, scanType, jobId, signal, scanId, thumbnailPath)
+            : await scanImage(frames[0].data, platform, jobId, signal, scanId, thumbnailPath);
         }
 
         const completed = response as Extract<typeof response, { success: true }>;
