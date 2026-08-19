@@ -22,6 +22,7 @@ import { extractFrames, type ExtractedFrame, type ScanType } from '@/lib/mediacr
 import {
   calculateConfidenceScore,
   groupViolationsByType,
+  severityBorderClass,
   type Violation,
 } from '@/lib/mediacrater/scoreCalculator';
 import {
@@ -287,16 +288,14 @@ export function ScanWorkspace({
     let framesExtractedTime: number | null = null;
 
     if (isVideo && currentFile) {
-      setProgressText('Deconstructing your video...');
+      setProgressText('Preparing your video...');
       frames = await extractFrames(currentFile, signal, scanType);
       framesExtractedTime = Date.now();
-      setProgressText(`Extracted ${frames.length} frames`);
     } else if (currentFile) {
-      setProgressText('Processing image...');
+      setProgressText('Preparing your image...');
       const imageData = await fileToBase64(currentFile);
       frames = [{ frameNumber: 1, timestamp: '00:00.00', timestampSeconds: 0, data: imageData }];
       framesExtractedTime = Date.now();
-      setProgressText('Image processed');
     }
 
     // Upload one thumbnail for this scan session (same first frame across
@@ -323,9 +322,10 @@ export function ScanWorkspace({
     const rawResults = await Promise.all(
       platforms.map(async (platform) => {
         const scanId = crypto.randomUUID();
+        const fileName = currentFile?.name ?? null;
         let response = isVideo
-          ? await scanVideo(frames, platform, scanType, null, signal, scanId, thumbnailPath)
-          : await scanImage(frames[0].data, platform, null, signal, scanId, thumbnailPath);
+          ? await scanVideo(frames, platform, scanType, null, signal, scanId, thumbnailPath, fileName)
+          : await scanImage(frames[0].data, platform, null, signal, scanId, thumbnailPath, fileName);
 
         let queueEnteredAt: number | null = null;
         let queueWaitMs = 0;
@@ -346,8 +346,8 @@ export function ScanWorkspace({
           setProgressText(`Analyzing your content against ${platform.toUpperCase()} policies...`);
 
           response = isVideo
-            ? await scanVideo(frames, platform, scanType, jobId, signal, scanId, thumbnailPath)
-            : await scanImage(frames[0].data, platform, jobId, signal, scanId, thumbnailPath);
+            ? await scanVideo(frames, platform, scanType, jobId, signal, scanId, thumbnailPath, fileName)
+            : await scanImage(frames[0].data, platform, jobId, signal, scanId, thumbnailPath, fileName);
         }
 
         const completed = response as Extract<typeof response, { success: true }>;
@@ -742,7 +742,7 @@ export function ScanWorkspace({
                                 ? `🎞️ Frames: ${v.frames.join(', ')}`
                                 : null;
                               return (
-                                <div key={idx} className="bg-muted/30 border border-border rounded-lg p-3 text-sm">
+                                <div key={idx} className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm`}>
                                   {location && <div className="text-xs text-muted-foreground mb-1">{location}</div>}
                                   <div className="mb-2">{v.reason}</div>
                                   {v.suggestedFix && (
