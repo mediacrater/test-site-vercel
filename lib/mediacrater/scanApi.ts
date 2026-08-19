@@ -76,7 +76,9 @@ export async function scanVideo(
   platform: string,
   scanType: ScanType,
   jobId: string | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  scanId?: string | null,
+  thumbnailUrl?: string | null
 ): Promise<ScanResponse> {
   const token = await requireAccessToken();
 
@@ -93,6 +95,8 @@ export async function scanVideo(
       platform,
       scanType: scanType || 'regular',
       jobId: jobId || null,
+      scanId: scanId || null,
+      thumbnailUrl: thumbnailUrl || null,
     }),
     signal,
   });
@@ -113,7 +117,9 @@ export async function scanImage(
   imageData: string,
   platform: string,
   jobId: string | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  scanId?: string | null,
+  thumbnailUrl?: string | null
 ): Promise<ScanResponse> {
   const token = await requireAccessToken();
 
@@ -124,7 +130,13 @@ export async function scanImage(
       'Content-Type': 'application/json',
       'x-scan-origin': 'webapp',
     },
-    body: JSON.stringify({ imageData, platform, jobId: jobId || null }),
+    body: JSON.stringify({
+      imageData,
+      platform,
+      jobId: jobId || null,
+      scanId: scanId || null,
+      thumbnailUrl: thumbnailUrl || null,
+    }),
     signal,
   });
 
