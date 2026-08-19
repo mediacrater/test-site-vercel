@@ -143,3 +143,21 @@ export function groupViolationsByType(violations: Violation[]): Record<string, V
   }
   return grouped;
 }
+
+/**
+ * Maps a violation's severity to a left-border color class, matching the
+ * extension's colored side-bar on each violation card. Falls back to
+ * amber (medium) for anything unrecognized rather than no color at all —
+ * an unstyled card reads as more of a bug than a reasonable default.
+ */
+export function severityBorderClass(severity: string | undefined): string {
+  switch ((severity || '').toLowerCase()) {
+    case 'high':
+      return 'border-l-4 border-l-red-500';
+    case 'low':
+      return 'border-l-4 border-l-green-500';
+    case 'medium':
+    default:
+      return 'border-l-4 border-l-amber-500';
+  }
+}
