@@ -2,17 +2,20 @@
 
 // app/scan-history/page.tsx
 //
-// Pulled out of the dashboard per the plan — and gated the same way the
-// extension gates it (profiles.scan_history). That flag already exists
-// and is already correctly flipped true/false by stripe-webhook on
-// upgrade/downgrade — nothing in the web app has ever actually read it
-// until now, so this required zero backend changes.
+// Gated the same way the extension gates it (profiles.scan_history) —
+// that flag already exists and is already correctly maintained by
+// stripe-webhook, so this required zero backend changes for the gating
+// itself. Thumbnails are new: each row's thumbnail_url is a private
+// Storage path, resolved to a short-lived signed URL at render time
+// (never a permanent public link — these are screenshots of real ad
+// creatives).
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { getThumbnailSignedUrl } from '@/lib/mediacrater/thumbnails';
 
 interface ScanRecord {
   id: string;
@@ -22,6 +25,7 @@ interface ScanRecord {
   violations_found: number;
   status: string;
   origin: string;
+  thumbnail_url: string | null;
 }
 
 export default function ScanHistoryPage() {
@@ -32,6 +36,7 @@ export default function ScanHistoryPage() {
   const [scansRemaining, setScansRemaining] = useState<number | null>(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [history, setHistory] = useState<ScanRecord[]>([]);
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const init = async () => {
@@ -58,11 +63,26 @@ export default function ScanHistoryPage() {
       if (access) {
         const { data: scans } = await supabase
           .from('scans')
-          .select('id, created_at, target_platform, content_type, violations_found, status, origin')
+          .select('id, created_at, target_platform, content_type, violations_found, status, origin, thumbnail_url')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false })
           .limit(100);
+
         setHistory(scans || []);
+
+        // Resolve signed URLs for every row that has a thumbnail. Older
+        // scans (before this feature existed) simply have no path here —
+        // they render without a thumbnail, not as an error.
+        const paths = (scans || []).filter((s) => s.thumbnail_url).map((s) => s.thumbnail_url as string);
+        const uniquePaths = Array.from(new Set(paths));
+        const resolved = await Promise.all(
+          uniquePaths.map(async (path) => [path, await getThumbnailSignedUrl(path)] as const)
+        );
+        const map: Record<string, string> = {};
+        resolved.forEach(([path, url]) => {
+          if (url) map[path] = url;
+        });
+        setThumbnails(map);
       }
 
       setLoading(false);
@@ -99,45 +119,59 @@ export default function ScanHistoryPage() {
       ) : history.length === 0 ? (
         <p className="text-sm text-muted-foreground">No scans yet. Run your first scan from the dashboard.</p>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th className="pb-3 font-medium">Date</th>
-                  <th className="pb-3 font-medium">Platform</th>
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Origin</th>
-                  <th className="pb-3 font-medium">Violations</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {history.map((scan) => (
-                  <tr key={scan.id}>
-                    <td className="py-3">{new Date(scan.created_at).toLocaleDateString()}</td>
-                    <td className="py-3 capitalize">{scan.target_platform}</td>
-                    <td className="py-3 capitalize">{scan.content_type}</td>
-                    <td className="py-3">
-                      <span
-                        className={`px-2 py-0.5 text-xs rounded ${
-                          scan.origin === 'extension'
-                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                        }`}
-                      >
-                        {scan.origin || 'webapp'}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <span className={scan.violations_found > 0 ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
-                        {scan.violations_found}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-2">
+          {history.map((scan) => {
+            const thumbUrl = scan.thumbnail_url ? thumbnails[scan.thumbnail_url] : null;
+            return (
+              <div
+                key={scan.id}
+                className="flex items-center gap-4 bg-card border border-border rounded-xl p-3"
+              >
+                <div className="w-14 h-14 rounded-lg bg-muted/30 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                  {thumbUrl ? (
+                    <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground capitalize px-1 text-center">
+                      {scan.content_type}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm capitalize">{scan.target_platform}</span>
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded ${
+                        scan.origin === 'extension'
+                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                      }`}
+                    >
+                      {scan.origin || 'webapp'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {new Date(scan.created_at).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}{' '}
+                    · <span className="capitalize">{scan.content_type}</span>
+                  </p>
+                </div>
+
+                <span
+                  className={`shrink-0 text-sm font-semibold ${
+                    scan.violations_found > 0 ? 'text-red-500' : 'text-green-500'
+                  }`}
+                >
+                  {scan.violations_found > 0 ? `${scan.violations_found} violations` : 'Clean'}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </AppShell>
