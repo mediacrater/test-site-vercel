@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Mediacrater',
-  description: 'How Mediacrater handles your data. We scan your ads for policy violations and permanently delete them after. Your creatives are never stored.',
+  description: 'How Mediacrater handles your data. We scan your ads for policy violations and permanently delete the original files after.',
   robots: { index: true, follow: true },
 }
 
@@ -10,14 +10,14 @@ export default function PrivacyPolicy() {
   return (
     <main className="max-w-3xl mx-auto px-6 py-16 text-base leading-relaxed">
       <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-      <p className="text-sm text-muted-foreground mb-10">Effective date: April 2026</p>
+      <p className="text-sm text-muted-foreground mb-10">Effective date: August 2026</p>
 
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">Who We Are</h2>
         <p>
-          Mediacrater is a Chrome extension that scans video and image ads for policy violations
-          across platforms including Meta, TikTok, YouTube, Pinterest, and X. We are operated as
-          Mediacrater and can be reached at{' '}
+          Mediacrater scans video and image ads for policy violations across platforms including
+          Meta, TikTok, YouTube, Pinterest, and X, via our Chrome extension or web app. We are
+          operated as Mediacrater and can be reached at{' '}
           <a href="mailto:hello.mediacrater@gmail.com" className="underline">
             hello.mediacrater@gmail.com
           </a>.
@@ -49,8 +49,14 @@ export default function PrivacyPolicy() {
           <li>
             <strong>Scan metadata</strong> — when you run a scan, we log the timestamp, tokens
             consumed, platform selected, content type (video or image), and analysis duration.
-            No ad content, video files, or images are ever stored. This data is used solely to
-            diagnose technical issues and to evaluate refund requests. Stored via Supabase.
+            No ad content, video files, or images are stored as part of this metadata. This data
+            is used solely to diagnose technical issues and to evaluate refund requests. Stored
+            via Supabase.
+          </li>
+          <li>
+            <strong>File name</strong> — if your plan includes Scan History, we also store the
+            original file name of your upload (e.g. "summer_sale_ad.mp4") so you can identify it
+            in your History page. Not stored if your plan does not include Scan History.
           </li>
           <li>
             <strong>Queue metadata</strong> — Our queuing system is designed to allocate our limited 
@@ -65,8 +71,9 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Authentication tokens</strong> — session tokens used to keep you logged in are
-            stored locally on your device via Chrome's secure storage API. They are never transmitted
-            to or stored on our servers beyond what Supabase requires for session management.
+            stored locally on your device (via Chrome's secure storage API in the extension, or your
+            browser's local storage on the web app). They are never transmitted to or stored on our
+            servers beyond what Supabase requires for session management.
           </li>
           <li>
             <strong>Device address</strong> — we collect your device IP address at the time of account creation solely to prevent abuse of our free tier. Read more about this in our{' '}
@@ -98,9 +105,20 @@ export default function PrivacyPolicy() {
         <ul className="list-disc list-inside space-y-2">
           <li>
             <strong>Video and image files</strong> — files you submit for scanning are transmitted
-            to our servers solely for policy analysis. They are permanently and automatically deleted
-            the moment your scan results are returned to the extension. We do not store, retain,
-            review, or use your creative assets for any purpose beyond the scan you requested.
+            to our servers solely for policy analysis. The full file is permanently and
+            automatically deleted the moment your scan results are returned — we do not retain
+            your original video or image.
+          </li>
+          <li>
+            <strong>Scan History thumbnails (paid plans only)</strong> — if your plan includes
+            Scan History, we additionally generate and retain a small, heavily compressed,
+            low-resolution thumbnail — derived from your uploaded image, or the first frame of
+            your video — solely so you can visually identify past scans in your History page.
+            This thumbnail is intentionally too low-quality for any practical reuse of your
+            creative. It is stored via Supabase Storage, deleted if you delete the associated
+            scan, and is not generated or retained at all if your plan does not include Scan
+            History. We do not use your creative assets, or any thumbnail derived from them, for
+            any purpose beyond what is outlined in this Privacy Policy.
           </li>
         </ul>
       </section>
@@ -115,6 +133,7 @@ export default function PrivacyPolicy() {
           <li>To diagnose technical issues using anonymised scan metadata</li>
           <li>To improve Mediacrater's accuracy and features over time</li>
           <li>To respond to support requests sent to our email</li>
+          <li>To display scan history accurately for paying users</li>
         </ul>
       </section>
 
@@ -132,9 +151,9 @@ export default function PrivacyPolicy() {
         <p className="mb-4">We use the following third-party services to operate Mediacrater:</p>
         <ul className="list-disc list-inside space-y-2">
           <li>
-            <strong>Supabase</strong> — user authentication, account data storage, and database
-            management. Supabase stores your email, token balance, purchase records, and scan
-            metadata on our behalf.
+            <strong>Supabase</strong> — user authentication, account data storage, database
+            management, and — for paid plans with Scan History enabled — storage of compressed
+            scan thumbnails as described above.
           </li>
           <li>
             <strong>Stripe</strong> — payment processing. Stripe handles all credit card and
@@ -160,8 +179,13 @@ export default function PrivacyPolicy() {
         <h2 className="text-xl font-semibold mb-3">Data Retention</h2>
         <ul className="list-disc list-inside space-y-2">
           <li>
-            <strong>Creative assets</strong> — deleted immediately and automatically after scan
-            results are delivered.
+            <strong>Creative assets (full files)</strong> — deleted immediately and automatically
+            after scan results are delivered.
+          </li>
+          <li>
+            <strong>Scan History thumbnails</strong> — retained only for accounts on a plan that
+            includes Scan History, for as long as the associated scan record exists. Not generated
+            or retained on plans without Scan History.
           </li>
           <li>
             <strong>Account data</strong> — retained for as long as your account is active.
@@ -208,10 +232,13 @@ export default function PrivacyPolicy() {
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">Cookies and Local Storage</h2>
         <p>
-          We use only essential cookies and Chrome local storage required for authentication
-          and session management. Your login session is stored locally on your device via
-          Chrome's secure storage API. We do not use advertising, tracking, or analytical
-          cookies within the extension.
+          Our Chrome extension uses only essential local storage required for authentication and
+          session management, via Chrome's secure storage API — no advertising, tracking, or
+          analytical cookies. Our web app uses a small number of cookies described in our{' '}
+          <a href="https://mediacrater.com/cookie-policy" className="underline">
+            Cookie Policy
+          </a>
+          , including one optional affiliate-tracking cookie that only activates if you accept it.
         </p>
       </section>
 
