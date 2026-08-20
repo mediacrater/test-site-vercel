@@ -322,7 +322,10 @@ export function ScanWorkspace({
     const rawResults = await Promise.all(
       platforms.map(async (platform) => {
         const scanId = crypto.randomUUID();
-        const fileName = currentFile?.name ?? null;
+        // Gated the same as thumbnailPath — file names are only ever sent
+        // to the server for accounts whose plan includes Scan History,
+        // matching what the Privacy Policy now actually says.
+        const fileName = profile?.scan_history ? currentFile?.name ?? null : null;
         let response = isVideo
           ? await scanVideo(frames, platform, scanType, null, signal, scanId, thumbnailPath, fileName)
           : await scanImage(frames[0].data, platform, null, signal, scanId, thumbnailPath, fileName);
