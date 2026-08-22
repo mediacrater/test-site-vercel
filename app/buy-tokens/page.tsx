@@ -1,3 +1,4 @@
+// ── buy-tokens page
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -208,10 +209,13 @@ export default function PricingPage() {
   );
 }
 
+// Must match TRUSTED_ORIGINS in background.js and
+// externally_connectable.matches in manifest.json. Test ID shown here —
+// swap for the real published extension ID before production.
+const EXTENSION_ID = 'jlkpbcnjofbbkhlalkobggicjdcnbclh';
+
 function PricingContent() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
-  const userEmail = searchParams.get('email');
   const fromExtension = searchParams.get('source') === 'extension';
   const fromabuse_email = searchParams.get('source') === 'abuse_email';
   const currentPlan = searchParams.get('currentPlan') ?? '';
@@ -219,8 +223,55 @@ function PricingContent() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
-    if (!userId || !userEmail) {
+    if (fromExtension) {
+      // Bridge to the extension's background script — it holds the real
+      // session token this page cannot access (a webpage tab can't read
+      // chrome.storage.local). No userId/email involved anywhere here.
+      if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+        alert(
+          'Could not reach the Mediacrater extension. Make sure it is installed and enabled, then try again from inside the extension.'
+        );
+        return;
+      }
+
+      setLoadingPlan(planId);
+
+      const timeout = setTimeout(() => {
+        setLoadingPlan(null);
+        alert('The extension did not respond in time. Please try again from inside the extension.');
+      }, 8000);
+
+      chrome.runtime.sendMessage(
+        EXTENSION_ID,
+        { type: 'MEDIACRATER_START_CHECKOUT', plan: planId },
+        (response: { success: boolean; error?: string } | undefined) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError || !response?.success) {
+            setLoadingPlan(null);
+            alert(response?.error || 'Could not start checkout. Please try again from inside the extension.');
+            return;
+          }
+          // Success — background.js already opened the Stripe checkout
+          // in a new tab. Nothing more for this tab to do.
+        }
+      );
+      return;
+    }
+
+    if (!fromabuse_email) {
       alert('Please open this page from inside the extension to subscribe.');
+      return;
+    }
+
+    // Abuse-email path: still goes through the old checkout/create route
+    // for now. Same underlying gap as the extension path had — flagged
+    // separately, not fixed in this pass, since there's no "extension"
+    // to bridge through from an emailed link. Needs its own fix later
+    // (e.g. a short-lived signed token in the email link itself).
+    const userId = searchParams.get('userId');
+    const userEmail = searchParams.get('email');
+    if (!userId || !userEmail) {
+      alert('This link is missing required information. Please contact support.');
       return;
     }
 
