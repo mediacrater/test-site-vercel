@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { ScanWorkspace, type WorkspaceProfile } from '@/components/scan-workspace';
@@ -17,10 +17,30 @@ interface UserProfile extends WorkspaceProfile {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<AppShell userEmail={null}><p className="text-muted-foreground text-sm">Loading...</p></AppShell>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      setShowCheckoutSuccess(true);
+      // Strip the param so refreshing the page doesn't re-show the banner
+      // — replaceState rather than router.replace() so this doesn't
+      // trigger a Next.js navigation/re-render of the whole page.
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -75,6 +95,22 @@ export default function DashboardPage() {
 
   return (
     <AppShell userEmail={user?.email ?? null} plan={profile?.plan ?? null} scansRemaining={profile?.scans_remaining ?? null}>
+      {showCheckoutSuccess && (
+        <div className="mb-6 flex items-center justify-between gap-4 px-4 py-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+          <p className="text-sm text-green-800 dark:text-green-400">
+            <span className="font-semibold">You're all set!</span>
+            {profile?.plan && profile.plan !== 'free' ? ` You're now on the ${profile.plan.charAt(0).toUpperCase()}${profile.plan.slice(1)} plan.` : ' Your plan has been updated.'}
+          </p>
+          <button
+            onClick={() => setShowCheckoutSuccess(false)}
+            className="text-green-800 dark:text-green-400 hover:opacity-70 text-sm"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">Logged in as {user?.email}</p>
