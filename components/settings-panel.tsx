@@ -156,7 +156,7 @@ export function SettingsPanel({
           {error && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{error}</p>}
         </div>
 
-        	<!-- Keyboard Shortcuts -->
+        {/* Keyboard Shortcuts -->*/}
     <div class="settings-section">
       <h3 class="settings-section-title">Shortcuts</h3>
       <div class="settings-row">
