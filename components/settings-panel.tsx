@@ -26,16 +26,21 @@
 //                  Web Store link) swapped for "Get the Chrome extension"
 //                  as a natural cross-promotion in the other direction
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
-import { supabase } from '@/lib/mediacrater/supabaseClient';
+import React, { useState } from 'react';
 
 export interface SettingsProfile {
   plan: string;
   scans_remaining: number;
   subscription_cancel_at?: string | null;
   subscription_renews_at?: string | null;
+}
+
+interface SettingsPanelProps {
+  userId?: string;
+  email?: string;
+  profile?: SettingsProfile;
+  onSignOut?: () => void;
+  onManagePlan?: () => Promise<string>;
 }
 
 function formatPlanLabel(profile: SettingsProfile): string {
@@ -60,15 +65,12 @@ function formatPlanLabel(profile: SettingsProfile): string {
 }
 
 export function SettingsPanel({
-  userId,
-  email,
-  profile,
-}: {
-  userId: string;
-  email: string;
-  profile: SettingsProfile;
-}) {
-  const router = useRouter();
+  userId = 'usr_demo123',
+  email = 'user@example.com',
+  profile = { plan: 'free', scans_remaining: 5 },
+  onSignOut,
+  onManagePlan,
+}: SettingsPanelProps) {
   const [managePlanLoading, setManagePlanLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,8 +80,14 @@ export function SettingsPanel({
     setError(null);
     setManagePlanLoading(true);
     try {
-      const url = await getBillingPortalUrl();
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (onManagePlan) {
+        const url = await onManagePlan();
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        // Fallback simulation for preview environment
+        await new Promise((res) => setTimeout(res, 800));
+        window.open('https://billing.stripe.com/p/login/demo', '_blank', 'noopener,noreferrer');
+      }
     } catch (err: any) {
       setError(err.message || 'Could not open billing portal. Please try again.');
     } finally {
@@ -88,21 +96,25 @@ export function SettingsPanel({
   }
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push('/signin');
+    if (onSignOut) {
+      onSignOut();
+    } else {
+      console.log('Sign out triggered');
+    }
   }
 
   const upgradeUrl = '/buy-scans';
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto p-4 font-sans text-foreground">
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-        {/* Account */}
+        {/* Account Section */}
         <div className="p-5 border-b border-border">
-          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">Account</h3>
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">
+            Account
+          </h3>
 
           <div className="flex justify-between items-center py-2.5 border-b border-border">
             <div className="flex flex-col gap-0.5">
@@ -114,7 +126,9 @@ export function SettingsPanel({
           <div className="flex justify-between items-center py-2.5 border-b border-border">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Scans remaining</span>
-              <span className="text-xs text-muted-foreground">{profile.scans_remaining ?? 0} scans</span>
+              <span className="text-xs text-muted-foreground">
+                {profile.scans_remaining ?? 0} scans
+              </span>
             </div>
             <a
               href={upgradeUrl}
@@ -127,7 +141,9 @@ export function SettingsPanel({
           <div className="flex justify-between items-center py-2.5 border-b border-border">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Plan</span>
-              <span className="text-xs text-muted-foreground">{formatPlanLabel(profile)}</span>
+              <span className="text-xs text-muted-foreground">
+                {formatPlanLabel(profile)}
+              </span>
             </div>
             {isPaid && (
               <button
@@ -143,7 +159,9 @@ export function SettingsPanel({
           <div className="flex justify-between items-center py-2.5">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Session</span>
-              <span className="text-xs text-green-600 dark:text-green-400">Active</span>
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                Active
+              </span>
             </div>
             <button
               onClick={handleSignOut}
@@ -153,23 +171,81 @@ export function SettingsPanel({
             </button>
           </div>
 
-          {error && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{error}</p>}
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+              {error}
+            </p>
+          )}
         </div>
 
-        {/* About */}
+        {}
+        {/* Shortcuts Section */}
+        <div className="p-5 border-b border-border">
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">
+            Shortcuts
+          </h3>
+
+          <div className="py-2.5 border-b border-border">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Keybinds</span>
+              <span className="text-xs text-muted-foreground">
+                Helps you navigate the extension faster
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <span className="text-sm font-medium">Main screen</span>
+            <kbd className="px-2.5 py-1 text-xs font-mono font-semibold text-foreground bg-muted border border-border rounded-md shadow-xs">
+              W
+            </kbd>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <span className="text-sm font-medium">Scan history</span>
+            <kbd className="px-2.5 py-1 text-xs font-mono font-semibold text-foreground bg-muted border border-border rounded-md shadow-xs">
+              A
+            </kbd>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5 border-b border-border">
+            <span className="text-sm font-medium">Settings</span>
+            <kbd className="px-2.5 py-1 text-xs font-mono font-semibold text-foreground bg-muted border border-border rounded-md shadow-xs">
+              S
+            </kbd>
+          </div>
+
+          <div className="flex justify-between items-center py-2.5">
+            <span className="text-sm font-medium">Toggle dark mode</span>
+            <kbd className="px-2.5 py-1 text-xs font-mono font-semibold text-foreground bg-muted border border-border rounded-md shadow-xs">
+              D
+            </kbd>
+          </div>
+        </div>
+
+        {}
+        {/* About Section */}
         <div className="p-5">
-          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">About</h3>
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">
+            About
+          </h3>
 
           <div className="flex justify-between items-center py-2.5 border-b border-border">
             <span className="text-sm font-medium">Contact support</span>
-            <a href="mailto:hello.mediacrater@gmail.com" className="text-[13px] font-medium text-primary hover:underline">
+            <a
+              href="mailto:hello.mediacrater@gmail.com"
+              className="text-[13px] font-medium text-primary hover:underline"
+            >
               hello.mediacrater@gmail.com
             </a>
           </div>
 
           <div className="flex justify-between items-center py-2.5 border-b border-border">
             <span className="text-sm font-medium">Changelog</span>
-            <a href="/changelog" className="text-[13px] font-medium text-primary hover:underline">
+            <a
+              href="/changelog"
+              className="text-[13px] font-medium text-primary hover:underline"
+            >
               What&apos;s new ↗
             </a>
           </div>
@@ -193,4 +269,8 @@ export function SettingsPanel({
       </p>
     </div>
   );
+}
+
+export default function App() {
+  return <SettingsPanel />;
 }
