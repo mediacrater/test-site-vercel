@@ -156,41 +156,6 @@ export function SettingsPanel({
           {error && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{error}</p>}
         </div>
 
-        {/* Keyboard Shortcuts -->*/}
-    <div class="settings-section">
-      <h3 class="settings-section-title">Shortcuts</h3>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-label">Keybinds</span>
-          <span class="settings-row-value" style="font-size: 12px;">Helps you navigate the extension faster</span>
-		</div>
-	  </div>	
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-sublabel">Main screen</span>
-        </div>
-        <kbd class="keybind-badge">W</kbd>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-sublabel">Scan history</span>
-        </div>
-        <kbd class="keybind-badge">A</kbd>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-sublabel">Settings</span>
-        </div>
-        <kbd class="keybind-badge">S</kbd>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <span class="settings-row-sublabel">Toggle dark mode</span>
-        </div>
-        <kbd class="keybind-badge">D</kbd>
-      </div>
-    </div>
-
         {/* About */}
         <div className="p-5">
           <h3 className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2.5">About</h3>
