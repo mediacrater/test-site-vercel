@@ -31,58 +31,51 @@ export default function SignUpPage() {
   const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-    if (!consentAccepted) {
-      setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
-      return;
-    }
+  if (password !== confirmPassword) {
+    setError('Passwords do not match.');
+    return;
+  }
+  if (password.length < 6) {
+    setError('Password must be at least 6 characters.');
+    return;
+  }
+  if (!consentAccepted) {
+    setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
+    return;
+  }
 
-    setLoading(true);
-    try {
-      // consented_at is recorded server-side via signup metadata — not
-      // just held in client state — so there's an actual timestamped
-      // record of this specific checkbox action, not just a UI flag
-      // that disappears the moment the tab closes. Whether this lands in
-      // profiles depends on how handle_new_user reads user metadata —
-      // flagged for verification, see chat.
-      const { data, error } = await supabase.auth.signUp({
+  setLoading(true);
+  try {
+    const res = await fetch('/api/signup', {          // ← change to your actual route path if different
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         email,
         password,
-        options: {
-          data: {
-            accepted_tos_privacy_at: new Date().toISOString(),
-          },
-        },
-      });
-      if (error) throw error;
+        acceptedTerms: true,
+      }),
+    });
 
-      // TODO (Phase C): read the mc_referrer cookie here (if present and
-      // consent was accepted) and write it into profiles.referrer for
-      // data.user.id. Requires the links table + consent banner to exist
-      // first — see the referral-links phase.
+    const json = await res.json();
 
-      if (data.session) {
-        router.push('/dashboard');
-      } else {
-        // Email confirmation required before a session exists
-        setCheckEmail(true);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(json.error || 'Failed to create account.');
     }
+
+    // The API route already created the user.
+    // If your project requires email confirmation, the API should return
+    // a flag; otherwise just redirect.
+    router.push('/dashboard');
+    // or setCheckEmail(true) if the API indicates confirmation is required
+  } catch (err: any) {
+    setError(err.message || 'Failed to create account. Please try again.');
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="min-h-screen flex">
