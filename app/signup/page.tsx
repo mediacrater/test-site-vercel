@@ -2,16 +2,24 @@
 
 // app/signup/page.tsx
 //
-// Same minimal-chrome reasoning as signin/page.tsx. Note the marked TODO
-// below — referral attribution (reading the mc_referrer cookie) is Phase
-// C, not built yet. Leaving the hook point marked now so Phase C doesn't
-// require re-reading this file to figure out where it plugs in.
+// Rebuilt against the real /api/signup route (previously I had this
+// calling supabase.auth.signUp() directly, which skipped the IP rate
+// limiting, profiles upsert, and consent-timestamp write that route
+// handles — that was the actual signup bug, now fixed by routing
+// through /api/signup properly).
+//
+// checkEmail is now driven by whether the API response includes a
+// session (auto-confirmed) vs. not (confirmation email required) —
+// the version this replaced always redirected to /dashboard
+// unconditionally and never set checkEmail at all.
+//
+// TODO (Phase C): referral attribution (reading the mc_referrer cookie)
+// still not built — hook point is wherever signup succeeds below.
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 
 export default function SignUpPage() {
@@ -25,57 +33,93 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [resendError, setResendError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
 
   const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setError(null);
+    e.preventDefault();
+    setError(null);
 
-  if (password !== confirmPassword) {
-    setError('Passwords do not match.');
-    return;
-  }
-  if (password.length < 6) {
-    setError('Password must be at least 6 characters.');
-    return;
-  }
-  if (!consentAccepted) {
-    setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const res = await fetch('/api/signup', {          // ← change to your actual route path if different
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        password,
-        acceptedTerms: true,
-      }),
-    });
-
-    const json = await res.json();
-
-    if (!res.ok) {
-      throw new Error(json.error || 'Failed to create account.');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (!consentAccepted) {
+      setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
+      return;
     }
 
-    // The API route already created the user.
-    // If your project requires email confirmation, the API should return
-    // a flag; otherwise just redirect.
-    router.push('/dashboard');
-    // or setCheckEmail(true) if the API indicates confirmation is required
-  } catch (err: any) {
-    setError(err.message || 'Failed to create account. Please try again.');
-  } finally {
-    setLoading(false);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          acceptedTerms: true,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to create account.');
+      }
+
+      // TODO (Phase C): referral attribution hook goes here, once the
+      // links table + consent banner exist — read mc_referrer cookie,
+      // write into profiles.referrer for the new user.
+
+      if (json.hasSession) {
+        router.push('/dashboard');
+      } else {
+        setCheckEmail(true);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
-}
+
+  // Same endpoint/payload shape as the extension's resendVerificationBtn
+  // handler in popup.js — POST /auth/v1/resend, type: 'signup'. No
+  // session exists yet at this point, so this is a plain apikey-only
+  // request against Supabase Auth directly, same as the extension.
+  async function handleResendVerification() {
+    setResendError(null);
+    setResendState('sending');
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/resend`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          },
+          body: JSON.stringify({ type: 'signup', email }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to resend email');
+
+      setResendState('sent');
+      setTimeout(() => setResendState('idle'), 3000);
+    } catch (err) {
+      setResendError('Failed to resend verification email. Please try again.');
+      setResendState('idle');
+    }
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -93,10 +137,31 @@ export default function SignUpPage() {
           <div className="w-full max-w-sm">
             {checkEmail ? (
               <div className="text-center">
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-primary">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                </div>
                 <h2 className="text-2xl font-bold mb-2">Check your email</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-5">
                   We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
                 </p>
+
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resendState === 'sending'}
+                  className="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+                >
+                  {resendState === 'sending' ? 'Sending...' : 'Resend Email'}
+                </button>
+
+                {resendState === 'sent' && (
+                  <p className="text-sm text-green-600 dark:text-green-400 mt-2">✓ Verification email sent!</p>
+                )}
+                {resendError && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">{resendError}</p>
+                )}
               </div>
             ) : (
               <>
