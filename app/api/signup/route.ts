@@ -1,6 +1,6 @@
+//app/api/signup/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
 const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -9,24 +9,19 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const SIGNUP_RATE_LIMIT_MS = 20 * 60 * 1000; // 20 minutes
+const SIGNUP_RATE_LIMIT_MS = 60 * 60 * 1000; // 60 minutes
 const MAX_ATTEMPTS_PER_WINDOW = 2;
-
 export async function POST(req: NextRequest) {
   const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
-
   // Server-side guard — can't be bypassed by calling the API directly
   if (!acceptedTerms) {
     return NextResponse.json({ error: 'Terms of service must be accepted' }, { status: 400 });
   }
-
   const ip = (
     req.headers.get('x-forwarded-for') ||
     req.headers.get('x-real-ip') ||
     ''
   ).split(',')[0].trim();
-
   // ── Per-IP signup rate limit ──────────────────────────────
   // Checked before any Supabase auth call, using a small table
   // since Vercel functions are stateless across invocations —
@@ -37,14 +32,11 @@ export async function POST(req: NextRequest) {
       .select('last_attempt_at, attempt_count')
       .eq('ip', ip)
       .maybeSingle();
-
     const now = new Date();
     let newCount = 1;
     let windowStart = now.toISOString();
-
     if (existingLimit) {
       const elapsedMs = now.getTime() - new Date(existingLimit.last_attempt_at).getTime();
-
       if (elapsedMs < SIGNUP_RATE_LIMIT_MS) {
         if (existingLimit.attempt_count >= MAX_ATTEMPTS_PER_WINDOW) {
           const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
@@ -61,7 +53,6 @@ export async function POST(req: NextRequest) {
       // If elapsedMs >= 15 minutes, the flow naturally uses the default values 
       // (newCount = 1, windowStart = now), effectively resetting the window.
     }
-
     // Record this attempt immediately, before calling Supabase auth,
     // to close the race window between near-simultaneous requests
     // from the same IP.
@@ -71,13 +62,11 @@ export async function POST(req: NextRequest) {
         { ip, last_attempt_at: windowStart, attempt_count: newCount },
         { onConflict: 'ip' }
       );
-
     if (rateLimitError) {
       console.error('[SIGNUP] Failed to record rate limit attempt:', rateLimitError.message);
       // Non-fatal — don't block signup over a logging failure
     }
   }
-
   const { data, error } = await supabaseAnon.auth.signUp({
     email,
     password,
@@ -88,11 +77,9 @@ export async function POST(req: NextRequest) {
       }
     }
   });
-
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-
   const userId = data.user?.id;
   if (userId) {
     const { error: upsertError } = await supabaseAdmin
@@ -106,11 +93,15 @@ export async function POST(req: NextRequest) {
         onConflict: 'id',
         ignoreDuplicates: false
       });
-
     if (upsertError) {
       console.error('[SIGNUP] Failed to write profile data:', upsertError.message);
     }
   }
-
-  return NextResponse.json({ success: true });
+  // NEW: hasSession tells the client whether Supabase actually required
+  // email confirmation for this signup. data.session is present when
+  // auto-confirm is on (or confirmation is otherwise not required) and
+  // absent when a confirmation email was sent instead — the client was
+  // previously always assuming the latter, which is wrong whenever your
+  // Supabase project has email confirmation turned off.
+  return NextResponse.json({ success: true, hasSession: Boolean(data.session) });
 }
