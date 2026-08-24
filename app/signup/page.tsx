@@ -1,105 +1,90 @@
 'use client';
 
+// app/signup/page.tsx
+//
+// Same minimal-chrome reasoning as signin/page.tsx. Note the marked TODO
+// below — referral attribution (reading the mc_referrer cookie) is Phase
+// C, not built yet. Leaving the hook point marked now so Phase C doesn't
+// require re-reading this file to figure out where it plugs in.
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '@/components/header';
+import { useTheme } from 'next-themes';
+import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 
-const RESEND_COOLDOWN_SECONDS = 60;
-
-export default function SignupPage() {
+export default function SignUpPage() {
+  const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false); // NEW
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [checkEmail, setCheckEmail] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
-  // NEW: resend verification state
-  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [resendError, setResendError] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
+  useEffect(() => setMounted(true), []);
 
-  // NEW: cooldown ticker
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+  const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
 
-  const handleSignup = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    setError(null);
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setLoading(false);
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (!consentAccepted) {
+      setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
       return;
     }
 
-    // NEW
-    if (!acceptedTerms) {
-      setError('You must accept the terms of service and privacy policy to create an account');
-      setLoading(false);
-      return;
-    }
-
+    setLoading(true);
     try {
-      const response = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, acceptedTerms }) // acceptedTerms added
+      // consented_at is recorded server-side via signup metadata — not
+      // just held in client state — so there's an actual timestamped
+      // record of this specific checkbox action, not just a UI flag
+      // that disappears the moment the tab closes. Whether this lands in
+      // profiles depends on how handle_new_user reads user metadata —
+      // flagged for verification, see chat.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            accepted_tos_privacy_at: new Date().toISOString(),
+          },
+        },
       });
+      if (error) throw error;
 
-      const data = await response.json();
+      // TODO (Phase C): read the mc_referrer cookie here (if present and
+      // consent was accepted) and write it into profiles.referrer for
+      // data.user.id. Requires the links table + consent banner to exist
+      // first — see the referral-links phase.
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
+      if (data.session) {
+        router.push('/dashboard');
+      } else {
+        // Email confirmation required before a session exists
+        setCheckEmail(true);
       }
-
-      setSuccess(true);
-
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  // NEW: resend verification handler
-  const handleResendVerification = async () => {
-    if (resendCooldown > 0 || resendStatus === 'sending') return;
-
-    setResendStatus('sending');
-    setResendError('');
-
-    try {
-      const response = await fetch('/api/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend verification email');
-      }
-
-      setResendStatus('sent');
-      setResendCooldown(RESEND_COOLDOWN_SECONDS);
-    } catch (err: any) {
-      setResendStatus('error');
-      setResendError(err.message || 'Failed to resend verification email');
-    }
-  };
-
-  if (success) {
-    return (
+  return (
     <div className="min-h-screen flex">
       <AuthShowcasePanel variant="signup" />
 
