@@ -24,6 +24,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -41,10 +42,28 @@ export default function SignUpPage() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (!consentAccepted) {
+      setError('Please confirm you are 18+ and accept the Terms, Refund Policy, and Privacy Policy to continue.');
+      return;
+    }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      // consented_at is recorded server-side via signup metadata — not
+      // just held in client state — so there's an actual timestamped
+      // record of this specific checkbox action, not just a UI flag
+      // that disappears the moment the tab closes. Whether this lands in
+      // profiles depends on how handle_new_user reads user metadata —
+      // flagged for verification, see chat.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            accepted_tos_privacy_at: new Date().toISOString(),
+          },
+        },
+      });
       if (error) throw error;
 
       // TODO (Phase C): read the mc_referrer cookie here (if present and
@@ -133,6 +152,31 @@ export default function SignUpPage() {
                     />
                   </div>
 
+                  <label className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed pt-1">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={consentAccepted}
+                      onChange={(e) => setConsentAccepted(e.target.checked)}
+                      className="mt-0.5 shrink-0"
+                    />
+                    <span>
+                      I represent that I am at least 18 years old. I accept the{' '}
+                      <Link href="/terms" className="underline hover:text-foreground" target="_blank">
+                        Terms of Service
+                      </Link>
+                      ,{' '}
+                      <Link href="/refund" className="underline hover:text-foreground" target="_blank">
+                        Refund Policy
+                      </Link>{' '}
+                      and{' '}
+                      <Link href="/privacy" className="underline hover:text-foreground" target="_blank">
+                        Privacy Policy
+                      </Link>
+                      . I consent to receiving a one time verification link to confirm my email address.
+                    </span>
+                  </label>
+
                   {error && (
                     <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400">
                       {error}
@@ -146,18 +190,6 @@ export default function SignUpPage() {
                   >
                     {loading ? 'Creating account...' : 'Create Account'}
                   </button>
-
-                  <p className="text-xs text-muted-foreground text-center pt-2">
-                    By signing up, you agree to our{' '}
-                    <Link href="/terms" className="underline hover:text-foreground">
-                      Terms
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy" className="underline hover:text-foreground">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </p>
                 </form>
               </>
             )}
