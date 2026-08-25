@@ -73,6 +73,7 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 
 export async function scanVideo(
   frames: ExtractedFrame[],
+  audio: { data: string; mimeType: string } | null,  // new parameter
   platform: string,
   scanType: ScanType,
   jobId: string | null,
@@ -92,6 +93,7 @@ export async function scanVideo(
     },
     body: JSON.stringify({
       frames,
+      audio: audio || null,
       transcript: null,
       platform,
       scanType: scanType || 'regular',
