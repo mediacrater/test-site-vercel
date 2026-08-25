@@ -22,6 +22,8 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 
+const RESEND_COOLDOWN_SECONDS = 60;
+
 export default function SignUpPage() {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
@@ -35,6 +37,17 @@ export default function SignUpPage() {
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [resendError, setResendError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Cooldown ticker — ported directly from the live signup page's
+  // mechanism (60s, one-second interval, counts down to 0).
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   useEffect(() => setMounted(true), []);
 
@@ -91,32 +104,31 @@ export default function SignUpPage() {
     }
   }
 
-  // Same endpoint/payload shape as the extension's resendVerificationBtn
-  // handler in popup.js — POST /auth/v1/resend, type: 'signup'. No
-  // session exists yet at this point, so this is a plain apikey-only
-  // request against Supabase Auth directly, same as the extension.
+  // Now calls the real /api/resend-verification route (server-side,
+  // service-role, includes the already-confirmed gate) instead of
+  // hitting Supabase's /auth/v1/resend directly from the client.
   async function handleResendVerification() {
+    if (resendCooldown > 0 || resendState === 'sending') return;
+
     setResendError(null);
     setResendState('sending');
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/resend`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          },
-          body: JSON.stringify({ type: 'signup', email }),
-        }
-      );
+      const response = await fetch('/api/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-      if (!response.ok) throw new Error('Failed to resend email');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resend verification email');
+      }
 
       setResendState('sent');
-      setTimeout(() => setResendState('idle'), 3000);
-    } catch (err) {
-      setResendError('Failed to resend verification email. Please try again.');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err: any) {
+      setResendError(err.message || 'Failed to resend verification email. Please try again.');
       setResendState('idle');
     }
   }
