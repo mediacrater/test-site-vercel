@@ -46,7 +46,7 @@ function extractFramesCanvas(
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
-      reject(new Error('Canvas 2D context unavailable in this browser'));
+      reject(new Error('Frame extraction unavailable in this browser'));
       return;
     }
 
