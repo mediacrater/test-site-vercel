@@ -18,7 +18,7 @@
 // extension has no server-rendered history view of its own).
 
 import { useEffect, useRef, useState } from 'react';
-import { extractFrames, type ExtractedFrame, type ScanType } from '@/lib/mediacrater/dissector';
+import { extractFrames, extractAudio, type ExtractedFrame, type ScanType } from '@/lib/mediacrater/dissector';
 import {
   calculateConfidenceScore,
   groupViolationsByType,
@@ -286,10 +286,16 @@ export function ScanWorkspace({
 
     let frames: ExtractedFrame[] = [];
     let framesExtractedTime: number | null = null;
+    let audio: { data: string; mimeType: string } | null = null;
 
     if (isVideo && currentFile) {
       setProgressText('Preparing your video...');
-      frames = await extractFrames(currentFile, signal, scanType);
+      const [extractedFrames, extractedAudio] = await Promise.all([
+        extractFrames(currentFile, signal, scanType),
+        extractAudio(currentFile),
+      ]);
+      frames = extractedFrames;
+      audio = extractedAudio;
       framesExtractedTime = Date.now();
     } else if (currentFile) {
       setProgressText('Preparing your image...');
@@ -327,7 +333,7 @@ export function ScanWorkspace({
         // matching what the Privacy Policy now actually says.
         const fileName = profile?.scan_history ? currentFile?.name ?? null : null;
         let response = isVideo
-          ? await scanVideo(frames, platform, scanType, null, signal, scanId, thumbnailPath, fileName)
+          ? await scanVideo(frames, audio, platform, scanType, null, signal, scanId, thumbnailPath, fileName)
           : await scanImage(frames[0].data, platform, null, signal, scanId, thumbnailPath, fileName);
 
         let queueEnteredAt: number | null = null;
@@ -349,7 +355,7 @@ export function ScanWorkspace({
           setProgressText(`Analyzing your content against ${platform.toUpperCase()} policies...`);
 
           response = isVideo
-            ? await scanVideo(frames, platform, scanType, jobId, signal, scanId, thumbnailPath, fileName)
+            ? await scanVideo(frames, audio, platform, scanType, jobId, signal, scanId, thumbnailPath, fileName)
             : await scanImage(frames[0].data, platform, jobId, signal, scanId, thumbnailPath, fileName);
         }
 
