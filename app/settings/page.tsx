@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/app-shell';
 import { SettingsPanel, type SettingsProfile } from '@/components/settings-panel';
+import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 export default function SettingsPage() {
@@ -53,7 +54,9 @@ export default function SettingsPage() {
 
   return (
     <AppShell userEmail={email} plan={profile.plan ?? null} scansRemaining={profile.scans_remaining ?? null}>
-      <SettingsPanel userId={userId} email={email} profile={profile} />
+      <SettingsPanel userId={userId} email={email} profile={profile}
+        onManagePlan={getBillingPortalUrl}
+      />
     </AppShell>
   );
 }
