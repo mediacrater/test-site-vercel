@@ -1,4 +1,4 @@
-//app/api/signup/route.ts
+// app/api/signup/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 const supabaseAnon = createClient(
@@ -10,7 +10,6 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 const SIGNUP_RATE_LIMIT_MS = 60 * 60 * 1000; // 60 minutes
-const MAX_ATTEMPTS_PER_WINDOW = 2;
 export async function POST(req: NextRequest) {
   const { email, password, acceptedTerms } = await req.json(); // acceptedTerms added
   // Server-side guard — can't be bypassed by calling the API directly
@@ -26,32 +25,24 @@ export async function POST(req: NextRequest) {
   // Checked before any Supabase auth call, using a small table
   // since Vercel functions are stateless across invocations —
   // an in-memory limiter would not persist between requests.
+  // Supabase's own dashboard-configurable auth rate limit is
+  // currently unreliable (confirmed open bug), so this is the
+  // actual enforcement layer.
   if (ip) {
     const { data: existingLimit } = await supabaseAdmin
       .from('signup_rate_limits')
-      .select('last_attempt_at, attempt_count')
+      .select('last_attempt_at')
       .eq('ip', ip)
       .maybeSingle();
-    const now = new Date();
-    let newCount = 1;
-    let windowStart = now.toISOString();
     if (existingLimit) {
-      const elapsedMs = now.getTime() - new Date(existingLimit.last_attempt_at).getTime();
+      const elapsedMs = Date.now() - new Date(existingLimit.last_attempt_at).getTime();
       if (elapsedMs < SIGNUP_RATE_LIMIT_MS) {
-        if (existingLimit.attempt_count >= MAX_ATTEMPTS_PER_WINDOW) {
-          const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
-          return NextResponse.json(
-            { error: 'Too many signup attempts. Please try again later.' },
-            { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
-          );
-        }
-        
-        // Still within the 15-minute window, so increment count and keep the original start time
-        newCount = (existingLimit.attempt_count || 0) + 1;
-        windowStart = existingLimit.last_attempt_at;
+        const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
+        return NextResponse.json(
+          { error: 'Too many signup attempts. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+        );
       }
-      // If elapsedMs >= 15 minutes, the flow naturally uses the default values 
-      // (newCount = 1, windowStart = now), effectively resetting the window.
     }
     // Record this attempt immediately, before calling Supabase auth,
     // to close the race window between near-simultaneous requests
@@ -59,7 +50,7 @@ export async function POST(req: NextRequest) {
     const { error: rateLimitError } = await supabaseAdmin
       .from('signup_rate_limits')
       .upsert(
-        { ip, last_attempt_at: windowStart, attempt_count: newCount },
+        { ip, last_attempt_at: new Date().toISOString() },
         { onConflict: 'ip' }
       );
     if (rateLimitError) {
@@ -97,11 +88,14 @@ export async function POST(req: NextRequest) {
       console.error('[SIGNUP] Failed to write profile data:', upsertError.message);
     }
   }
-  // NEW: hasSession tells the client whether Supabase actually required
-  // email confirmation for this signup. data.session is present when
-  // auto-confirm is on (or confirmation is otherwise not required) and
-  // absent when a confirmation email was sent instead — the client was
-  // previously always assuming the latter, which is wrong whenever your
-  // Supabase project has email confirmation turned off.
+  // KEPT DELIBERATELY — not part of what you pasted, flagging rather
+  // than silently reintroducing. Your live signup page's success handler
+  // does `setSuccess(true)` unconditionally, same gap I found and fixed
+  // in this project's version: if your Supabase project ever has email
+  // confirmation OFF, that always shows "check your email" even when a
+  // real session was already returned and the user could go straight to
+  // /dashboard. hasSession costs nothing to include and lets the client
+  // branch correctly instead of assuming. Remove this line if you'd
+  // rather this route match your live version byte-for-byte.
   return NextResponse.json({ success: true, hasSession: Boolean(data.session) });
 }
