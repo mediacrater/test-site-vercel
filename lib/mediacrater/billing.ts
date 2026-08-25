@@ -8,29 +8,25 @@
 import { supabase } from './supabaseClient';
 
 export async function getBillingPortalUrl(): Promise<string> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/billing-portal`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/billing-portal`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || 'Failed to open billing portal');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to open billing portal');
   }
 
-  const data = await response.json();
-  return data.url as string;
+  const data = await res.json();
+  return data.url; // the dynamic Stripe Customer Portal URL
 }
 
 /**
