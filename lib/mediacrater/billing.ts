@@ -5,18 +5,13 @@
 // changes required; this is purely "point the web app at what already
 // exists."
 
-import { createClient } from '@/lib/supabase/server'; // adjust path if yours is different
+import { supabase } from './supabaseClient';
 
 export async function getBillingPortalUrl(): Promise<string> {
-  const supabase = await createClient();
-
   const {
     data: { session },
   } = await supabase.auth.getSession();
-
-  if (!session) {
-    throw new Error('Not authenticated');
-  }
+  if (!session) throw new Error('Not authenticated');
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/billing-portal`,
@@ -35,7 +30,7 @@ export async function getBillingPortalUrl(): Promise<string> {
   }
 
   const data = await response.json();
-  return data.url; // this is the dynamic Stripe URL
+  return data.url as string;
 }
 
 /**
