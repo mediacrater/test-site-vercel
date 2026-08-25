@@ -80,14 +80,11 @@ export function SettingsPanel({
     setError(null);
     setManagePlanLoading(true);
     try {
-      if (onManagePlan) {
-        const url = await onManagePlan();
-        window.open(url, '_blank', 'noopener,noreferrer');
-      } else {
-        // Fallback simulation for preview environment
-        await new Promise((res) => setTimeout(res, 800));
-        window.open('https://billing.stripe.com/p/login/demo', '_blank', 'noopener,noreferrer');
+      if (!onManagePlan) {
+        throw new Error('Billing portal is not available');
       }
+      const url = await onManagePlan();
+      window.open(url, '_blank', 'noopener,noreferrer');
     } catch (err: any) {
       setError(err.message || 'Could not open billing portal. Please try again.');
     } finally {
