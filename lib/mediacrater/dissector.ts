@@ -27,6 +27,18 @@ const SCAN_CONFIG: Record<ScanType, { interval: number }> = {
 
 const TARGET_LONG_EDGE = 900;
 
+// Audio is downmixed to mono and resampled to this rate before WAV
+// encoding. Speech intelligibility doesn't need the 44.1/48kHz stereo a
+// browser decodes source video at — 16kHz mono is the standard rate for
+// speech-focused model input and keeps a full 121s clip's base64 payload
+// under ~5MB regardless of the source video's original audio format,
+// instead of the 25-30MB+ a stereo 44.1kHz WAV would produce at that
+// length. This does not change Gemini's token cost (audio tokens are
+// billed by duration, not file size) — it exists purely to keep the
+// request payload within the same size budget the frame payload already
+// respects.
+const TARGET_AUDIO_SAMPLE_RATE = 16000;
+
 export async function extractFrames(
   videoFile: File,
   signal: AbortSignal | null | undefined,
@@ -44,9 +56,8 @@ function extractFramesCanvas(
     const video = document.createElement('video');
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     if (!ctx) {
-      reject(new Error('Frame extraction unavailable in this browser'));
+      reject(new Error('Canvas 2D context unavailable in this browser'));
       return;
     }
 
@@ -63,7 +74,6 @@ function extractFramesCanvas(
       // Never scale up if the video is already smaller.
       const longestEdge = Math.max(video.videoWidth, video.videoHeight);
       const scale = longestEdge > TARGET_LONG_EDGE ? TARGET_LONG_EDGE / longestEdge : 1;
-
       canvas.width = Math.round(video.videoWidth * scale);
       canvas.height = Math.round(video.videoHeight * scale);
 
@@ -80,7 +90,6 @@ function extractFramesCanvas(
 
       const config = SCAN_CONFIG[scanType] || SCAN_CONFIG.regular;
       const interval = config.interval;
-
       const frames: ExtractedFrame[] = [];
       const timestamps: number[] = [];
 
@@ -101,7 +110,6 @@ function extractFramesCanvas(
 
         try {
           await seekToTime(video, time);
-
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.15);
 
@@ -190,8 +198,8 @@ function getVideoErrorMessage(error: MediaError | null): string {
 
 /**
  * Extracts audio from a video file as a base64-encoded WAV blob.
- * Currently unused by the scan flow (audio analysis is disabled product-wide,
- * same as the extension) but ported for parity / future use.
+ * Downmixed to mono and resampled to TARGET_AUDIO_SAMPLE_RATE (see
+ * comment above) to keep the payload small regardless of source format.
  */
 export async function extractAudio(videoFile: File): Promise<ExtractedAudio | null> {
   return new Promise((resolve, reject) => {
@@ -200,23 +208,26 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
     reader.onload = async () => {
       try {
         const arrayBuffer = reader.result as ArrayBuffer;
-
         const AudioContextCtor =
           window.AudioContext || (window as any).webkitAudioContext;
-        const audioCtx = new AudioContextCtor();
 
-        let audioBuffer: AudioBuffer;
+        // Decode at native rate first — decodeAudioData doesn't accept a
+        // target sample rate directly, so we decode, then resample+downmix
+        // in a second pass via OfflineAudioContext below.
+        const decodeCtx = new AudioContextCtor();
+        let decodedBuffer: AudioBuffer;
         try {
-          audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          decodedBuffer = await decodeCtx.decodeAudioData(arrayBuffer);
         } catch {
-          audioCtx.close();
+          decodeCtx.close();
           resolve(null);
           return;
         }
+        decodeCtx.close();
 
-        const wavBuffer = audioBufferToWav(audioBuffer);
-        audioCtx.close();
+        const monoBuffer = await downmixAndResample(decodedBuffer, TARGET_AUDIO_SAMPLE_RATE);
 
+        const wavBuffer = audioBufferToWav(monoBuffer);
         const uint8 = new Uint8Array(wavBuffer);
         let binary = '';
         for (let i = 0; i < uint8.length; i++) {
@@ -235,12 +246,43 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
   });
 }
 
+/**
+ * Downmixes to mono and resamples to targetSampleRate using
+ * OfflineAudioContext. A mono-channel OfflineAudioContext destination
+ * downmixes multi-channel source audio automatically as part of the
+ * audio graph's own routing (native, off-main-thread rendering) — no
+ * manual per-sample mixing loop is needed or should be added here.
+ * A hand-rolled sample loop was tried in an earlier version of this
+ * function and caused multi-second main-thread blocking (observed as
+ * page freezes in the web app) for longer clips; do not reintroduce it.
+ */
+async function downmixAndResample(
+  audioBuffer: AudioBuffer,
+  targetSampleRate: number
+): Promise<AudioBuffer> {
+  const duration = audioBuffer.duration;
+  const OfflineCtor =
+    (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+
+  const offlineCtx = new OfflineCtor(
+    1, // mono output — the context automatically downmixes multi-channel input to this
+    Math.ceil(duration * targetSampleRate),
+    targetSampleRate
+  );
+
+  const source = offlineCtx.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(offlineCtx.destination);
+  source.start(0);
+
+  return offlineCtx.startRendering();
+}
+
 function audioBufferToWav(audioBuffer: AudioBuffer): ArrayBuffer {
-  const numChannels = Math.min(audioBuffer.numberOfChannels, 2);
+  const numChannels = audioBuffer.numberOfChannels; // always 1 post-downmix
   const sampleRate = audioBuffer.sampleRate;
   const format = 1;
   const bitDepth = 16;
-
   const samples = audioBuffer.length * numChannels;
   const buffer = new ArrayBuffer(44 + samples * 2);
   const view = new DataView(buffer);
