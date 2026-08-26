@@ -85,6 +85,10 @@ export function ScanWorkspace({
 
   const [platforms, setPlatforms] = useState<string[]>([]);
   const [scanType, setScanType] = useState<ScanType>('regular');
+  // Opt-in — audio is only extracted and sent when this is checked.
+  // Video scans only; irrelevant for images and reset whenever a new
+  // file is chosen via removeFile()/resetForNewScan().
+  const [analyzeAudio, setAnalyzeAudio] = useState(false);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progressText, setProgressText] = useState('Initializing...');
@@ -255,6 +259,7 @@ export function ScanWorkspace({
     setFileKind(null);
     setCurrentFile(null);
     setResults(null);
+    setAnalyzeAudio(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
@@ -292,7 +297,7 @@ export function ScanWorkspace({
       setProgressText('Preparing your video...');
       const [extractedFrames, extractedAudio] = await Promise.all([
         extractFrames(currentFile, signal, scanType),
-        extractAudio(currentFile),
+        analyzeAudio ? extractAudio(currentFile) : Promise.resolve(null),
       ]);
       frames = extractedFrames;
       audio = extractedAudio;
@@ -646,6 +651,19 @@ export function ScanWorkspace({
                   </label>
                 </div>
               </div>
+            )}
+
+            {/* Audio analysis — opt-in, video only */}
+            {isVideo && (
+              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border cursor-pointer text-sm w-fit">
+                <input
+                  type="checkbox"
+                  checked={analyzeAudio}
+                  onChange={(e) => setAnalyzeAudio(e.target.checked)}
+                  className="accent-current"
+                />
+                <span className="font-medium">Analyze Audio Content</span>
+              </label>
             )}
 
             {/* Cost + banner */}
