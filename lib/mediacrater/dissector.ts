@@ -208,48 +208,58 @@ function getVideoErrorMessage(error: MediaError | null): string {
  * Downmixed to mono and resampled to TARGET_AUDIO_SAMPLE_RATE (see
  * comment above) to keep the payload small regardless of source format.
  */
-export async function extractAudio(videoFile: File): Promise<ExtractedAudio | null> {
+export async function extractAudio(
+  videoFile: File,
+  signal?: AbortSignal | null
+): Promise<ExtractedAudio | null> {
+  const arrayBuffer = await videoFile.arrayBuffer();
+  if (signal?.aborted) throw new Error('Operation cancelled');
+
+  const offline = new OfflineAudioContext(1, 1, TARGET_AUDIO_SAMPLE_RATE);
+  let decoded: AudioBuffer;
+  try {
+    decoded = await offline.decodeAudioData(arrayBuffer);
+  } catch {
+    return null;
+  }
+  if (signal?.aborted) throw new Error('Operation cancelled');
+
+  const channels: Float32Array[] = [];
+  const transfers: ArrayBuffer[] = [];
+  for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
+    const copy = new Float32Array(decoded.length);
+    decoded.copyFromChannel(copy, ch);
+    channels.push(copy);
+    transfers.push(copy.buffer);
+  }
+
+  const worker = new Worker(
+    new URL('./audio-extract.worker.ts', import.meta.url),
+    { type: 'module' }
+  );
+
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const onAbort = () => {
+      worker.terminate();
+      reject(new Error('Operation cancelled'));
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
 
-    reader.onload = async () => {
-      try {
-        const arrayBuffer = reader.result as ArrayBuffer;
-        const AudioContextCtor =
-          window.AudioContext || (window as any).webkitAudioContext;
-
-        const decodeCtx = new AudioContextCtor();
-        let decodedBuffer: AudioBuffer;
-        try {
-          decodedBuffer = await decodeCtx.decodeAudioData(arrayBuffer);
-        } catch {
-          decodeCtx.close();
-          resolve(null);
-          return;
-        }
-        decodeCtx.close();
-
-        const monoBuffer = await downmixAndResample(decodedBuffer, TARGET_AUDIO_SAMPLE_RATE);
-
-        const wavBuffer = audioBufferToWav(monoBuffer);
-        const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
-
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(fr.result as string);
-          fr.onerror = () => reject(fr.error);
-          fr.readAsDataURL(wavBlob);
-        }); 
-        const base64 = dataUrl.split(',', 2)[1];
-
-        resolve({ data: base64, mimeType: 'audio/wav' });
-      } catch (err) {
-        reject(err);
-      }
+    worker.onmessage = (e: MessageEvent<{ data: string }>) => {
+      signal?.removeEventListener('abort', onAbort);
+      worker.terminate();
+      resolve({ data: e.data.data, mimeType: 'audio/wav' });
+    };
+    worker.onerror = (err) => {
+      signal?.removeEventListener('abort', onAbort);
+      worker.terminate();
+      reject(err);
     };
 
-    reader.onerror = () => reject(new Error('Failed to read video file for audio extraction'));
-    reader.readAsArrayBuffer(videoFile);
+    worker.postMessage(
+      { sampleRate: decoded.sampleRate, channels },
+      transfers
+    );
   });
 }
 /**
