@@ -67,74 +67,81 @@ function extractFramesCanvas(
     video.src = URL.createObjectURL(videoFile);
 
     video.addEventListener('loadedmetadata', async () => {
-      const duration = video.duration;
-
-      // Scale based on the video's longest edge, preserving aspect ratio.
-      // Handles landscape, portrait, and square videos without distortion.
-      // Never scale up if the video is already smaller.
-      const longestEdge = Math.max(video.videoWidth, video.videoHeight);
-      const scale = longestEdge > TARGET_LONG_EDGE ? TARGET_LONG_EDGE / longestEdge : 1;
-      canvas.width = Math.round(video.videoWidth * scale);
-      canvas.height = Math.round(video.videoHeight * scale);
-
-      const orientation =
-        video.videoWidth > video.videoHeight
-          ? 'landscape'
-          : video.videoWidth < video.videoHeight
-          ? 'portrait'
-          : 'square';
-
-      console.log(
-        `[${scanType} scan] Source: ${video.videoWidth}×${video.videoHeight} (${orientation}) → Output: ${canvas.width}×${canvas.height}`
-      );
-
-      const config = SCAN_CONFIG[scanType] || SCAN_CONFIG.regular;
-      const interval = config.interval;
-      const frames: ExtractedFrame[] = [];
-      const timestamps: number[] = [];
-
-      for (let time = 0; time < duration; time += interval) {
-        timestamps.push(time);
-      }
-
-      console.log(`[${scanType} scan] Preparing video with ${duration.toFixed(1)}s duration`);
-
-      let frameNumber = 1;
-
-      for (const time of timestamps) {
-        if (signal && signal.aborted) {
+      try {
+        const duration = video.duration;
+        if (!Number.isFinite(duration) || duration <= 0) {
           URL.revokeObjectURL(video.src);
-          reject(new Error('Operation cancelled'));
+          reject(new Error('Invalid video duration'));
           return;
         }
 
-        try {
-          await seekToTime(video, time);
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.15);
+        const longestEdge = Math.max(video.videoWidth, video.videoHeight);
+        const scale = longestEdge > TARGET_LONG_EDGE ? TARGET_LONG_EDGE / longestEdge : 1;
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
 
-          frames.push({
-            frameNumber,
-            timestamp: formatTimestamp(time),
-            timestampSeconds: time,
-            data: dataUrl,
-          });
+        const orientation =
+          video.videoWidth > video.videoHeight
+            ? 'landscape'
+            : video.videoWidth < video.videoHeight
+            ? 'portrait'
+            : 'square';
 
-          frameNumber++;
-        } catch (error) {
-          console.warn(`Failed to extract frame at ${time.toFixed(2)}s:`, error);
+        console.log(
+          `[${scanType} scan] Source: ${video.videoWidth}×${video.videoHeight} (${orientation}) → Output: ${canvas.width}×${canvas.height}`
+        );
+
+        const config = SCAN_CONFIG[scanType] || SCAN_CONFIG.regular;
+        const interval = config.interval;
+        const frames: ExtractedFrame[] = [];
+        const timestamps: number[] = [];
+
+        for (let time = 0; time < duration; time += interval) {
+          timestamps.push(time);
         }
+
+        console.log(`[${scanType} scan] Preparing video with ${duration.toFixed(1)}s duration`);
+
+        let frameNumber = 1;
+
+        for (const time of timestamps) {
+          if (signal && signal.aborted) {
+            URL.revokeObjectURL(video.src);
+            reject(new Error('Operation cancelled'));
+            return;
+          }
+
+          try {
+            await seekToTime(video, time);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.15);
+
+            frames.push({
+              frameNumber,
+              timestamp: formatTimestamp(time),
+              timestampSeconds: time,
+              data: dataUrl,
+            });
+
+            frameNumber++;
+          } catch (error) {
+            console.warn(`Failed to extract frame at ${time.toFixed(2)}s:`, error);
+          }
+        }
+
+        URL.revokeObjectURL(video.src);
+
+        if (frames.length === 0) {
+          reject(new Error('Your video could not be processed'));
+          return;
+        }
+
+        console.log(`Video successfully processed`);
+        resolve(frames);
+      } catch (err) {
+        URL.revokeObjectURL(video.src);
+        reject(err);
       }
-
-      URL.revokeObjectURL(video.src);
-
-      if (frames.length === 0) {
-        reject(new Error('Your video could not be processed'));
-        return;
-      }
-
-      console.log(`Video successfully processed`);
-      resolve(frames);
     });
 
     video.addEventListener('error', () => {
@@ -155,7 +162,7 @@ function seekToTime(video: HTMLVideoElement, time: number): Promise<void> {
       clearTimeout(timeoutId);
       video.removeEventListener('seeked', seekedHandler);
       video.removeEventListener('error', errorHandler);
-      setTimeout(resolve, 50);
+      requestAnimationFrame(() => resolve());
     };
 
     const errorHandler = () => {
@@ -211,9 +218,6 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
         const AudioContextCtor =
           window.AudioContext || (window as any).webkitAudioContext;
 
-        // Decode at native rate first — decodeAudioData doesn't accept a
-        // target sample rate directly, so we decode, then resample+downmix
-        // in a second pass via OfflineAudioContext below.
         const decodeCtx = new AudioContextCtor();
         let decodedBuffer: AudioBuffer;
         try {
@@ -228,11 +232,13 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
         const monoBuffer = await downmixAndResample(decodedBuffer, TARGET_AUDIO_SAMPLE_RATE);
 
         const wavBuffer = audioBufferToWav(monoBuffer);
+        const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const fr = new FileReader();
-          fr.onload = () => resolve (fr.result as string);
+          fr.onload = () => resolve(fr.result as string);
           fr.onerror = () => reject(fr.error);
-          fr.readAsDataURL(wavBuffer); // ArrayBuffer works directly
+          fr.readAsDataURL(wavBlob);
         }); 
         const base64 = dataUrl.split(',', 2)[1];
 
@@ -246,7 +252,6 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
     reader.readAsArrayBuffer(videoFile);
   });
 }
-
 /**
  * Downmixes to mono and resamples to targetSampleRate using
  * OfflineAudioContext. A mono-channel OfflineAudioContext destination
