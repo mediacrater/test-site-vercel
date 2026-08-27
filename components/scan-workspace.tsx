@@ -295,13 +295,12 @@ export function ScanWorkspace({
 
     if (isVideo && currentFile) {
       setProgressText('Preparing your video...');
-      const [extractedFrames, extractedAudio] = await Promise.all([
-        extractFrames(currentFile, signal, scanType),
-        analyzeAudio ? extractAudio(currentFile) : Promise.resolve(null),
-      ]);
-      frames = extractedFrames;
-      audio = extractedAudio;
+      frames = await extractFrames(currentFile, signal, scanType);
       framesExtractedTime = Date.now();
+      if (analyzeAudio) {
+        setProgressText('Preparing audio track...');
+        audio = await extractAudio(currentFile);
+      }
     } else if (currentFile) {
       setProgressText('Preparing your image...');
       const imageData = await fileToBase64(currentFile);
