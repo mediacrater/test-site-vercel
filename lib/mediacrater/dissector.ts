@@ -97,7 +97,7 @@ function extractFramesCanvas(
         timestamps.push(time);
       }
 
-      console.log(`[${scanType} scan] Deconstructing video with ${duration.toFixed(1)}s duration`);
+      console.log(`[${scanType} scan] Preparing video with ${duration.toFixed(1)}s duration`);
 
       let frameNumber = 1;
 
@@ -129,11 +129,11 @@ function extractFramesCanvas(
       URL.revokeObjectURL(video.src);
 
       if (frames.length === 0) {
-        reject(new Error('No frames could be extracted from the video'));
+        reject(new Error('Your video could not be processed'));
         return;
       }
 
-      console.log(`Successfully extracted ${frames.length} frames`);
+      console.log(`Video successfully processed`);
       resolve(frames);
     });
 
