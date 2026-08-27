@@ -228,12 +228,13 @@ export async function extractAudio(videoFile: File): Promise<ExtractedAudio | nu
         const monoBuffer = await downmixAndResample(decodedBuffer, TARGET_AUDIO_SAMPLE_RATE);
 
         const wavBuffer = audioBufferToWav(monoBuffer);
-        const uint8 = new Uint8Array(wavBuffer);
-        let binary = '';
-        for (let i = 0; i < uint8.length; i++) {
-          binary += String.fromCharCode(uint8[i]);
-        }
-        const base64 = btoa(binary);
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve (fr.result as string);
+          fr.onerror = () => reject(fr.error);
+          fr.readAsDataURL(wavBuffer); // ArrayBuffer works directly
+        }); 
+        const base64 = dataUrl.split(',', 2)[1];
 
         resolve({ data: base64, mimeType: 'audio/wav' });
       } catch (err) {
