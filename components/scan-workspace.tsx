@@ -118,6 +118,10 @@ export function ScanWorkspace({
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    if (!canAnalyzeAudio) setAnalyzeAudio(false);
+  }, [canAnalyzeAudio]);
+
   function startElapsedTimer() {
     const startTime = Date.now();
     setElapsedSeconds(0);
