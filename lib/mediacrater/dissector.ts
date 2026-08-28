@@ -215,23 +215,32 @@ export async function extractAudio(
   const arrayBuffer = await videoFile.arrayBuffer();
   if (signal?.aborted) throw new Error('Operation cancelled');
 
-  const offline = new OfflineAudioContext(1, 1, TARGET_AUDIO_SAMPLE_RATE);
+  const OfflineCtor =
+    window.OfflineAudioContext ||
+    (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext })
+      .webkitOfflineAudioContext;
+
+  const decodeCtx = new OfflineCtor(1, 1, TARGET_AUDIO_SAMPLE_RATE);
   let decoded: AudioBuffer;
   try {
-    decoded = await offline.decodeAudioData(arrayBuffer);
+    decoded = await decodeCtx.decodeAudioData(arrayBuffer);
   } catch {
     return null;
   }
   if (signal?.aborted) throw new Error('Operation cancelled');
 
-  const channels: Float32Array[] = [];
-  const transfers: ArrayBuffer[] = [];
-  for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
-    const copy = new Float32Array(decoded.length);
-    decoded.copyFromChannel(copy, ch);
-    channels.push(copy);
-    transfers.push(copy.buffer);
-  }
+  const monoBuffer =
+    decoded.numberOfChannels === 1 && decoded.sampleRate === TARGET_AUDIO_SAMPLE_RATE
+      ? decoded
+      : await downmixAndResample(decoded, TARGET_AUDIO_SAMPLE_RATE);
+  if (signal?.aborted) throw new Error('Operation cancelled');
+
+  console.log(
+    `[audio] ${monoBuffer.duration.toFixed(1)}s ${monoBuffer.sampleRate}Hz ${monoBuffer.numberOfChannels}ch`
+  );
+
+  const samples = new Float32Array(monoBuffer.length);
+  monoBuffer.copyFromChannel(samples, 0);
 
   const worker = new Worker(
     new URL('./audio-extract.worker.ts', import.meta.url),
@@ -257,8 +266,8 @@ export async function extractAudio(
     };
 
     worker.postMessage(
-      { sampleRate: decoded.sampleRate, channels },
-      transfers
+      { sampleRate: TARGET_AUDIO_SAMPLE_RATE, samples },
+      [samples.buffer]
     );
   });
 }
