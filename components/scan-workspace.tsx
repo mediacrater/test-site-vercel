@@ -52,6 +52,7 @@ export interface WorkspaceProfile {
   scans_remaining: number;
   scans_per_month?: number;
   deep_scan_enabled?: boolean;
+  audio_analysis?: boolean;
   scan_history?: boolean;
   last_notified_at?: string | null;
 }
@@ -104,6 +105,7 @@ export function ScanWorkspace({
 
   const isVideo = fileKind === 'video';
   const canDeepScan = Boolean(profile?.deep_scan_enabled);
+  const canAnalyzeAudio = Boolean(profile?.audio_analysis);
   const scansRemaining = profile?.scans_remaining ?? 0;
 
   const scanCostPerPlatform = isVideo && scanType === 'deep' ? 2 : 1;
@@ -298,6 +300,7 @@ export function ScanWorkspace({
       frames = await extractFrames(currentFile, signal, scanType);
       framesExtractedTime = Date.now();
       if (analyzeAudio && canAnalyzeAudio) {
+        setProgressText('Preparing audio track...');
         audio = await extractAudio(currentFile, signal);
       }
     } else if (currentFile) {
