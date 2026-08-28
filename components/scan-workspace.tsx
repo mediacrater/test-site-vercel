@@ -297,8 +297,7 @@ export function ScanWorkspace({
       setProgressText('Preparing your video...');
       frames = await extractFrames(currentFile, signal, scanType);
       framesExtractedTime = Date.now();
-      if (analyzeAudio) {
-        setProgressText('Preparing audio track...');
+      if (analyzeAudio && canAnalyzeAudio) {
         audio = await extractAudio(currentFile, signal);
       }
     } else if (currentFile) {
@@ -654,14 +653,23 @@ export function ScanWorkspace({
 
             {/* Audio analysis — opt-in, video only */}
             {isVideo && (
-              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border cursor-pointer text-sm w-fit">
+              <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-fit ${
+                canAnalyzeAudio ? 'border-border cursor-pointer' : 'border-border opacity-60 cursor-not-allowed'
+              }`}>
                 <input
                   type="checkbox"
-                  checked={analyzeAudio}
+                  disabled={!canAnalyzeAudio}
+                  checked={canAnalyzeAudio && analyzeAudio}
                   onChange={(e) => setAnalyzeAudio(e.target.checked)}
-                  className="accent-current"
                 />
-                <span className="font-medium">Analyze Audio Content</span>
+                <span className="font-medium">
+                  Analyze Audio Content
+                  {!canAnalyzeAudio && (
+                    <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                      Paid plan required
+                    </span>
+                  )}
+                </span>
               </label>
             )}
 
