@@ -299,7 +299,7 @@ export function ScanWorkspace({
       framesExtractedTime = Date.now();
       if (analyzeAudio) {
         setProgressText('Preparing audio track...');
-        audio = await extractAudio(currentFile);
+        audio = await extractAudio(currentFile, signal);
       }
     } else if (currentFile) {
       setProgressText('Preparing your image...');
