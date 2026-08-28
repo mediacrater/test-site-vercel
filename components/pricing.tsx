@@ -133,7 +133,8 @@ export function Pricing() {
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
             Pick a plan based on how many campaigns you run per month.
-            Cancel or change anytime. Subscriptions are managed through the{' '}
+            Cancel or change anytime. Extension users: Subscriptions are 
+            upgradable and managed through the{' '}
             <a
               href={EXTENSION_URL}
               target="_blank"
