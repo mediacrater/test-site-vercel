@@ -2,8 +2,7 @@
 
 import { Check, Minus } from 'lucide-react'
 
-const EXTENSION_URL =
-  'https://chromewebstore.google.com/detail/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_pricing'
+const SITE_SIGNUP = process.env.NEXT_PUBLIC_SITE_SIGNUP ?? '#'
 
 const plans = [
   {
@@ -132,7 +131,7 @@ export function Pricing() {
             Cancel or change anytime. Extension users: Subscriptions are 
             upgradable and managed through the{' '}
             <a
-              href={EXTENSION_URL}
+              href={SITE_SIGNUP}
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-foreground transition-colors"
@@ -210,7 +209,7 @@ export function Pricing() {
                           {plan.description}
                         </p>
                         <a
-                          href={EXTENSION_URL}
+                          href={SITE_SIGNUP}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`block w-full text-center py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90 ${
