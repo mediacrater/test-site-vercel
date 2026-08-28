@@ -1,23 +1,10 @@
 self.onmessage = (e: MessageEvent<{
   sampleRate: number;
-  channels: Float32Array[];
+  samples: Float32Array;
 }>) => {
-  const { sampleRate, channels } = e.data;
-  const length = channels[0].length;
-  const mono = new Float32Array(length);
-
-  if (channels.length === 1) {
-    mono.set(channels[0]);
-  } else {
-    const n = channels.length;
-    for (let i = 0; i < length; i++) {
-      let sum = 0;
-      for (let ch = 0; ch < n; ch++) sum += channels[ch][i];
-      mono[i] = sum / n;
-    }
-  }
-
-  const wav = encodeWav(mono, sampleRate);
+  const { sampleRate, samples } = e.data;
+  console.log(`[audio worker] encoding ${sampleRate}Hz mono (${samples.length} samples)`);
+  const wav = encodeWav(samples, sampleRate);
   self.postMessage({ data: arrayBufferToBase64(wav) });
 };
 
