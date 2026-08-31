@@ -240,28 +240,50 @@ export async function recordAccountDevice(
     client: DeviceClientFields;
     intel: IpIntel;
   }
-): Promise<void> {
+): Promise<{ ok: boolean; error: string | null }> {
   const fields = args.client;
-  const { error } = await admin.rpc('record_account_device', {
-    p_user_id: args.userId,
-    p_event: args.event,
-    p_device_id: args.deviceId,
-    p_device_fp: fields.device_fp ?? null,
-    p_timezone: fields.timezone ?? null,
-    p_browser: fields.browser ?? null,
-    p_browser_version: fields.browser_version ?? null,
-    p_os: fields.os ?? null,
-    p_ip: args.ip,
-    p_asn: args.intel.asn,
-    p_asn_org: args.intel.asn_org,
-    p_country: args.intel.country,
-    p_city: args.intel.city,
-    p_is_vpn: args.intel.is_vpn,
-    p_is_hosting: args.intel.is_hosting,
+
+  // Direct insert — same pattern as the profiles upsert. Do not use the RPC
+  // as the only path: if the function wasn't created, signup still succeeds
+  // and account_devices stays empty with no signal.
+  const { error } = await admin.from('account_devices').insert({
+    user_id: args.userId,
+    event: args.event,
+    device_id: args.deviceId,
+    device_fp: fields.device_fp ?? null,
+    timezone: fields.timezone ?? null,
+    browser: fields.browser ?? null,
+    browser_version: fields.browser_version ?? null,
+    os: fields.os ?? null,
+    ip: args.ip,
+    asn: args.intel.asn,
+    asn_org: args.intel.asn_org,
+    country: args.intel.country,
+    city: args.intel.city,
+    is_vpn: args.intel.is_vpn,
+    is_hosting: args.intel.is_hosting,
   });
+
   if (error) {
-    console.error('[DEVICE] record_account_device failed:', error.message);
+    console.error('[DEVICE] account_devices insert failed:', error.message, error.details, error.hint);
+    return { ok: false, error: error.message };
   }
+
+  const { error: snapshotError } = await admin
+    .from('profiles')
+    .update({
+      last_device_id: args.deviceId,
+      last_ip: args.ip,
+      last_seen_at: new Date().toISOString(),
+    })
+    .eq('id', args.userId);
+
+  if (snapshotError) {
+    // last_* columns are optional; don't fail the device row over them
+    console.error('[DEVICE] profiles last_* snapshot failed:', snapshotError.message);
+  }
+
+  return { ok: true, error: null };
 }
 
 export function createAdminClient() {
