@@ -113,11 +113,15 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = data.user?.id;
-  // Supabase returns a user object for existing emails when confirmation is
-  // on, but identities is empty — do not write a device row in that case.
-  const isNewUser = Boolean(userId && (data.user?.identities?.length ?? 0) > 0);
+  // Do NOT gate on data.user.identities. With email confirmation on, signUp
+  // often returns a user with identities missing/empty even for a real new
+  // account. That skip is why profiles.browser_id filled (handle_new_user
+  // trigger reads user_metadata) while account_devices stayed empty (this
+  // block never ran). Duplicate-email fake users come back with no user id.
+  let deviceRecorded = false;
+  let deviceError: string | null = null;
 
-  if (userId && isNewUser) {
+  if (userId) {
     const { error: upsertError } = await supabaseAdmin
       .from('profiles')
       .upsert(
@@ -138,7 +142,7 @@ export async function POST(req: NextRequest) {
     }
 
     const intel = await lookupIpIntel(req, ip);
-    await recordAccountDevice(supabaseAdmin, {
+    const recorded = await recordAccountDevice(supabaseAdmin, {
       userId,
       event: 'signup',
       deviceId,
@@ -146,10 +150,17 @@ export async function POST(req: NextRequest) {
       client: clientFields,
       intel,
     });
+    deviceRecorded = recorded.ok;
+    deviceError = recorded.error;
   }
 
   return jsonWithDevice(
-    { success: true, hasSession: Boolean(data.session) },
+    {
+      success: true,
+      hasSession: Boolean(data.session),
+      deviceRecorded,
+      deviceError,
+    },
     200,
     deviceId
   );
