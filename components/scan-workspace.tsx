@@ -442,6 +442,9 @@ export function ScanWorkspace({
         const isRateLimitError = message.includes('Rate limit exceeded') || message.includes('Free tier limit');
         const isAccountFlaggedError =
           message.includes('ACCOUNT_FLAGGED') || message.includes('locked pending resolution');
+        const isAudioLockedError =
+          message.includes('Audio analysis unavailable') ||
+          message.includes('Audio analysis is available on paid plans only');
         const isTokenError = message.includes('Insufficient tokens');
         const isAuthError = message.includes('Unauthorized') || message.includes('Not authenticated');
         const isCorruptionError =
@@ -508,6 +511,14 @@ export function ScanWorkspace({
             title: 'Analysis error',
             message:
               'We returned an invalid response. This may be due to complex content or a temporary issue. Please try again or contact support if this persists.',
+          });
+        } else if (isAudioLockedError) {
+          setBanner({
+            tone: 'warning',
+            title: 'Paid plan required',
+            message: 'Audio analysis is available on paid plans only. Upgrade to analyze spoken claims in your ads.',
+            actionLabel: 'Upgrade plan',
+            onAction: () => window.location.assign('/buy-tokens'),
           });
         } else {
           setBanner({
@@ -660,14 +671,19 @@ export function ScanWorkspace({
 
             {/* Audio analysis — opt-in, video only */}
             {isVideo && (
-              <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-fit ${
-                canAnalyzeAudio ? 'border-border cursor-pointer' : 'border-border opacity-60 cursor-not-allowed'
-              }`}>
+              <label
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-fit ${
+                  canAnalyzeAudio
+                    ? 'border-border cursor-pointer'
+                    : 'border-border opacity-60 cursor-not-allowed'
+                }`}
+              >
                 <input
                   type="checkbox"
                   disabled={!canAnalyzeAudio}
                   checked={canAnalyzeAudio && analyzeAudio}
                   onChange={(e) => setAnalyzeAudio(e.target.checked)}
+                  className="accent-current"
                 />
                 <span className="font-medium">
                   Analyze Audio Content
