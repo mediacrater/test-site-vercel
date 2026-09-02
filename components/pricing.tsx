@@ -77,15 +77,7 @@ const featureRows: { label: string; sub?: string; values: CellValue[] }[] = [
     values: ['Regular', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep'],
   },
   {
-    label: 'Total monthly scans',
-    values: ['5', '40', '200', '500', '2000'],
-  },
-  {
-    label: 'Video scans',
-    values: ['2', '20', '100', '250', '1000'],
-  },
-  {
-    label: 'Image scans',
+    label: 'Monthly scans',
     values: ['3', '20', '100', '250', '1000'],
   },
   {
