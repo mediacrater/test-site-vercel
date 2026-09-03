@@ -21,7 +21,7 @@ export interface ExtractedAudio {
 export type ScanType = 'regular' | 'deep';
 
 const SCAN_CONFIG: Record<ScanType, { interval: number }> = {
-  regular: { interval: 0.25 },
+  regular: { interval: 0.5 },
   deep: { interval: 0.125 },
 };
 
