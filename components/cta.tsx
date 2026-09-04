@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Shield } from "lucide-react"
 
-const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_footer_cta"
+const EXTENSION_LINK = "https://mediacrater.com/signup"
 
 export function CTA() {
   return (
