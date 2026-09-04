@@ -1,161 +1,196 @@
 "use client"
 
-import { AlertTriangle, Lock } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle,
+  Lock,
+} from "lucide-react"
 
 export function Features() {
   return (
     <section
       id="features"
-      className="border-b border-border/50 bg-background py-24 md:py-32"
+      className="border-b border-border bg-background py-24 md:py-32"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="max-w-2xl mb-20">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
-            // Module: The Policy Engine
-          </p>
-          <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
-            See what needs attention before the platform does.
-          </h2>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Mediacrater looks at your creative against platform-specific
-            policies, identifies potential risk zones, and gives you something
-            useful to act on.
-          </p>
-        </div>
-
-        {/* Audit Document Body */}
-        <div className="relative pl-6 sm:pl-10 border-l-2 border-border/60 space-y-24">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
           
-          {/* Feature 1: Cross-referencing */}
-          <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-12 lg:gap-16">
-            <div className="absolute -left-[31px] sm:-left-[47px] top-1 flex items-center justify-center bg-background py-2">
-              <span className="font-mono text-xs font-bold text-muted-foreground bg-background px-1">01</span>
-            </div>
-
-            <div>
-              <h3 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-foreground mb-4">
-                One creative. Multiple checks.
-              </h3>
-              <p className="text-base leading-relaxed text-muted-foreground mb-6">
-                Cross-reference your creative against the platforms you plan to
-                advertise on. Each platform can have different rules and
-                different points of failure.
-              </p>
-              
-              <div className="flex flex-wrap gap-3 font-mono text-xs">
-                {["Meta: PASS", "TikTok: REVIEW", "YouTube: PASS", "Pinterest: PASS", "X: PASS"].map(
-                  (platform) => (
-                    <span
-                      key={platform}
-                      className={`px-3 py-1.5 border ${
-                        platform.includes("REVIEW")
-                          ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                          : "border-border text-muted-foreground"
-                      }`}
-                    >
-                      {platform}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
-
-            <aside className="border-l-2 border-amber-500/30 pl-5 py-2 h-fit">
-              <div className="flex items-center gap-2 mb-2 text-amber-600 dark:text-amber-400 font-mono text-xs uppercase tracking-widest">
-                <AlertTriangle className="h-4 w-4" />
-                Conflict Detected
-              </div>
-              <p className="font-mono text-sm text-muted-foreground leading-relaxed">
-                Creative format passes general guidelines but triggers a soft violation in TikTok's ad review matrix.
-              </p>
-            </aside>
-          </div>
-
-          {/* Feature 2: Fix Visual integrated as text */}
-          <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-12 lg:gap-16">
-            <div className="absolute -left-[31px] sm:-left-[47px] top-1 flex items-center justify-center bg-background py-2">
-              <span className="font-mono text-xs font-bold text-muted-foreground bg-background px-1">02</span>
-            </div>
-
-            <div>
-              <h3 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-foreground mb-4">
-                Don't just find the problem. Know what to review.
-              </h3>
-              <p className="text-base leading-relaxed text-muted-foreground mb-8">
-                Results point you toward the part of the creative that needs
-                attention, including timestamps and suggested changes where
-                applicable.
-              </p>
-
-              {/* Redline Transcript Example */}
-              <div className="bg-secondary/30 border border-border p-6 font-mono text-sm leading-loose text-muted-foreground">
-                <span className="text-foreground font-semibold mr-4">[00:12]</span>
-                "Get ready to 
-                <del className="mx-2 line-through decoration-destructive decoration-[3px] text-foreground">
-                  lose 10lbs in 7 days!
-                </del> 
-                <ins className="no-underline text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 py-0.5 border border-amber-500/30">
-                  support your wellness journey
-                </ins>"
+          {/* Persistent Tab Rail */}
+          <div className="lg:col-span-3">
+            <div className="sticky top-28 space-y-8">
+              <div>
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4">
+                  The Policy Engine
+                </p>
+                <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight tracking-tight text-foreground">
+                  Active Case Files
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  Cross-reference your creative against specific platform parameters. Know what to review before the algorithm does.
+                </p>
               </div>
 
-              <div className="mt-8 flex items-start gap-4 border border-border bg-background p-4 max-w-md">
-                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col gap-2 font-mono text-xs uppercase tracking-wider">
+                <a href="#case-001" className="p-3 border border-border hover:bg-secondary/50 text-foreground transition-colors flex items-center justify-between">
+                  <span>Case 001 // Meta</span>
+                  <span className="text-muted-foreground">→</span>
+                </a>
+                <a href="#case-002" className="p-3 border border-border hover:bg-secondary/50 text-foreground transition-colors flex items-center justify-between">
+                  <span>Case 002 // TikTok</span>
+                  <span className="text-muted-foreground">→</span>
+                </a>
+                <a href="#case-003" className="p-3 border border-border hover:bg-secondary/50 text-foreground transition-colors flex items-center justify-between">
+                  <span>Case 003 // YouTube</span>
+                  <span className="text-muted-foreground">→</span>
+                </a>
+              </div>
+
+              <div className="mt-8 flex items-start gap-3 border border-border bg-card p-4">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
                 <div>
-                  <p className="font-mono text-xs font-semibold text-foreground uppercase tracking-wider mb-1">
-                    Privacy-first processing
+                  <p className="font-mono text-[10px] font-bold text-foreground uppercase tracking-widest">
+                    Privacy Protocol
                   </p>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    Your creative is temporarily processed for analysis rather
-                    than becoming a permanent asset in your account.
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Creative is processed temporarily for analysis, never stored permanently.
                   </p>
                 </div>
               </div>
             </div>
-
-            <aside className="border-l-2 border-amber-500/30 pl-5 py-2 h-fit">
-              <p className="font-mono text-xs text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">
-                Margin Note
-              </p>
-              <p className="font-mono text-sm text-muted-foreground leading-relaxed">
-                Replace potentially problematic guarantees with language that avoids an unsupported outcome claim. Timestamp logged for immediate review.
-              </p>
-            </aside>
           </div>
 
-          {/* Supporting Statement / Metadata Footer */}
-          <div className="relative pt-8 mt-16 border-t border-border/60">
-            <div className="absolute -left-[29px] sm:-left-[45px] top-7 h-2 w-2 rounded-none border border-muted-foreground bg-background" />
-            <div className="grid gap-10 sm:grid-cols-3 font-mono">
-              <div>
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-border pb-2 mb-3">
-                  Scan Depth
-                </p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Basic and Deep scanning available for different editing paces.
-                </p>
+          {/* Case Files Content */}
+          <div className="lg:col-span-9 space-y-24">
+            
+            {/* Case 001: Meta */}
+            <div id="case-001" className="scroll-mt-32">
+              <div className="border-b-2 border-foreground pb-4 mb-8 flex justify-between items-end">
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">Platform Analysis</p>
+                  <h3 className="font-[family-name:var(--font-display)] text-4xl font-bold text-foreground mt-2">META</h3>
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">ID: MT-8924</div>
               </div>
-              <div>
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-border pb-2 mb-3">
-                  Risk Level
-                </p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Categorized into Low, Medium, and High thresholds.
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-border pb-2 mb-3">
-                  Timestamps
-                </p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Direct navigation to flagged creative segments.
-                </p>
+
+              <div className="border border-border bg-card p-6 md:p-10 relative overflow-hidden">
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <h4 className="font-mono text-sm font-bold text-foreground uppercase mb-4 tracking-wider">Violation Detected</h4>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                      Timestamp 0:12 contains an unsupported outcome claim. The platform algorithm heavily penalizes absolute guarantees in ad copy and audio.
+                    </p>
+                    
+                    <div className="space-y-4 font-mono text-xs">
+                      <div className="border-l-2 border-destructive bg-destructive/5 p-4 text-destructive">
+                        <span className="block text-[10px] uppercase mb-1 opacity-70">Flagged Transcript</span>
+                        “Lose 10lbs in 7 days!”
+                      </div>
+                      <div className="border-l-2 border-emerald-500 bg-emerald-500/5 p-4 text-emerald-600 dark:text-emerald-400">
+                        <span className="block text-[10px] uppercase mb-1 opacity-70">Suggested Revision</span>
+                        “Support your wellness journey”
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black relative aspect-video border border-border flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-black/60 font-mono text-[10px] text-white px-2 py-1 border border-white/20">creative_042.mp4</div>
+                    <AlertTriangle className="h-8 w-8 text-destructive opacity-50" />
+                  </div>
+                </div>
+
+                <div className="mt-12 flex justify-end">
+                  <div className="transform -rotate-6 border-[3px] border-destructive text-destructive font-bold uppercase px-6 py-2 text-2xl tracking-[0.2em] mix-blend-multiply dark:mix-blend-lighten opacity-90 inline-block pointer-events-none">
+                    FLAGGED
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
+            {/* Case 002: TikTok */}
+            <div id="case-002" className="scroll-mt-32">
+              <div className="border-b-2 border-foreground pb-4 mb-8 flex justify-between items-end">
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">Platform Analysis</p>
+                  <h3 className="font-[family-name:var(--font-display)] text-4xl font-bold text-foreground mt-2">TIKTOK</h3>
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">ID: TK-1102</div>
+              </div>
+
+              <div className="border border-border bg-card p-6 md:p-10 relative overflow-hidden">
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <h4 className="font-mono text-sm font-bold text-foreground uppercase mb-4 tracking-wider">Deep Scan Results</h4>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                      Analysis reveals rapid frame cuts between 0:04 and 0:06 that may trigger TikTok's automated content moderation for sensory overload policies. 
+                    </p>
+                    <div className="flex items-center gap-3 bg-secondary p-4 border border-border">
+                      <div className="h-2 w-2 rounded-full bg-amber-500" />
+                      <span className="font-mono text-xs text-foreground uppercase">Manual Review Required</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black relative aspect-[9/16] md:aspect-auto border border-border flex items-center justify-center">
+                    <div className="absolute bottom-4 left-4 right-4 h-1 bg-white/20">
+                      <div className="h-full w-1/4 bg-amber-500 ml-[10%]" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-12 flex justify-end">
+                  <div className="transform -rotate-3 border-[3px] border-amber-500 text-amber-500 font-bold uppercase px-6 py-2 text-2xl tracking-[0.2em] mix-blend-multiply dark:mix-blend-lighten opacity-90 inline-block pointer-events-none">
+                    PENDING
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Case 003: YouTube */}
+            <div id="case-003" className="scroll-mt-32">
+              <div className="border-b-2 border-foreground pb-4 mb-8 flex justify-between items-end">
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">Platform Analysis</p>
+                  <h3 className="font-[family-name:var(--font-display)] text-4xl font-bold text-foreground mt-2">YOUTUBE</h3>
+                </div>
+                <div className="font-mono text-xs text-muted-foreground">ID: YT-4491</div>
+              </div>
+
+              <div className="border border-border bg-card p-6 md:p-10 relative overflow-hidden">
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <h4 className="font-mono text-sm font-bold text-foreground uppercase mb-4 tracking-wider">Compliance Confirmed</h4>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                      Audio transcripts, on-screen text, and visual pacing pass Google Ads basic policy checks. No high-risk policy zones detected.
+                    </p>
+                    <div className="space-y-2 font-mono text-xs uppercase text-muted-foreground">
+                      <div className="flex justify-between border-b border-border py-2">
+                        <span>Audio check</span>
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      <div className="flex justify-between border-b border-border py-2">
+                        <span>Visual check</span>
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      <div className="flex justify-between py-2">
+                        <span>Metadata check</span>
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black relative aspect-video border border-border flex items-center justify-center">
+                    <div className="absolute top-4 left-4 bg-black/60 font-mono text-[10px] text-emerald-400 px-2 py-1 border border-emerald-500/30">compliant_v2.mp4</div>
+                  </div>
+                </div>
+
+                <div className="mt-12 flex justify-end">
+                  <div className="transform -rotate-6 border-[3px] border-emerald-500 text-emerald-500 font-bold uppercase px-6 py-2 text-2xl tracking-[0.2em] mix-blend-multiply dark:mix-blend-lighten opacity-90 inline-block pointer-events-none">
+                    CLEARED
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </section>
