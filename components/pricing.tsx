@@ -1,7 +1,5 @@
 'use client'
 
-import { Check, Minus } from 'lucide-react'
-
 const SITE_SIGNUP = process.env.NEXT_PUBLIC_SITE_SIGNUP ?? '#'
 
 const plans = [
@@ -12,7 +10,7 @@ const plans = [
     scans: '3 scans / mo',
     campaigns: '1 campaign / mo',
     description: 'Get started with no commitment',
-    cta: 'Get started',
+    cta: '[ RUN_FREE ]',
     popular: false,
   },
   {
@@ -22,7 +20,7 @@ const plans = [
     scans: '20 scans / mo',
     campaigns: '3–6 campaigns / mo',
     description: 'For solo dropshippers testing creatives',
-    cta: 'Get Startup',
+    cta: '[ INIT_STARTUP ]',
     popular: false,
   },
   {
@@ -32,7 +30,7 @@ const plans = [
     scans: '100 scans / mo',
     campaigns: '20 to 30+ campaigns / mo',
     description: 'For brands running consistent paid campaigns',
-    cta: 'Get Established',
+    cta: '[ INIT_ESTABLISHED ]',
     popular: false,
   },
   {
@@ -42,8 +40,8 @@ const plans = [
     scans: '250 scans / mo',
     campaigns: '50 to 80+ campaigns / mo',
     description: 'For media buyers scaling across multiple offers',
-    cta: 'Get Scaler',
-    popular: false,
+    cta: '[ INIT_SCALER ]',
+    popular: true,
   },
   {
     name: 'Agency',
@@ -52,7 +50,7 @@ const plans = [
     scans: '1000 scans / mo',
     campaigns: '200 to 300+ campaigns / mo',
     description: 'For agencies managing multiple client accounts',
-    cta: 'Get Agency',
+    cta: '[ INIT_AGENCY ]',
     popular: false,
   },
 ]
@@ -60,122 +58,170 @@ const plans = [
 type CellValue = boolean | string
 
 const featureRows: { label: string; sub?: string; values: CellValue[] }[] = [
-  { label: 'Video & image scanning', values: [true, true, true, true, true] },
-  { label: 'All platforms supported', values: [true, true, true, true, true] },
-  { label: 'Violation timestamps & fixes', values: [true, true, true, true, true] },
-  { label: 'Scan type', values: ['Regular', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep'] },
-  { label: 'Monthly scans', values: ['3', '20', '100', '250', '1000'] },
-  { label: 'Campaigns / month', values: ['1', '3–6', '20–33', '50–83', '200-300+'] },
-  { label: 'Priority processing', values: [false, true, true, true, true] },
-  { label: 'Scan history', values: [false, true, true, true, true] },
-  { label: 'Audio analysis', values: [false, true, true, true, true] },
+  {
+    label: 'Video & image scanning',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'All platforms supported',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'Violation timestamps & fixes',
+    values: [true, true, true, true, true],
+  },
+  {
+    label: 'Scan type',
+    values: ['Regular', 'Reg+Deep', 'Reg+Deep', 'Reg+Deep', 'Reg+Deep'],
+  },
+  {
+    label: 'Monthly scans',
+    values: ['3', '20', '100', '250', '1000'],
+  },
+  {
+    label: 'Campaigns / month',
+    values: ['1', '3–6', '20–33', '50–83', '200-300+'],
+  },
+  {
+    label: 'Priority processing',
+    values: [false, true, true, true, true],
+  },
+  {
+    label: 'Scan history',
+    values: [false, true, true, true, true],
+  },
+  {
+    label: 'Audio analysis',
+    values: [false, true, true, true, true],
+  },
 ]
 
 function Cell({ value }: { value: CellValue }) {
   if (typeof value === 'boolean') {
     return value ? (
-      <Check className="w-4 h-4 mx-auto text-foreground" strokeWidth={3} />
+      <span className="text-emerald-500 font-bold">[Y]</span>
     ) : (
-      <Minus className="w-4 h-4 mx-auto text-muted-foreground/30" strokeWidth={2} />
+      <span className="text-muted-foreground/30">[-]</span>
     )
   }
-  return <span className="font-mono text-xs font-bold text-foreground">{value}</span>
+  return (
+    <span className="text-[10px] font-bold text-foreground uppercase tracking-tight">
+      {value}
+    </span>
+  )
 }
 
 export function Pricing() {
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-secondary/20 border-t border-border">
+    <section id="pricing" className="py-16 md:py-24 bg-background border-b border-border font-mono">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
-        <div className="max-w-2xl mb-16">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-4">
-            Document 04: Retainer
+        <div className="max-w-2xl mb-12">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+            [SYS: RESOURCE_ALLOCATION]
           </p>
-          <h2 className="text-4xl font-bold text-foreground font-[family-name:var(--font-display)] uppercase tracking-tight">
-            Fee Schedule
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground uppercase tracking-tight">
+            Data Matrix & Pricing
           </h2>
-          <p className="mt-4 font-mono text-sm text-muted-foreground text-pretty">
-            Assess your campaign volume and select the appropriate tier. 
-            Extension users: Upgrades managed via the{' '}
-            <a href={SITE_SIGNUP} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+          <p className="mt-3 text-xs text-muted-foreground border-l-2 border-border pl-3">
+            &gt; Extension users: Subscriptions are upgradable and managed through the{' '}
+            <a
+              href={SITE_SIGNUP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
               Chrome extension
-            </a>.
+            </a>
           </p>
         </div>
 
-        <div className="relative pt-5">
-          {/* Table */}
-          <div className="border-2 border-foreground bg-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] border-collapse">
-                
-                {/* Headers */}
-                <thead>
-                  <tr>
-                    <th className="w-[220px] bg-muted/50 px-6 pt-8 pb-5 text-left align-bottom border-r-2 border-b-2 border-foreground">
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-foreground">
-                        Parameters
-                      </span>
+        <div className="relative border border-border bg-card overflow-hidden">
+          <div className="bg-muted/50 border-b border-border px-3 py-2 flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <span>/db_tables/pricing_tiers.sql</span>
+            <span>READ_ONLY</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px] border-collapse text-left">
+              <thead>
+                <tr>
+                  <th className="w-[180px] p-3 align-bottom border-b-2 border-r border-border text-[10px] font-bold uppercase text-muted-foreground">
+                    Parameter
+                  </th>
+                  {plans.map((plan) => (
+                    <th
+                      key={plan.name}
+                      className={`p-3 align-bottom border-b-2 border-r last:border-r-0 border-border ${
+                        plan.popular ? 'bg-primary/5' : ''
+                      }`}
+                    >
+                      {plan.popular && (
+                        <div className="text-[9px] font-bold text-primary mb-2 uppercase tracking-widest">
+                          * OPTIMIZED_ALLOC
+                        </div>
+                      )}
+                      <div className="text-[11px] font-bold uppercase text-foreground mb-1">
+                        {plan.name}
+                      </div>
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-lg font-bold text-foreground">
+                          {plan.price}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      </div>
+                      <p className="text-[9px] leading-relaxed text-muted-foreground mb-3 h-8">
+                        {plan.description}
+                      </p>
+                      <a
+                        href={SITE_SIGNUP}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block w-full text-center py-2 text-[10px] font-bold uppercase transition-colors border ${
+                          plan.popular
+                            ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
+                            : 'bg-card text-foreground border-border hover:bg-secondary'
+                        }`}
+                      >
+                        {plan.cta}
+                      </a>
                     </th>
-                    {plans.map((plan) => (
-                      <th key={plan.name} className={`px-4 pt-8 pb-5 text-center align-bottom border-r-2 border-b-2 border-foreground last:border-r-0 ${plan.popular ? 'bg-foreground' : 'bg-background'}`}>
-                        {plan.popular && (
-                          <span className="block mb-4 text-[10px] font-mono font-bold uppercase tracking-widest text-background border border-background mx-auto w-max px-2 py-1">
-                            Standard Issue
-                          </span>
-                        )}
-                        <div className={`font-mono text-xs font-bold uppercase tracking-widest mb-2 ${plan.popular ? 'text-background' : 'text-foreground'}`}>
-                          {plan.name}
-                        </div>
-                        <div className="flex items-baseline justify-center gap-1 mb-4">
-                          <span className={`text-3xl font-[family-name:var(--font-display)] font-bold ${plan.popular ? 'text-background' : 'text-foreground'}`}>
-                            {plan.price}
-                          </span>
-                          <span className={`font-mono text-[10px] ${plan.popular ? 'text-background/70' : 'text-muted-foreground'}`}>
-                            {plan.period}
-                          </span>
-                        </div>
-                        <p className={`text-[10px] font-mono uppercase mb-4 h-10 ${plan.popular ? 'text-background/70' : 'text-muted-foreground'}`}>
-                          {plan.description}
-                        </p>
-                        <a
-                          href={SITE_SIGNUP}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`block w-full text-center py-3 font-mono text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                            plan.popular
-                              ? 'bg-background text-foreground hover:bg-background/90'
-                              : 'border-2 border-foreground text-foreground hover:bg-foreground hover:text-background'
-                          }`}
-                        >
-                          {plan.cta}
-                        </a>
-                      </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="text-[10px]">
+                {featureRows.map((row) => (
+                  <tr key={row.label} className="border-b last:border-b-0 border-dashed border-border hover:bg-secondary/30">
+                    <td className="p-3 border-r border-border font-bold uppercase text-muted-foreground">
+                      {row.label}
+                    </td>
+                    {plans.map((plan, planIdx) => (
+                      <td
+                        key={plan.name}
+                        className={`p-3 text-center border-r last:border-r-0 border-border ${
+                          plan.popular ? 'bg-primary/5' : ''
+                        }`}
+                      >
+                        <Cell value={row.values[planIdx]} />
+                      </td>
                     ))}
                   </tr>
-                </thead>
-
-                {/* Rows */}
-                <tbody>
-                  {featureRows.map((row) => (
-                    <tr key={row.label} className="border-b-2 border-border last:border-b-0 hover:bg-secondary/30 transition-colors">
-                      <td className="px-6 py-5 border-r-2 border-border">
-                        <span className="font-mono text-xs text-foreground uppercase">{row.label}</span>
-                      </td>
-                      {plans.map((plan, planIdx) => (
-                        <td key={plan.name} className={`px-4 py-5 text-center border-r-2 border-border last:border-r-0 ${plan.popular ? 'bg-foreground/5' : ''}`}>
-                          <Cell value={row.values[planIdx]} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        {/* Trust line */}
+        <p className="text-xs text-muted-foreground mt-6 flex flex-wrap gap-4 uppercase font-bold tracking-widest">
+          <span>[SECURE_CHECKOUT: STRIPE]</span>
+          <span>[TERM: CANCEL_ANYTIME]</span>
+          <span>[FEES: NO_HIDDEN]</span>
+        </p>
+
       </div>
     </section>
   )
