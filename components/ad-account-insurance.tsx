@@ -1,30 +1,21 @@
 const insurancePoints = [
   {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      </svg>
-    ),
+    id: "risk_factor_alpha",
     title: 'Platforms never explain',
     body: "Meta, TikTok, and YouTube reject ads or ban accounts with zero details. You’re left guessing what went wrong. Mediacrater flags the exact issues in advance.",
+    note: "High incidence rate. Preventative scan required.",
   },
   {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-      </svg>
-    ),
+    id: "risk_factor_beta",
     title: 'Whales get away with it',
     body: "Big brands survive violations that kill small accounts. Mediacrater levels the field by teaching you the real rules faster.",
+    note: "Algorithmic bias detected. Compliance history is critical.",
   },
   {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
+    id: "risk_factor_gamma",
     title: 'Build algorithm trust',
     body: "Every compliant ad strengthens your account history. Faster approvals, better delivery, more leniency. One bad upload can undo months of progress.",
+    note: "Trust score optimization recommended.",
   },
 ]
 
@@ -32,63 +23,79 @@ const EXTENSION_URL = 'https://chromewebstore.google.com/detail/fgekklkpomdcadia
 
 export function AdAccountInsurance() {
   return (
-    <section className="py-20 md:py-28 bg-background">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-
-        {/* Eyebrow */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="h-px flex-1 max-w-[60px] bg-border" />
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Protect your business
+    <section className="py-20 md:py-28 bg-secondary/20 border-b border-border/50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+        {/* Document Header */}
+        <div className="mb-16 border-b border-border/60 pb-8">
+          <p className="font-mono text-xs uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-3">
+            // Section: Asset Protection
           </p>
-          <div className="h-px flex-1 max-w-[60px] bg-border" />
-        </div>
-
-        {/* Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-6">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance leading-tight">
-            Everyone hates insurance...{' '}
-            <span className="text-accent">until something goes wrong.</span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] max-w-2xl">
+            Everyone hates insurance... <br/>
+            <span className="font-mono text-xl md:text-2xl text-muted-foreground bg-amber-500/10 px-2 mt-2 inline-block border border-amber-500/20">
+              until something goes wrong.
+            </span>
           </h2>
+          <p className="mt-6 text-lg text-muted-foreground max-w-2xl text-pretty leading-relaxed">
+            Ad account bans hit without warning or explanation. One hidden violation and your campaigns go dark, revenue stops, and you’re rebuilding from scratch. <ins className="no-underline font-mono text-amber-500">Mediacrater shows you the risks before you upload.</ins>
+          </p>
         </div>
 
-        {/* Opening paragraph */}
-        <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto mb-16 text-pretty leading-relaxed">
-          Ad account bans hit without warning or explanation. One hidden violation and your campaigns go dark, revenue stops, and you’re rebuilding from scratch. Mediacrater shows you the risks before you upload.
-        </p>
+        {/* Audit Trail Layout */}
+        <div className="relative pl-6 sm:pl-10 border-l-2 border-border/60 space-y-16">
+          {insurancePoints.map((point, index) => (
+            <div key={point.id} className="relative grid lg:grid-cols-[1fr_300px] gap-8 lg:gap-16">
+              
+              {/* Audit Node Marker */}
+              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 flex items-center justify-center bg-background py-2">
+                <div className="h-3 w-3 border-2 border-amber-500 rounded-sm bg-background" />
+              </div>
 
-        {/* Three points */}
-        <div className="grid sm:grid-cols-3 gap-6 mb-16">
-          {insurancePoints.map((point) => (
-            <div
-              key={point.title}
-              className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-4"
-            >
-              <div className="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
-                {point.icon}
-              </div>
+              {/* Main Content */}
               <div>
-                <h3 className="font-bold text-foreground mb-2 leading-snug">{point.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{point.body}</p>
+                <h3 className="font-bold text-xl text-foreground mb-3 font-[family-name:var(--font-display)]">
+                  {point.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {point.body}
+                </p>
               </div>
+
+              {/* Margin Note */}
+              <aside className="border-l border-amber-500/30 pl-4 py-1">
+                <p className="font-mono text-[10px] text-amber-600/70 dark:text-amber-400/70 uppercase tracking-widest mb-1">
+                  [{point.id}]
+                </p>
+                <p className="font-mono text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+                  {point.note}
+                </p>
+              </aside>
+
             </div>
           ))}
-        </div>
 
-        {/* Closing CTA */}
-        <div className="text-center">
-          <p className="text-muted-foreground text-base mb-6 max-w-xl mx-auto text-pretty">
-            This isn’t just about protecting one ad. It’s about building the account history that platforms reward. The kind most of your competitors don’t have.
-          </p>
-          <a
-            href={EXTENSION_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            Try Mediacrater free
-          </a>
-          <p className="text-xs text-muted-foreground mt-3">No credit card required · 3 free scans every month</p>
+          {/* Closing Summary Node */}
+          <div className="relative grid lg:grid-cols-[1fr_300px] gap-8 lg:gap-16 pt-8 border-t border-border/60">
+            <div className="absolute -left-[29px] sm:-left-[45px] top-9 h-2 w-2 rounded-full bg-primary ring-4 ring-background" />
+            
+            <div>
+              <p className="text-foreground font-medium text-base mb-6 max-w-xl text-pretty">
+                This isn’t just about protecting one ad. It’s about building the account history that platforms reward. The kind most of your competitors don’t have.
+              </p>
+              <a
+                href={EXTENSION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 font-mono text-sm hover:opacity-90 transition-opacity uppercase tracking-wider"
+              >
+                Execute Analysis
+              </a>
+              <p className="font-mono text-xs text-muted-foreground mt-4">
+                * No credit card required. 3 manual overrides / mo.
+              </p>
+            </div>
+          </div>
         </div>
 
       </div>
