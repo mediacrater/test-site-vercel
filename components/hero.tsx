@@ -1,108 +1,105 @@
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Shield, CheckCircle, ArrowUpRight } from "lucide-react"
+import { Shield, ArrowRight } from "lucide-react"
 
 const EXTENSION_LINK =
   "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_hero"
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-border/50 pt-28 pb-20 md:pt-36 md:pb-28 bg-background">
+    <section className="relative border-b-2 border-foreground pt-28 pb-20 md:pt-36 md:pb-28 bg-background">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Document Audit Structure */}
-        <div className="grid lg:grid-cols-[1fr_300px] gap-10 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-12 gap-10">
           
-          {/* Main Document Body with Vertical Audit Trail */}
-          <div className="relative pl-6 sm:pl-10 border-l-2 border-border/60">
-            {/* Audit Trail Marker */}
-            <div className="absolute -left-[5px] top-4 h-2 w-2 rounded-full bg-amber-500 ring-4 ring-background" />
-            
-            <div className="mb-6 inline-flex items-center gap-3">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Document ID: MC-001
-              </span>
-              <Badge
-                variant="outline"
-                className="rounded-none border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400"
-              >
-                Scan Complete
-              </Badge>
+          {/* Left: Dossier Information */}
+          <div className="lg:col-span-7 pr-0 lg:pr-10 border-r-0 lg:border-r border-border">
+            <div className="mb-8 inline-block border-2 border-foreground px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-foreground">
+              Subject: Pre-Launch Compliance
             </div>
 
-            <h1 className="max-w-3xl font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.1] tracking-[-0.035em] text-foreground sm:text-6xl lg:text-7xl">
+            <h1 className="font-[family-name:var(--font-display)] text-6xl font-bold leading-[0.95] tracking-[-0.04em] text-foreground sm:text-7xl lg:text-8xl mb-8 uppercase">
               Know before <br />
-              you <del className="line-through decoration-destructive decoration-[4px] opacity-70">launch.</del>{" "}
-              <ins className="no-underline font-mono text-amber-500">upload</ins>
+              you <span className="text-primary italic">launch.</span>
             </h1>
 
-            <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              Scan your video ads for potential Meta, TikTok, and Google
-              policy issues before you spend money promoting them.
+            <p className="max-w-xl text-lg leading-relaxed text-muted-foreground font-mono">
+              Scan your video ads for potential Meta, TikTok, and Google policy issues before you spend money promoting them. Protect the asset.
             </p>
 
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 rounded-none bg-primary px-6 text-base font-semibold text-primary-foreground hover:bg-primary/90"
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row font-mono">
+              <a
+                href={EXTENSION_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 items-center justify-between border-2 border-foreground bg-foreground px-6 text-sm font-bold uppercase tracking-wider text-background hover:bg-background hover:text-foreground transition-colors"
               >
-                <a
-                  href={EXTENSION_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Shield className="mr-2 h-4 w-4" />
-                  Try it free
-                  <ArrowUpRight className="ml-1 h-4 w-4" />
-                </a>
-              </Button>
+                <span className="flex items-center">
+                  <Shield className="mr-3 h-4 w-4" />
+                  Initiate Scan
+                </span>
+                <ArrowRight className="ml-4 h-4 w-4" />
+              </a>
 
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 rounded-none border-border bg-background px-6 text-base font-mono text-sm hover:text-amber-600 hover:border-amber-500/50 transition-colors"
+              <a
+                href="https://www.youtube.com/watch?v=Jk_XtsN1N9I&utm_medium=website_hero"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 items-center justify-center border-2 border-border bg-background px-6 text-sm font-bold uppercase tracking-wider text-foreground hover:bg-secondary transition-colors"
               >
-                <a
-                  href="https://www.youtube.com/watch?v=Jk_XtsN1N9I&utm_medium=website_hero"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  [View Execution Log]
-                </a>
-              </Button>
+                Review Documentation
+              </a>
             </div>
 
-            <div className="mt-12 border-t border-border/60 pt-6">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
-                Active Parameters
-              </p>
-              <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm font-mono text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-amber-500" />
-                  Privacy-first processing
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-amber-500" />
-                  Multi-platform support
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-amber-500" />
-                  From $0.19 / scan
-                </div>
+            <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-6 border-t border-border pt-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              <div>
+                <span className="block text-foreground mb-1">Status</span>
+                Privacy-first processing
+              </div>
+              <div>
+                <span className="block text-foreground mb-1">Coverage</span>
+                Multi-platform support
+              </div>
+              <div>
+                <span className="block text-foreground mb-1">Fee Schedule</span>
+                From $0.19 / scan
               </div>
             </div>
           </div>
 
-          {/* Margin Annotations Column */}
-          <aside className="hidden lg:block space-y-6 pt-8 font-mono text-sm">
-            <div className="border-l-2 border-amber-500/50 pl-4 py-1">
-              <p className="text-amber-600 dark:text-amber-400 font-semibold mb-1">Annotation_01</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Platforms checked include Meta, TikTok, YouTube, X, and Pinterest. Adjust wording to avoid automatic rejections.
-              </p>
+          {/* Right: UI Terminal */}
+          <div className="lg:col-span-5 relative mt-10 lg:mt-0">
+            <div className="border-2 border-border bg-card h-full min-h-[400px] flex flex-col">
+              {/* Terminal Header */}
+              <div className="border-b-2 border-border bg-muted/50 px-4 py-2 flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-foreground font-bold">Terminal // Scan_01</span>
+                <span className="font-mono text-[10px] text-muted-foreground">mediacrater.com/scan</span>
+              </div>
+              
+              <div className="p-6 flex-1 flex flex-col gap-6">
+                <div className="relative aspect-video border border-border bg-black w-full flex items-center justify-center">
+                  <div className="font-mono text-[10px] text-white/50">compliance_audit.mp4</div>
+                  <div className="absolute bottom-4 left-4">
+                    <div className="h-1 w-32 bg-white/20">
+                      <div className="h-full w-[39%] bg-primary" />
+                    </div>
+                    <p className="mt-2 font-mono text-[10px] text-white/50">00:12 / 00:31</p>
+                  </div>
+                </div>
+
+                <div className="border border-border bg-background p-4 flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Assessment</p>
+                    <p className="font-mono text-[10px] font-bold text-amber-500">78% CONFIDENCE</p>
+                  </div>
+                  
+                  <p className="text-xl font-bold font-[family-name:var(--font-display)] text-foreground uppercase">Medium Risk</p>
+                  
+                  <div className="mt-4 border-l-2 border-amber-500 pl-4 py-1">
+                    <p className="font-mono text-xs font-bold text-foreground">Timestamp 0:12</p>
+                    <p className="font-mono text-[10px] text-muted-foreground mt-1">Soft guarantee claim detected. Review phrasing.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </aside>
+          </div>
         </div>
       </div>
     </section>
