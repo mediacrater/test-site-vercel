@@ -1,9 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { MessageCircle } from "lucide-react"
 
-// Real validation screenshots from media buyers
 const validationComments = [
   {
     id: 1,
@@ -30,50 +28,48 @@ const validationComments = [
 
 export function SocialProof() {
   return (
-    <section className="py-16 md:py-24 bg-secondary/30">
+    <section className="py-16 md:py-24 bg-background border-b border-border font-mono">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Validated by Media Buyers
+        <div className="max-w-3xl mb-12">
+          <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">
+            [SYS_LOG: COMMUNITY_VALIDATION]
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground uppercase tracking-tight">
             Built to Solve Real Problems
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground text-pretty">
-            Before building Mediacrater, we validated the idea with professional media buyers. Here are their real responses.
+          <p className="mt-3 text-xs text-muted-foreground border-l-2 border-border pl-3">
+            &gt; Before deployment, core functionality was validated with professional media buyers. Log readouts attached below.
           </p>
         </div>
 
         {/* Validation Screenshots Grid */}
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {validationComments.map((comment) => (
             <div
               key={comment.id}
-              className="group flex flex-col"
+              className="flex flex-col border border-border bg-card"
             >
-              {/* Screenshot Container with Glow Effect */}
-              <div className="relative mb-4">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500" />
-                <div className="relative bg-card border border-border rounded-xl overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
-                  <div className="p-3 bg-muted/30">
-                    <Image
-                      src={comment.screenshot || "/placeholder.svg"}
-                      alt={`Media buyer validation feedback from ${comment.author} - ${comment.quote}`}
-                      width={400}
-                      height={600}
-                      className="rounded-lg object-contain w-full h-auto border border-border/50"
-                    />
-                  </div>
-                </div>
+              <div className="bg-muted/50 border-b border-border px-3 py-1.5 flex justify-between items-center text-[9px] uppercase font-bold text-muted-foreground">
+                <span>packet_id: {comment.id}</span>
+                <span className="text-emerald-500">200_OK</span>
               </div>
               
-              {/* Author Info */}
-              <div className="px-2 flex items-center gap-3">
-                <div className="h-10 w-[3px] bg-gradient-to-b from-primary to-accent rounded-full" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{comment.author}</p>
-                  <p className="text-xs text-muted-foreground">{comment.role}</p>
+              <div className="p-3 bg-black/5">
+                <Image
+                  src={comment.screenshot || "/placeholder.svg"}
+                  alt={`Feedback from ${comment.author}`}
+                  width={400}
+                  height={600}
+                  className="w-full h-auto border border-border grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </div>
+              
+              <div className="p-3 border-t border-dashed border-border bg-background">
+                <div className="flex flex-col gap-1">
+                  <p className="text-[10px] font-bold text-foreground uppercase">ID: {comment.author}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase">ROLE: {comment.role}</p>
                 </div>
               </div>
             </div>
@@ -81,11 +77,11 @@ export function SocialProof() {
         </div>
 
         {/* Trust Badge */}
-        <div className="mt-12 md:mt-16 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <p className="text-sm text-muted-foreground">
-              Real feedback from Facebook advertising communities
+        <div className="mt-12 text-left">
+          <div className="inline-flex items-center gap-3 px-3 py-1.5 border border-border bg-card">
+            <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              DATA_SOURCE: Facebook advertising communities
             </p>
           </div>
         </div>
