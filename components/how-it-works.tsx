@@ -1,8 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Play, CheckCircle2 } from "lucide-react"
+import { Play } from "lucide-react"
 
-// Public watch URL
 const YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=Jk_XtsN1N9I"
 
 function youtubeIdFromWatchUrl(url: string): string {
@@ -37,10 +36,11 @@ const steps = [
     description: "Review detected risk zones, jump to violation timestamps, and copy suggested fixes.",
   },
 ]
+
 export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  // Auto-cycle through steps without causing layout shifts
+
   useEffect(() => {
     if (isPlaying) return
     const timer = setInterval(() => {
@@ -48,113 +48,124 @@ export function HowItWorks() {
     }, 3500)
     return () => clearInterval(timer)
   }, [isPlaying])
+
   return (
-    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20 overflow-hidden">
+    <section id="how-it-works" className="py-16 md:py-24 border-b border-border bg-secondary/10 font-mono">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mb-14 text-left">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">60-Second Workflow</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)]">
+        <div className="max-w-3xl mb-12">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+            [SYS: 60_SECOND_WORKFLOW]
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground uppercase tracking-tight">
             How Mediacrater Works
           </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            From installation to your first policy risk report in under a minute.
+          <p className="mt-3 text-xs text-muted-foreground border-l-2 border-border pl-3">
+            &gt; From installation to your first policy risk report in under a minute.
           </p>
         </div>
-        {/* Split Section: Interactive Steps Left + YouTube Facade Right */}
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
+
+        {/* Split Section */}
+        <div className="grid lg:grid-cols-12 gap-10 items-start">
           
-          {/* Left Column: Step List with Fixed Heights */}
-          <div className="lg:col-span-5 space-y-3">
-            {steps.map((item, idx) => {
-              const isActive = activeStep === idx
-              return (
-                <div
-                  key={item.step}
-                  onClick={() => setActiveStep(idx)}
-                  className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
-                    isActive 
-                      ? "bg-card border-primary/50 shadow-sm ring-1 ring-inset ring-primary/20" 
-                      : "bg-card/50 border-border/60 hover:bg-card hover:border-border"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className={`text-sm font-mono font-bold px-2 py-0.5 rounded transition-colors duration-300 shrink-0 ${
-                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    }`}>
-                      {item.step}
-                    </span>
-                    <div>
-                      <h3 className="text-base font-bold text-foreground mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {item.description}
+          {/* Left Column: Log List */}
+          <div className="lg:col-span-5 space-y-0 border border-border bg-card">
+            <div className="bg-muted/50 border-b border-border p-2 text-[10px] font-bold uppercase text-muted-foreground tracking-widest">
+              /scripts/onboarding_sequence.sh
+            </div>
+            <div className="p-4 space-y-4">
+              {steps.map((item, idx) => {
+                const isActive = activeStep === idx
+                return (
+                  <div
+                    key={item.step}
+                    onClick={() => setActiveStep(idx)}
+                    className={`cursor-pointer border-l-2 pl-3 transition-colors duration-200 ${
+                      isActive 
+                        ? "border-primary bg-primary/5 py-2" 
+                        : "border-transparent hover:border-border"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold uppercase ${
+                          isActive ? "text-primary" : "text-muted-foreground"
+                        }`}>
+                          [TASK_{item.step}]
+                        </span>
+                        <h3 className={`text-xs font-bold uppercase ${
+                          isActive ? "text-foreground" : "text-muted-foreground"
+                        }`}>
+                          {item.title}
+                        </h3>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        &gt; {item.description}
                       </p>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-          {/* Right Column: YouTube Click-to-Play Mockup Frame */}
+
+          {/* Right Column: YouTube Terminal */}
           <div className="lg:col-span-7">
-            <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden relative">
+            <div className="border border-border bg-card shadow-none">
               {/* Window Bar */}
-              <div className="px-4 py-2.5 bg-muted/60 border-b border-border flex items-center justify-between">
+              <div className="px-3 py-2 bg-muted/50 border-b border-border flex items-center justify-between">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  /media/walkthrough.mp4
+                </span>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                  <div className="w-2 h-2 bg-muted-foreground/30" />
+                  <div className="w-2 h-2 bg-muted-foreground/30" />
+                  <div className="w-2 h-2 bg-muted-foreground/30" />
                 </div>
-                <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1">
-                  mediacrater_walkthrough.mp4
-                </div>
-                <div className="w-12" />
               </div>
+
               {/* Player Container */}
-              <div className="relative aspect-video bg-black overflow-hidden">
-                {isPlaying ? (
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
-                    title="Mediacrater Product Walkthrough"
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
-                  />
-                ) : (
-                  <a
-                    href={YOUTUBE_WATCH_URL}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setIsPlaying(true)
-                    }}
-                    className="relative block w-full h-full cursor-pointer group overflow-hidden"
-                    aria-label="Watch Mediacrater product walkthrough on YouTube"
-                  >
-                    {/* Image CDN only — not youtube.com, so it does not set login cookies */}
-                    <img
-                      src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`}
-                      alt="Mediacrater Video Walkthrough Thumbnail"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80"
+              <div className="relative aspect-video bg-black overflow-hidden p-2">
+                <div className="relative w-full h-full border border-white/20">
+                  {isPlaying ? (
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
+                      title="Mediacrater Product Walkthrough"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
                     />
-                    {/* Dark Overlay Tint & Centered Play Badge */}
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex items-center justify-center p-4">
-                      <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-2xl group-hover:scale-105 transition-transform z-10">
-                        <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0">
-                          <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
+                  ) : (
+                    <a
+                      href={YOUTUBE_WATCH_URL}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setIsPlaying(true)
+                      }}
+                      className="relative block w-full h-full cursor-pointer group"
+                    >
+                      <img
+                        src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`}
+                        alt="Mediacrater Walkthrough Thumbnail"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors flex items-center justify-center p-4">
+                        <div className="border border-primary bg-black/80 px-4 py-2 flex items-center gap-3 group-hover:bg-primary/20 transition-colors">
+                          <Play className="w-3 h-3 text-primary fill-primary" />
+                          <span className="text-[10px] font-bold uppercase text-primary tracking-widest">Execute_Playback</span>
                         </div>
-                        <span className="text-sm whitespace-nowrap">Watch Demo</span>
                       </div>
-                    </div>
-                    {/* Bottom Status Badge */}
-                    <div className="absolute bottom-3 right-3 z-10 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> YouTube HD Walkthrough
-                    </div>
-                  </a>
-                )}
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent">
+                        <div className="text-[9px] text-white/50 uppercase flex justify-between">
+                          <span>Codec: YT_HD</span>
+                          <span>[READY]</span>
+                        </div>
+                      </div>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>
