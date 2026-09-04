@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { supabase } from "@/lib/mediacrater/supabaseClient"
-const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_header"
+const EXTENSION_LINK = "https://mediacrater.com/signup"
 export function Header() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
