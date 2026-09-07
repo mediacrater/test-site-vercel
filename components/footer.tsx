@@ -14,62 +14,112 @@ export function Footer() {
     setMounted(true)
   }, [])
 
-  const logoSrc = mounted && resolvedTheme === "dark" 
-    ? "/images/footer-logo.png" 
-    : "/images/footer-logo-dark.png"
+  const logoSrc =
+    mounted && resolvedTheme === "dark"
+      ? "/images/footer-logo.png"
+      : "/images/footer-logo-dark.png"
 
   return (
-    <footer className="bg-foreground text-background py-12 font-mono text-xs border-t border-border">
+    <footer className="bg-foreground text-background py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8 pb-8 border-b border-background/20">
-          <div className="md:col-span-2 space-y-3">
+        <div className="grid md:grid-cols-4 gap-12">
+          <div className="md:col-span-2">
             <Image
               src={logoSrc || "/placeholder.svg"}
               alt="Mediacrater"
-              width={160}
-              height={40}
-              className="h-10 w-auto rounded-none"
+              width={180}
+              height={60}
+              className="h-16 w-auto"
             />
-            <p className="text-background/70 max-w-md leading-relaxed">
-              Chrome extension compliance tool for ad creative auditing. Pre-submission risk assessment software.
+            <p className="mt-4 text-background/70 max-w-md leading-relaxed">
+              A pre-publish checkpoint for ad creatives. Scan before you upload,
+              inspect what needs attention, and make the final call yourself.
             </p>
           </div>
 
           <div>
-            <h3 className="font-bold text-background mb-3 uppercase">[ Navigation ]</h3>
-            <ul className="space-y-2 text-background/70">
-              <li><Link href="#features" className="hover:text-background">Features</Link></li>
-              <li><Link href="#how-it-works" className="hover:text-background">How It Works</Link></li>
-              <li><Link href="/about" className="hover:text-background">About Us</Link></li>
-              <li><Link href="#faq" className="hover:text-background">FAQ</Link></li>
-              <li><Link href="/changelog" className="hover:text-background">Changelogs</Link></li>
+            <h3 className="font-semibold text-background mb-4">Explore</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="#features" className="text-background/70 hover:text-background transition-colors">
+                  What it checks
+                </Link>
+              </li>
+              <li>
+                <Link href="#how-it-works" className="text-background/70 hover:text-background transition-colors">
+                  How it works
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="text-background/70 hover:text-background transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="#faq" className="text-background/70 hover:text-background transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/changelog" className="text-background/70 hover:text-background transition-colors">
+                  Changelog
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-bold text-background mb-3 uppercase">[ Legal ]</h3>
-            <ul className="space-y-2 text-background/70">
-              <li><Link href="/privacy" className="hover:text-background">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-background">Terms of Service</Link></li>
-              <li><Link href="/refund" className="hover:text-background">Refund Policy</Link></li>
-              <li><Link href="/cookies" className="hover:text-background">Cookie policy</Link></li>
+            <h3 className="font-semibold text-background mb-4">Legal</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/privacy" className="text-background/70 hover:text-background transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-background/70 hover:text-background transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund" className="text-background/70 hover:text-background transition-colors">
+                  Refund Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="text-background/70 hover:text-background transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className="py-6 border-b border-background/20 text-[10px] text-background/50 leading-relaxed font-sans">
-          <strong>Disclaimer:</strong> Mediacrater provides non-binding policy compliance scores derived from publicly accessible platform guidelines. Final campaign approval resides strictly with respective platform algorithms (Meta, TikTok, Google, Pinterest, X). Mediacrater does not bypass or replace native platform detection systems.
+        <div className="mt-12 pt-8 border-t border-background/20">
+          <p className="text-xs text-background/50 leading-relaxed max-w-4xl">
+            <strong>Disclaimer:</strong> Mediacrater does not make any promises or guarantees that a video ad will be approved.
+            Our software provides a general confidence assessment based on publicly accessible ad policies. Your video is still subject
+            to each platform's detection algorithms. Mediacrater does not replace, mirror, or bypass advertising detection algorithms
+            of Facebook and Instagram (Meta), TikTok, YouTube, Google, Pinterest, or X. We are not affiliated with, endorsed by, or sponsored by any of these platforms.
+            Platform logos are displayed solely for user experience. Mediacrater is not responsible for misuse of ad platforms or account bans.
+          </p>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-background/60 text-[11px]">
-          <p>© {currentYear} Mediacrater. All rights reserved.</p>
+        <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-background/60">
+            © {currentYear} Mediacrater. All rights reserved.
+          </p>
+
           <a
             href="https://www.instagram.com/mediacrater_official/"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-background uppercase"
+            className="text-background/60 hover:text-background transition-colors"
+            aria-label="Instagram"
           >
-            [ Instagram ]
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+            </svg>
           </a>
         </div>
       </div>

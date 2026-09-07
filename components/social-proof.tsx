@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image"
 
 const validationComments = [
@@ -26,43 +28,50 @@ const validationComments = [
 
 export function SocialProof() {
   return (
-    <section className="py-16 bg-secondary/10 border-b border-border">
+    <section className="py-16 md:py-24 border-b border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 font-mono text-xs text-muted-foreground uppercase tracking-widest border-l-2 border-primary pl-3">
-          Buyer Validation
+        <div className="grid items-end gap-8 md:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+              Before the product
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)]">
+              The problem was easy for media buyers to recognize.
+            </h2>
+          </div>
+
+          <p className="text-lg leading-relaxed text-muted-foreground">
+            We asked working media buyers what they thought of a pre-upload ad
+            checker. These are the original responses — shown as screenshots,
+            rather than polished into generic testimonials.
+          </p>
         </div>
 
-        <div className="max-w-2xl mb-10">
-          <h2 className="text-3xl font-bold uppercase tracking-tight text-foreground font-[family-name:var(--font-display)]">
-            Feedback from media buyers.
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="mt-12 grid md:grid-cols-3 gap-6 md:gap-8">
           {validationComments.map((comment) => (
-            <div
-              key={comment.id}
-              className="border border-border bg-card p-4 rounded-none flex flex-col justify-between"
-            >
-              <div className="mb-4 border border-border bg-background p-2">
-                <Image
-                  src={comment.screenshot || "/placeholder.svg"}
-                  alt={`Feedback from ${comment.author}`}
-                  width={400}
-                  height={600}
-                  className="object-contain w-full h-auto rounded-none"
-                />
+            <div key={comment.id} className="flex flex-col">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                <div className="p-3 bg-muted/30">
+                  <Image
+                    src={comment.screenshot || "/placeholder.svg"}
+                    alt={`Media buyer validation feedback from ${comment.author} - ${comment.quote}`}
+                    width={400}
+                    height={600}
+                    className="rounded-lg object-contain w-full h-auto border border-border/50"
+                  />
+                </div>
               </div>
-              <div className="border-t border-border pt-3 font-mono">
-                <p className="text-xs font-bold text-foreground uppercase">{comment.author}</p>
-                <p className="text-[10px] text-muted-foreground uppercase">{comment.role}</p>
+
+              <div className="mt-4 px-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {comment.author}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {comment.role}
+                </p>
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-8 border border-border bg-card p-3 font-mono text-center text-xs text-muted-foreground uppercase">
-          [ Statements collected from active ad communities ]
         </div>
       </div>
     </section>

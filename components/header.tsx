@@ -1,4 +1,5 @@
 "use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,7 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { supabase } from "@/lib/mediacrater/supabaseClient"
 
-const EXTENSION_LINK = "https://mediacrater.com/signup"
+const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_header"
 
 export function Header() {
   const router = useRouter()
@@ -55,69 +56,72 @@ export function Header() {
     router.push("/signin")
   }
 
-  const logoSrc = mounted && resolvedTheme === "dark" 
-    ? "/images/header-logo-dark.png" 
-    : "/images/header-logo.png"
+  const logoSrc =
+    mounted && resolvedTheme === "dark"
+      ? "/images/header-logo-dark.png"
+      : "/images/header-logo.png"
 
   const navLinks = [
-    { href: "#features", label: "Features" },
-    { href: "https://www.youtube.com/watch?v=Jk_XtsN1N9I?utm_medium=website_how-it-works", label: "How It Works" },
+    { href: "#features", label: "What it checks" },
+    { href: "#how-it-works", label: "How it works" },
     { href: "#pricing", label: "Pricing" },
     { href: "#faq", label: "FAQ" },
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-      <div className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-center py-1.5 px-4 text-xs font-mono border-b border-border tracking-tight uppercase">
-        System update underway: expect potential minor processing delays.
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border">
+      <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900]">
+        Major update underway: expect intermittent delays.
       </div>
+
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
             <Image
               src={logoSrc || "/placeholder.svg"}
               alt="Mediacrater Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-none object-contain"
+              width={40}
+              height={40}
+              className="h-10 w-10"
             />
-            <span className="text-lg font-bold tracking-tight uppercase text-foreground font-mono">
+            <span className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
               Mediacrater
             </span>
           </Link>
 
-          <div className="hidden md:flex md:items-center md:gap-6 border-x border-border px-6 h-full">
+          <div className="hidden md:flex md:items-center md:gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex md:items-center md:gap-3">
+          <div className="hidden md:flex md:items-center md:gap-4">
             <ThemeToggle />
             {authLoaded && userEmail ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 text-xs font-mono border border-border px-3 py-1.5 text-foreground hover:bg-secondary rounded-none"
+                  className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors max-w-[220px]"
                 >
-                  <span className="truncate max-w-[150px]">{userEmail}</span>
-                  <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{userEmail}</span>
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
                 </button>
+
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-1 w-56 rounded-none border border-border bg-card py-1 z-50 shadow-none">
+                  <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-card shadow-lg py-1.5 z-50">
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-xs font-mono text-foreground hover:bg-secondary"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
                     >
-                      Dashboard
+                      Go to dashboard
                     </Link>
                     <div className="my-1 border-t border-border" />
                     <a
@@ -125,15 +129,15 @@ export function Header() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-xs font-mono text-foreground hover:bg-secondary"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
                     >
-                      Extension ↗
+                      Get the Chrome extension ↗
                     </a>
                     <div className="my-1 border-t border-border" />
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-xs font-mono text-red-600 dark:text-red-400 hover:bg-secondary"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-secondary transition-colors"
                     >
                       Sign Out
                     </button>
@@ -144,16 +148,16 @@ export function Header() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/signin"
-                  className="text-xs font-mono border border-border px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-none"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
                 >
                   Log in
                 </Link>
-                <Button asChild className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-mono px-4 py-1.5 h-auto">
-                  <Link href="/signup">Sign up</Link>
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Link href="/signup">Start scanning</Link>
                 </Button>
               </div>
             ) : (
-              <div className="w-[120px] h-8" />
+              <div className="w-[150px] h-9" />
             )}
           </div>
 
@@ -161,54 +165,63 @@ export function Header() {
             <ThemeToggle />
             <button
               type="button"
-              className="p-1.5 border border-border text-muted-foreground hover:text-foreground rounded-none"
+              className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border bg-background">
-            <div className="flex flex-col gap-3 font-mono text-xs">
+          <div className="md:hidden py-4 border-t border-border">
+            <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
+
               {userEmail ? (
                 <>
-                  <div className="text-foreground truncate pt-2 border-t border-border">
+                  <div className="text-sm font-medium text-foreground truncate pt-2 border-t border-border">
                     {userEmail}
                   </div>
                   <Link
                     href="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Dashboard
+                    Go to dashboard
                   </Link>
-                  <Button onClick={handleSignOut} variant="outline" className="rounded-none mt-2 text-xs font-mono">
+                  <a
+                    href={EXTENSION_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Get the Chrome extension ↗
+                  </a>
+                  <Button onClick={handleSignOut} variant="outline" className="mt-1">
                     Sign Out
                   </Button>
                 </>
               ) : (
                 <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                  <Button asChild variant="outline" className="rounded-none text-xs font-mono">
+                  <Button asChild variant="outline">
                     <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
                       Log in
                     </Link>
                   </Button>
-                  <Button asChild className="rounded-none bg-primary text-primary-foreground text-xs font-mono">
+                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                      Sign up
+                      Start scanning
                     </Link>
                   </Button>
                 </div>
