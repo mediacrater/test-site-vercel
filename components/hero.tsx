@@ -73,7 +73,7 @@ export function Hero() {
                 aria-hidden="true"
                 className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[2000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
-                  width: hasChanged ? "0.3em" : "0.9em",
+                  width: hasChanged ? "0.3em" : "1.1em",
                 }}
               >
                 <span
