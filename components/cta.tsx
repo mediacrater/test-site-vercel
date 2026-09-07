@@ -1,41 +1,41 @@
 import { Button } from "@/components/ui/button"
-import { Shield, ArrowUpRight } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_footer_cta"
 
 export function CTA() {
   return (
-    <section className="py-20 md:py-32 bg-primary">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/60">
-          Before the next launch
-        </p>
+    <section className="border-b border-border bg-muted/20 py-24 md:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="border border-border bg-card">
+          <div className="grid gap-10 p-8 md:p-12 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Pre-publish check</p>
+              <h2 className="mt-4 max-w-3xl font-[family-name:var(--font-display)] text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+                Run the compliance check before your next launch.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+                Analyze the creative. Review the findings. Make the decision before the platform makes it for you.
+              </p>
+            </div>
 
-        <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-primary-foreground font-[family-name:var(--font-display)] text-balance">
-          Give every creative one more checkpoint.
-        </h2>
+            <div>
+              <Button asChild size="lg" className="h-12 rounded-md px-6">
+                <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
+                  Start a free scan
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+              <p className="mt-3 text-right text-[10px] text-muted-foreground">3 free monthly scans · No credit card</p>
+            </div>
+          </div>
 
-        <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto text-pretty">
-          Scan the ad, inspect the risky parts, make your call, then publish.
-        </p>
-
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            asChild
-            size="lg"
-            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-base px-8 py-6"
-          >
-            <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer">
-              <Shield className="w-5 h-5 mr-2" />
-              Start with 3 free scans
-              <ArrowUpRight className="ml-1 h-4 w-4" />
-            </a>
-          </Button>
+          <div className="grid border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border">
+            <div className="px-6 py-4 text-xs text-muted-foreground">01 <span className="ml-2 font-medium text-foreground">Analyze creative</span></div>
+            <div className="px-6 py-4 text-xs text-muted-foreground">02 <span className="ml-2 font-medium text-foreground">Review findings</span></div>
+            <div className="px-6 py-4 text-xs text-muted-foreground">03 <span className="ml-2 font-medium text-foreground">Launch with context</span></div>
+          </div>
         </div>
-
-        <p className="mt-6 text-sm text-primary-foreground/60">
-          No credit card required.
-        </p>
       </div>
     </section>
   )

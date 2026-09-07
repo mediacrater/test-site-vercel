@@ -9,74 +9,69 @@ import {
 
 const faqs = [
   {
-    question: "Does Mediacrater guarantee my ad will be approved?",
-    answer: "No. Mediacrater provides a confidence score based on publicly accessible ad policies. Your video is still subject to each platform's proprietary detection algorithms. We help you identify and fix potential issues before uploading, significantly reducing rejection risk, but final approval is always at the platform's discretion.",
+    question: "Does Mediacrater guarantee platform approval?",
+    answer: "No. Mediacrater provides a confidence assessment based on publicly accessible advertising policies. Each platform has proprietary detection and enforcement systems, so final approval remains at the platform's discretion.",
   },
   {
-    question: "What happens during a scan?",
-    answer: "Mediacrater analyzes your creative against the platform policies you select, then returns a risk assessment with findings such as timestamps and suggested changes where applicable.",
+    question: "How does a scan work?",
+    answer: "One scan deducts one scan from your available amount regardless of scan type or video length. The exact scan cost is shown before you run the analysis.",
+  },
+  {
+    question: "How is creative data handled?",
+    answer: "Mediacrater uses a privacy-first architecture. Original video files are temporarily passed for analysis and are then deleted from memory and storage.",
+  },
+  {
+    question: "Which platforms are supported?",
+    answer: "Mediacrater currently supports Meta (Facebook & Instagram), TikTok, YouTube/Google Ads, Pinterest, and X. The policy engine is updated as advertising guidelines change.",
   },
   {
     question: "What is the difference between Basic and Deep Scan?",
-    answer: "Basic Scan is intended for simpler creatives with fewer rapid cuts. Deep Scan is intended for videos where cuts are short enough that more detailed review is useful.",
-  },
-  {
-    question: "Which platforms do you support?",
-    answer: "We currently support Meta (Facebook & Instagram), TikTok, YouTube/Google Ads, Pinterest, and X (formerly Twitter). Our policy engine is continuously updated as platforms change their advertising guidelines.",
-  },
-  {
-    question: "Is my video data secure?",
-    answer: "Mediacrater uses a privacy-first architecture. Your original video files are temporarily passed to us, analysed and then immediately deleted from our memory and storage.",
-  },
-  {
-    question: "How are scans charged?",
-    answer: "One scan deducts one from your scan amount regardless of scan type or video length. You can see the exact cost before each scan, always one.",
+    answer: "Basic Scan is intended for simpler product ads. Deep Scan is intended for videos with rapid edits and cuts that may require more detailed analysis.",
   },
   {
     question: "Do unused tokens expire?",
-    answer: "Tokens expire and renew at the end of your billing cycle, they do not carry over to the next month.",
+    answer: "Tokens expire and renew at the end of your billing cycle. They do not carry over to the next month.",
   },
   {
-    question: "Is Mediacrater affiliated with Meta, TikTok, or Google?",
-    answer: "No. Mediacrater is an independent tool and is not affiliated with, endorsed by, or sponsored by any of the platforms we analyze including Meta. Platform logos are displayed solely for user experience to indicate which policies are being checked.",
+    question: "Can I get a refund?",
+    answer: "Unused tokens can be refunded within 7 days of purchase. Processing fees that cannot be recovered may be deducted. Tokens already consumed by scans cannot be reaccumulated.",
+  },
+  {
+    question: "Is Mediacrater affiliated with Meta, TikTok, Google, or other platforms?",
+    answer: "No. Mediacrater is an independent tool and is not affiliated with, endorsed by, or sponsored by the advertising platforms it analyzes.",
   },
 ]
 
 export function FAQ() {
   return (
-    <section id="faq" className="py-20 md:py-28">
+    <section id="faq" className="border-b border-border py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary mb-2">
-              Before you scan
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)]">
-              The questions that matter before you use it.
+        <div className="grid gap-12 lg:grid-cols-[0.65fr_1.35fr]">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Documentation</p>
+            <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
+              The details.
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              What the scan does, what it does not do, and how your files and scans are handled.
+            <p className="mt-5 max-w-sm text-sm leading-6 text-muted-foreground">
+              Straight answers about assessment scope, data handling, scans, and platform compatibility.
             </p>
           </div>
 
-          <div className="lg:col-span-8">
-            <Accordion type="single" collapsible className="w-full space-y-3">
-              {faqs.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="border border-border rounded-xl px-5 bg-card"
-                >
-                  <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary py-4 text-base">
+          <Accordion type="single" collapsible className="w-full border-t border-border">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`} className="border-b border-border">
+                <AccordionTrigger className="py-5 text-left text-sm font-semibold text-foreground hover:text-primary hover:no-underline">
+                  <span className="mr-6 flex items-center gap-4">
+                    <span className="font-mono text-[10px] text-muted-foreground">0{index + 1}</span>
                     {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed pb-4 text-sm">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-5 pl-10 pr-6 text-sm leading-6 text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>

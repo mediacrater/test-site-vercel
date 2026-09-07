@@ -22,9 +22,7 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,174 +54,114 @@ export function Header() {
     router.push("/signin")
   }
 
-  const logoSrc =
-    mounted && resolvedTheme === "dark"
-      ? "/images/header-logo-dark.png"
-      : "/images/header-logo.png"
+  const logoSrc = mounted && resolvedTheme === "dark"
+    ? "/images/header-logo-dark.png"
+    : "/images/header-logo.png"
 
   const navLinks = [
-    { href: "#features", label: "What it checks" },
-    { href: "#how-it-works", label: "How it works" },
+    { href: "#features", label: "Product" },
+    { href: "#how-it-works", label: "Workflow" },
     { href: "#pricing", label: "Pricing" },
     { href: "#faq", label: "FAQ" },
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border">
-      <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900]">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
+      <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2 text-center text-[11px] font-medium text-amber-700 dark:text-amber-300">
         Major update underway: expect intermittent delays.
       </div>
 
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src={logoSrc || "/placeholder.svg"}
-              alt="Mediacrater Logo"
-              width={40}
-              height={40}
-              className="h-10 w-10"
-            />
-            <span className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
+        <div className="flex h-[68px] items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src={logoSrc} alt="Mediacrater Logo" width={36} height={36} className="h-9 w-9" />
+            <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-foreground">
               Mediacrater
             </span>
           </Link>
 
-          <div className="hidden md:flex md:items-center md:gap-8">
+          <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex md:items-center md:gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
             {authLoaded && userEmail ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors max-w-[220px]"
+                  className="flex max-w-[220px] items-center gap-1.5 border-l border-border pl-4 text-[13px] font-medium text-foreground"
                 >
                   <span className="truncate">{userEmail}</span>
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0" />
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-card shadow-lg py-1.5 z-50">
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
-                    >
+                  <div className="absolute right-0 mt-3 w-56 border border-border bg-card py-1 shadow-xl">
+                    <Link href="/dashboard" onClick={() => setDropdownOpen(false)} className="block px-4 py-2.5 text-sm hover:bg-secondary">
                       Go to dashboard
                     </Link>
                     <div className="my-1 border-t border-border" />
-                    <a
-                      href={EXTENSION_LINK}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
-                    >
+                    <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setDropdownOpen(false)} className="block px-4 py-2.5 text-sm hover:bg-secondary">
                       Get the Chrome extension ↗
                     </a>
                     <div className="my-1 border-t border-border" />
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-secondary transition-colors"
-                    >
+                    <button type="button" onClick={handleSignOut} className="block w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-secondary">
                       Sign Out
                     </button>
                   </div>
                 )}
               </div>
             ) : authLoaded ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/signin"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-                >
+              <div className="flex items-center gap-2 border-l border-border pl-4">
+                <Link href="/signin" className="px-2 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground">
                   Log in
                 </Link>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Link href="/signup">Start scanning</Link>
+                <Button asChild size="sm" className="rounded-md px-4">
+                  <Link href="/signup">Sign up</Link>
                 </Button>
               </div>
             ) : (
-              <div className="w-[150px] h-9" />
+              <div className="w-[128px] h-9" />
             )}
           </div>
 
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
-            <button
-              type="button"
-              className="p-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <button type="button" className="p-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
+          <div className="border-t border-border py-5 md:hidden">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
                   {link.label}
                 </Link>
               ))}
-
               {userEmail ? (
                 <>
-                  <div className="text-sm font-medium text-foreground truncate pt-2 border-t border-border">
-                    {userEmail}
-                  </div>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Go to dashboard
-                  </Link>
-                  <a
-                    href={EXTENSION_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Get the Chrome extension ↗
-                  </a>
-                  <Button onClick={handleSignOut} variant="outline" className="mt-1">
-                    Sign Out
-                  </Button>
+                  <div className="border-t border-border pt-4 text-sm font-medium">{userEmail}</div>
+                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground">Go to dashboard</Link>
+                  <a href={EXTENSION_LINK} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground">Get the Chrome extension ↗</a>
+                  <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
                 </>
               ) : (
-                <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                  <Button asChild variant="outline">
-                    <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
-                      Log in
-                    </Link>
-                  </Button>
-                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                      Start scanning
-                    </Link>
-                  </Button>
+                <div className="flex flex-col gap-2 border-t border-border pt-4">
+                  <Button asChild variant="outline"><Link href="/signin" onClick={() => setMobileMenuOpen(false)}>Log in</Link></Button>
+                  <Button asChild><Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Sign up</Link></Button>
                 </div>
               )}
             </div>

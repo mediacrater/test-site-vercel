@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Play } from "lucide-react"
+import { ArrowRight, CheckCircle2, Play } from "lucide-react"
 
 const YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=Jk_XtsN1N9I"
 
@@ -16,26 +16,10 @@ function youtubeIdFromWatchUrl(url: string): string {
 const YOUTUBE_VIDEO_ID = youtubeIdFromWatchUrl(YOUTUBE_WATCH_URL)
 
 const steps = [
-  {
-    step: "01",
-    title: "Bring in the creative",
-    description: "Add your video to the Mediacrater extension and choose the platforms where you intend to run it.",
-  },
-  {
-    step: "02",
-    title: "Choose the depth",
-    description: "Use Basic for straightforward creatives or Deep Scan when rapid cuts make more detailed review useful.",
-  },
-  {
-    step: "03",
-    title: "Read the findings",
-    description: "See the risk level, platform-specific results, and the moments in the video that deserve attention.",
-  },
-  {
-    step: "04",
-    title: "Fix it before launch",
-    description: "Review the flagged section, adjust the creative, then run another scan before putting budget behind it.",
-  },
+  ["01", "Upload creative", "Add the video asset you intend to advertise."],
+  ["02", "Select policy frameworks", "Choose the platforms relevant to the campaign."],
+  ["03", "Run compliance analysis", "Mediacrater evaluates the creative against the selected frameworks."],
+  ["04", "Review findings", "Inspect risk, timestamps, and suggested revisions before launch."],
 ]
 
 export function HowItWorks() {
@@ -44,135 +28,100 @@ export function HowItWorks() {
 
   useEffect(() => {
     if (isPlaying) return
-
-    const timer = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % steps.length)
-    }, 3500)
-
+    const timer = setInterval(() => setActiveStep((value) => (value + 1) % steps.length), 3500)
     return () => clearInterval(timer)
   }, [isPlaying])
 
   return (
-    <section id="how-it-works" className="py-20 md:py-28 border-b border-border/50 bg-secondary/20 overflow-hidden">
+    <section id="how-it-works" className="border-b border-border bg-muted/20 py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mb-14">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary mb-2">
-            The workflow
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)]">
-            Four steps between your edit and your ad account.
-          </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            The point is simple: catch things while they are still easy to change.
+        <div className="flex flex-col justify-between gap-6 border-b border-border pb-10 md:flex-row md:items-end">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Workflow</p>
+            <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
+              From asset to compliance report.
+            </h2>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">
+            The workflow is intentionally simple: submit the creative, define the policy scope, then work from the findings.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-5 space-y-3">
-            {steps.map((item, idx) => {
-              const isActive = activeStep === idx
-
+        <div className="mt-12 grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            {steps.map(([number, title, description], index) => {
+              const active = activeStep === index
               return (
                 <button
-                  key={item.step}
+                  key={number}
                   type="button"
-                  onClick={() => setActiveStep(idx)}
-                  className={`w-full p-4 rounded-xl border text-left transition-all duration-300 ${
-                    isActive
-                      ? "bg-card border-primary/50 shadow-sm ring-1 ring-inset ring-primary/20"
-                      : "bg-card/50 border-border/60 hover:bg-card hover:border-border"
+                  onClick={() => setActiveStep(index)}
+                  className={`grid w-full grid-cols-[48px_1fr_auto] gap-4 border-t px-0 py-5 text-left transition-colors ${
+                    active ? "border-primary" : "border-border"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span
-                      className={`text-sm font-mono font-bold px-2 py-0.5 rounded transition-colors duration-300 shrink-0 ${
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {item.step}
-                    </span>
-
-                    <div>
-                      <h3 className="text-base font-bold text-foreground mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
+                  <span className={`font-mono text-xs font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
+                    {number}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold text-foreground">{title}</span>
+                    <span className="mt-1 block max-w-md text-xs leading-5 text-muted-foreground">{description}</span>
+                  </span>
+                  <ArrowRight className={`mt-0.5 h-4 w-4 transition-opacity ${active ? "opacity-100 text-primary" : "opacity-20"}`} />
                 </button>
               )
             })}
           </div>
 
-          <div className="lg:col-span-7">
-            <div className="rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-muted/60 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-                </div>
-
-                <div className="text-[11px] font-mono text-muted-foreground">
-                  product_walkthrough
-                </div>
-
-                <div className="w-12" />
-              </div>
-
-              <div className="relative aspect-video bg-black overflow-hidden">
-                {isPlaying ? (
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
-                    title="Mediacrater Product Walkthrough"
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
-                  />
-                ) : (
-                  <a
-                    href={YOUTUBE_WATCH_URL}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setIsPlaying(true)
-                    }}
-                    className="relative block w-full h-full cursor-pointer group overflow-hidden"
-                    aria-label="Watch Mediacrater product walkthrough on YouTube"
-                  >
-                    <img
-                      src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`}
-                      alt="Mediacrater Video Walkthrough Thumbnail"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80"
-                    />
-
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex items-center justify-center p-4">
-                      <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold shadow-2xl group-hover:scale-105 transition-transform z-10">
-                        <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0">
-                          <Play className="w-4 h-4 fill-primary-foreground text-primary-foreground ml-0.5" />
-                        </div>
-                        <span className="text-sm whitespace-nowrap">Watch the product</span>
-                      </div>
-                    </div>
-                  </a>
-                )}
-              </div>
+          <div className="border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Product walkthrough</span>
+              <span className="text-[10px] text-muted-foreground">3:12</span>
             </div>
-
-            <div className="mt-4 rounded-xl border border-border bg-card p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary">
-                Step {steps[activeStep].step}
-              </p>
-              <p className="mt-1 text-sm text-foreground font-semibold">
-                {steps[activeStep].title}
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {steps[activeStep].description}
-              </p>
+            <div className="relative aspect-video bg-black">
+              {isPlaying ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
+                  title="Mediacrater Product Walkthrough"
+                  className="h-full w-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              ) : (
+                <a
+                  href={YOUTUBE_WATCH_URL}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsPlaying(true)
+                  }}
+                  className="group relative block h-full w-full"
+                  aria-label="Watch Mediacrater product walkthrough on YouTube"
+                >
+                  <img
+                    src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`}
+                    alt="Mediacrater Product Walkthrough Thumbnail"
+                    className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity group-hover:opacity-80"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex items-center gap-3 border border-white/30 bg-black/70 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm">
+                      <Play className="h-4 w-4 fill-white" />
+                      Watch walkthrough
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 text-[10px] text-white/60">
+                    <CheckCircle2 className="h-3 w-3" /> Product demonstration
+                  </div>
+                </a>
+              )}
+            </div>
+            <div className="grid grid-cols-4 divide-x border-t border-border">
+              {steps.map(([number, title], index) => (
+                <button key={number} type="button" onClick={() => setActiveStep(index)} className={`p-3 text-left ${activeStep === index ? "bg-primary/5" : ""}`}>
+                  <p className="font-mono text-[9px] text-muted-foreground">{number}</p>
+                  <p className="mt-1 text-[10px] font-semibold leading-4">{title}</p>
+                </button>
+              ))}
             </div>
           </div>
         </div>
