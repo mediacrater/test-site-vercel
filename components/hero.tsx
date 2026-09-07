@@ -68,7 +68,7 @@ export function Hero() {
                 <span className="ml-[0.18em]">before</span>
               </span>
               <br />
-              you <span className="text-primary">launch.</span>
+              you <span className="text-primary">launch</span>
               <span
                 aria-hidden="true"
                 className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[2000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -86,7 +86,7 @@ export function Hero() {
                     .
                   </span>
                   <span className="flex h-[1.05em] shrink-0 items-center">
-                    ?
+                    ..?
                   </span>
                 </span>
               </span>
