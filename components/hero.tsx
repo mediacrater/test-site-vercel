@@ -9,13 +9,19 @@ const EXTENSION_LINK =
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-border pt-28 pb-20 md:pt-36 md:pb-28">
+    <section className="hero relative overflow-hidden border-b border-border pt-28 pb-20 md:pt-36 md:pb-28">
+      {/* The animation is intentionally part of the hero's visual identity, not a loading screen. */}
+      <div className="hero-kinetic pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden="true">
+        <div className="hero-kinetic-word hero-kinetic-question">Question</div>
+        <div className="hero-kinetic-word hero-kinetic-know">Know</div>
+      </div>
+
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute left-1/2 top-0 h-px w-[70%] -translate-x-1/2 bg-border/70" />
         <div className="absolute -right-32 top-24 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="hero-content relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20">
           <div>
             <Badge variant="outline" className="mb-7 rounded-full border-border bg-background px-3 py-1.5 text-xs font-semibold tracking-wide">
@@ -24,20 +30,7 @@ export function Hero() {
             </Badge>
 
             <h1 className="font-[family-name:var(--font-display)] text-5xl font-bold leading-[0.94] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-[5.5rem]">
-              <span className="sr-only">Know before you launch.</span>
-              <span aria-hidden="true" className="block">
-                <span className="question-stage relative inline-block pr-1">
-                  <span className="question-word">Question</span>
-                  <svg className="question-x absolute left-[-3%] top-[47%] h-[45%] w-[106%] -translate-y-1/2 overflow-visible" viewBox="0 0 100 40" fill="none">
-                    <path d="M4 5 L96 35" pathLength="1" />
-                    <path d="M96 5 L4 35" pathLength="1" />
-                  </svg>
-                </span>{" "}
-                <span>before</span>
-                <br />
-                <span>you <span className="text-primary">launch.</span></span>
-                <span className="know-word" aria-hidden="true">Know</span>
-              </span>
+              Know before you launch.
             </h1>
 
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
@@ -115,16 +108,205 @@ export function Hero() {
           </div>
         </div>
       </div>
+
       <style jsx>{`
-        .question-x path { stroke: hsl(var(--destructive)); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
-        .question-x path:first-child { animation: draw-x 700ms 900ms cubic-bezier(.65,0,.35,1) forwards; }
-        .question-x path:last-child { animation: draw-x 700ms 1100ms cubic-bezier(.65,0,.35,1) forwards; }
-        .question-word { display:inline-block; animation: question-out 500ms 1700ms cubic-bezier(.65,0,.35,1) forwards; }
-        .know-word { display:inline-block; position:absolute; left:0; top:0; opacity:0; color:hsl(var(--primary)); animation: know-drop 850ms 1700ms cubic-bezier(.16,1,.3,1) forwards; }
-        @keyframes draw-x { to { stroke-dashoffset:0; } }
-        @keyframes question-out { to { opacity:.12; transform:scale(.94) translateY(2px); } }
-        @keyframes know-drop { 0% { opacity:0; transform:translateY(-130%) scale(1.12); } 55% { opacity:1; transform:translateY(9%) scale(.98); } 72% { transform:translateY(-3%) scale(1.01); } 100% { opacity:1; transform:translateY(0) scale(1); } }
-        @media (prefers-reduced-motion: reduce) { .question-x path,.question-word,.know-word { animation:none !important; } .question-x path { stroke-dashoffset:0; } .question-word { opacity:.12; } .know-word { opacity:1; transform:none; } }
+        .hero-kinetic {
+          --hero-header-offset: 96px;
+          --hero-anchor-x: clamp(1rem, calc((100vw - 1280px) / 2 + 1rem), 5rem);
+          --hero-anchor-y: clamp(7rem, 10vw, 9rem);
+          isolation: isolate;
+        }
+
+        .hero-kinetic-word {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform-origin: center center;
+          white-space: nowrap;
+          font-family: var(--font-display), sans-serif;
+          font-weight: 800;
+          line-height: .82;
+          letter-spacing: -.075em;
+          will-change: left, top, transform, opacity, filter;
+        }
+
+        .hero-kinetic-question {
+          font-size: clamp(5.5rem, 23vw, 25rem);
+          color: hsl(var(--foreground));
+          animation: question-crank 10s cubic-bezier(.76,0,.24,1) infinite;
+        }
+
+        .hero-kinetic-know {
+          font-size: clamp(5.5rem, 23vw, 25rem);
+          color: hsl(var(--primary));
+          opacity: 0;
+          animation: know-crush-and-land 10s cubic-bezier(.76,0,.24,1) infinite;
+        }
+
+        .hero-content {
+          animation: hero-content-reveal 10s cubic-bezier(.22,1,.36,1) infinite;
+        }
+
+        @keyframes question-crank {
+          0%, 8% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(.72) rotate(-1.5deg);
+            filter: blur(10px);
+          }
+          12%, 22% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            filter: blur(0);
+          }
+          27% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.015, .97) rotate(0deg);
+          }
+          31% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.02, .19) translateY(36vh);
+          }
+          36% {
+            opacity: .65;
+            transform: translate(-50%, -50%) scale(.88, .055) translateY(43vh);
+            filter: blur(1px);
+          }
+          41%, 78% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(.22, .012) translateY(46vh);
+            filter: blur(8px);
+          }
+          84% {
+            opacity: .18;
+            transform: translate(-50%, -50%) scale(.38) translateY(0);
+            filter: blur(5px);
+          }
+          90% {
+            opacity: .72;
+            transform: translate(-50%, -50%) scale(.78) rotate(-1deg);
+            filter: blur(1px);
+          }
+          96%, 100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(.72) rotate(-1.5deg);
+            filter: blur(10px);
+          }
+        }
+
+        @keyframes know-crush-and-land {
+          0%, 20% {
+            opacity: 0;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(-72vh) scale(1.08);
+            filter: blur(8px);
+          }
+          24% {
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(-66vh) scale(1.08);
+            filter: blur(0);
+          }
+          30% {
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(0) scale(1.03, .97);
+          }
+          33% {
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(1.5vh) scale(1.08, .78);
+          }
+          37% {
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(.5vh) scale(.98, .69);
+          }
+          45% {
+            opacity: 1;
+            left: var(--hero-anchor-x);
+            top: var(--hero-anchor-y);
+            transform: translate(0, 0) scale(.235);
+            filter: blur(0);
+          }
+          72% {
+            opacity: 1;
+            left: var(--hero-anchor-x);
+            top: var(--hero-anchor-y);
+            transform: translate(0, 0) scale(.235);
+          }
+          79% {
+            opacity: 0;
+            left: var(--hero-anchor-x);
+            top: var(--hero-anchor-y);
+            transform: translate(0, 0) scale(.235);
+            filter: blur(0);
+          }
+          84% {
+            opacity: 0;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(.4);
+          }
+          90% {
+            opacity: .8;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(.86);
+            filter: blur(0);
+          }
+          96%, 100% {
+            opacity: 0;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(.72);
+            filter: blur(10px);
+          }
+        }
+
+        @keyframes hero-content-reveal {
+          0%, 31% { opacity: 0; transform: translateY(14px); }
+          40%, 76% { opacity: 1; transform: translateY(0); }
+          82%, 100% { opacity: 0; transform: translateY(8px); }
+        }
+
+        @media (max-width: 767px) {
+          .hero-kinetic {
+            --hero-anchor-x: 1rem;
+            --hero-anchor-y: 7.5rem;
+          }
+
+          .hero-kinetic-word {
+            top: 43%;
+          }
+
+          .hero-kinetic-question,
+          .hero-kinetic-know {
+            font-size: clamp(4.25rem, 25vw, 9rem);
+          }
+
+          @keyframes know-crush-and-land {
+            0%, 20% { opacity: 0; left: 50%; top: 43%; transform: translate(-50%, -50%) translateY(-62vh) scale(1.05); filter: blur(8px); }
+            24% { opacity: 1; left: 50%; top: 43%; transform: translate(-50%, -50%) translateY(-58vh) scale(1.05); filter: blur(0); }
+            30% { opacity: 1; left: 50%; top: 43%; transform: translate(-50%, -50%) scale(1.03, .97); }
+            33% { opacity: 1; left: 50%; top: 43%; transform: translate(-50%, -50%) translateY(1vh) scale(1.08, .78); }
+            37% { opacity: 1; left: 50%; top: 43%; transform: translate(-50%, -50%) scale(.98, .69); }
+            45%, 72% { opacity: 1; left: var(--hero-anchor-x); top: var(--hero-anchor-y); transform: translate(0, 0) scale(.27); filter: blur(0); }
+            79% { opacity: 0; left: var(--hero-anchor-x); top: var(--hero-anchor-y); transform: translate(0, 0) scale(.27); }
+            84% { opacity: 0; left: 50%; top: 43%; transform: translate(-50%, -50%) scale(.4); }
+            90% { opacity: .8; left: 50%; top: 43%; transform: translate(-50%, -50%) scale(.86); filter: blur(0); }
+            96%, 100% { opacity: 0; left: 50%; top: 43%; transform: translate(-50%, -50%) scale(.72); filter: blur(10px); }
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-kinetic { display: none; }
+          .hero-content { animation: none; opacity: 1; transform: none; }
+        }
       `}</style>
     </section>
   )
