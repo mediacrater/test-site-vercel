@@ -46,61 +46,41 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1em] w-[5.25em] shrink-0 [perspective:700px]"
+                  className="relative inline-block h-[1em] w-[4.9em] shrink-0 overflow-hidden align-baseline"
                 >
                   <span
-                    className="absolute inset-0 flex items-center justify-end text-primary transition-[transform,opacity] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] [backface-visibility:hidden]"
+                    className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                     style={{
-                      transform: hasChanged
-                        ? "rotateX(-90deg) translateY(-0.08em)"
-                        : "rotateX(0deg) translateY(0)",
-                      opacity: hasChanged ? 0 : 1,
-                      transformOrigin: "50% 50%",
+                      transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
                     }}
                   >
-                    Question
-                  </span>
-                  <span
-                    className="absolute inset-0 flex items-center justify-end text-primary transition-[transform,opacity] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] [backface-visibility:hidden]"
-                    style={{
-                      transform: hasChanged
-                        ? "rotateX(0deg) translateY(0)"
-                        : "rotateX(90deg) translateY(0.08em)",
-                      opacity: hasChanged ? 1 : 0,
-                      transformOrigin: "50% 50%",
-                    }}
-                  >
-                    Know
+                    <span className="flex h-[1em] shrink-0 items-center text-primary">
+                      Know
+                    </span>
+                    <span className="flex h-[1em] shrink-0 items-center text-primary">
+                      Question
+                    </span>
                   </span>
                 </span>
-                <span className="ml-[0.18em] whitespace-nowrap">before you</span>
+                <span className="ml-[0.18em]">before</span>
               </span>
               <br />
-              <span className="whitespace-nowrap">
-                launch
+              you launch
+              <span
+                aria-hidden="true"
+                className="relative ml-[0.02em] inline-block h-[1em] w-[0.42em] overflow-hidden align-baseline"
+              >
                 <span
-                  aria-hidden="true"
-                  className="relative ml-[0.02em] inline-block h-[1em] w-[0.42em] align-baseline [perspective:700px]"
+                  className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  style={{
+                    transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
+                  }}
                 >
-                  <span
-                    className="absolute inset-0 flex items-center text-primary transition-[transform,opacity] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] [backface-visibility:hidden]"
-                    style={{
-                      transform: hasChanged ? "rotateX(-90deg)" : "rotateX(0deg)",
-                      opacity: hasChanged ? 0 : 1,
-                      transformOrigin: "50% 50%",
-                    }}
-                  >
-                    ?
-                  </span>
-                  <span
-                    className="absolute inset-0 flex items-center text-primary transition-[transform,opacity] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] [backface-visibility:hidden]"
-                    style={{
-                      transform: hasChanged ? "rotateX(0deg)" : "rotateX(90deg)",
-                      opacity: hasChanged ? 1 : 0,
-                      transformOrigin: "50% 50%",
-                    }}
-                  >
+                  <span className="flex h-[1em] shrink-0 items-center text-primary">
                     .
+                  </span>
+                  <span className="flex h-[1em] shrink-0 items-center text-primary">
+                    ?
                   </span>
                 </span>
               </span>
@@ -239,6 +219,9 @@ export function Hero() {
                     <div className="text-right">
                       <p className="text-[10px] text-muted-foreground">
                         Confidence
+                      </p>
+                      <p className="font-mono text-sm font-semibold text-amber-500">
+                        78%
                       </p>
                     </div>
                   </div>
