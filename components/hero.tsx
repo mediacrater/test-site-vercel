@@ -143,7 +143,7 @@ export function Hero() {
 
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-500" />
-                From $0.19 / scan
+                Audio analysis
               </div>
             </div>
 
