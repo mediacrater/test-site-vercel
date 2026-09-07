@@ -46,7 +46,10 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1em] w-[4.9em] shrink-0 overflow-hidden align-baseline"
+                  className="relative inline-block h-[1em] shrink-0 overflow-hidden align-bottom transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  style={{
+                    width: hasChanged ? "2.6em" : "4.9em",
+                  }}
                 >
                   <span
                     className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -54,10 +57,10 @@ export function Hero() {
                       transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
                     }}
                   >
-                    <span className="flex h-[1em] shrink-0 items-center text-primary">
+                    <span className="block h-[1em] shrink-0">
                       Know
                     </span>
-                    <span className="flex h-[1em] shrink-0 items-center text-primary">
+                    <span className="block h-[1em] shrink-0">
                       Question
                     </span>
                   </span>
@@ -68,7 +71,7 @@ export function Hero() {
               you launch
               <span
                 aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1em] w-[0.42em] overflow-hidden align-baseline"
+                className="relative ml-[0.02em] inline-block h-[1em] w-[0.42em] overflow-hidden align-bottom"
               >
                 <span
                   className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -76,10 +79,10 @@ export function Hero() {
                     transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
                   }}
                 >
-                  <span className="flex h-[1em] shrink-0 items-center text-primary">
+                  <span className="block h-[1em] shrink-0">
                     .
                   </span>
-                  <span className="flex h-[1em] shrink-0 items-center text-primary">
+                  <span className="block h-[1em] shrink-0">
                     ?
                   </span>
                 </span>
