@@ -46,7 +46,7 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.05em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.09em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     width: hasChanged ? "2.75em" : "5.05em",
                   }}
@@ -71,7 +71,7 @@ export function Hero() {
               you launch
               <span
                 aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.05em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.09em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
                   width: hasChanged ? "0.3em" : "0.75em",
                 }}
