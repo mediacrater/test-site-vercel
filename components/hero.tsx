@@ -215,19 +215,16 @@ export function Hero() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Policy assessment
+                        Analysis Results
                       </p>
                       <p className="mt-1 text-xl font-bold text-foreground">
-                        Medium risk
+                        META
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-[10px] text-muted-foreground">
-                        Confidence
-                      </p>
                       <p className="font-mono text-sm font-semibold text-amber-500">
-                        78%
+                        Medium risk
                       </p>
                     </div>
                   </div>
