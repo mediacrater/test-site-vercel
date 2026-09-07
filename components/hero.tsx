@@ -46,21 +46,21 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className={[
-                    "relative inline-block h-[1em] shrink-0 overflow-visible align-baseline transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    hasChanged ? "w-[2.35em]" : "w-[4.9em]",
-                  ].join(" ")}
+                  className="relative inline-block h-[1em] shrink-0 translate-y-[0.08em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  style={{
+                    width: hasChanged ? "2.6em" : "4.9em",
+                  }}
                 >
                   <span
-                    className="absolute inset-x-0 top-0 flex h-[2em] flex-col leading-[1] transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                     style={{
                       transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
                     }}
                   >
-                    <span className="flex h-[1em] shrink-0 items-center justify-end text-foreground">
+                    <span className="flex h-[1em] shrink-0 items-center">
                       Know
                     </span>
-                    <span className="flex h-[1em] shrink-0 items-center justify-end text-foreground">
+                    <span className="flex h-[1em] shrink-0 items-center">
                       Question
                     </span>
                   </span>
@@ -71,24 +71,27 @@ export function Hero() {
               you launch
               <span
                 aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1em] w-[0.58em] overflow-visible align-baseline"
+                className="relative ml-[0.02em] inline-block h-[1em] translate-y-[0.08em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{
+                  width: hasChanged ? "0.25em" : "0.65em",
+                }}
               >
                 <span
-                  className="absolute inset-x-0 top-0 flex h-[2em] flex-col leading-[1] transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
                   }}
                 >
-                  <span className="flex h-[1em] shrink-0 items-baseline justify-center text-foreground">
+                  <span className="flex h-[1em] shrink-0 items-center">
                     .
                   </span>
-                  <span className="flex h-[1em] shrink-0 items-baseline justify-center text-foreground">
+                  <span className="flex h-[1em] shrink-0 items-center">
                     ?
                   </span>
                 </span>
               </span>
             </h1>
-
+            
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Scan your video ads for potential Meta, TikTok, and Google
               policy issues before you spend money promoting them.
