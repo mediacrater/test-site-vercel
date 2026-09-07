@@ -12,7 +12,7 @@ export function Hero() {
   const [hasChanged, setHasChanged] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setHasChanged(true), 2000)
+    const timer = window.setTimeout(() => setHasChanged(true), 4000)
     return () => window.clearTimeout(timer)
   }, [])
 
@@ -46,13 +46,13 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.16em] overflow-hidden transition-[width] duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     width: hasChanged ? "2.75em" : "4.35em",
                   }}
                 >
                   <span
-                    className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                     style={{
                      transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
                     }}
@@ -71,13 +71,13 @@ export function Hero() {
               you <span className="text-primary">launch</span>
               <span
                 aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
                   width: hasChanged ? "0.3em" : "1.1em",
                 }}
               >
                 <span
-                  className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
                   }}
