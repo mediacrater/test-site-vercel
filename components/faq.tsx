@@ -44,41 +44,39 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section id="faq" className="py-16 md:py-24 font-mono bg-background border-b border-border">
+    <section id="faq" className="py-16 bg-background border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Sticky Left Header */}
-          <div className="lg:col-span-4 lg:sticky lg:top-20">
-            <div className="border border-border p-6 bg-card relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-primary" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4">[DIR: /knowledge_base/faq]</p>
-              <h2 className="text-2xl font-bold text-foreground uppercase tracking-tight">
-                Frequently Asked<br/>Questions
-              </h2>
-              <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
-                Everything you need to know about Mediacrater scans, privacy, and account compatibility.
-              </p>
+        <div className="grid lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4 font-mono">
+            <div className="mb-4 text-xs text-muted-foreground uppercase tracking-widest border-l-2 border-primary pl-3">
+              Documentation
             </div>
+            <h2 className="text-3xl font-bold uppercase tracking-tight text-foreground font-[family-name:var(--font-display)]">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-3 text-xs text-muted-foreground leading-normal">
+              System usage, scan depth definitions, privacy policy limits, and account handling.
+            </p>
           </div>
 
-          {/* Right Accordions */}
-          <div className="lg:col-span-8">
-            <Accordion type="single" collapsible className="w-full border-t border-border">
+          <div className="lg:col-span-8 font-mono">
+            <Accordion type="single" collapsible className="w-full space-y-2">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-b border-border bg-card px-2 hover:bg-secondary/20 transition-colors">
-                  <AccordionTrigger className="text-left font-bold text-foreground py-4 text-xs sm:text-sm uppercase tracking-wide hover:no-underline flex gap-4">
-                    <span className="text-primary shrink-0">&gt;</span>
-                    <span className="flex-1">{faq.question}</span>
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`} 
+                  className="border border-border bg-card px-4 rounded-none"
+                >
+                  <AccordionTrigger className="text-left font-bold text-foreground hover:no-underline py-3 text-xs uppercase">
+                    {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed pb-6 pt-2 pl-6 text-xs border-l border-dashed border-border ml-2 mb-4">
+                  <AccordionContent className="text-muted-foreground leading-relaxed pb-3 text-xs border-t border-border/50 pt-2 font-sans">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
           </div>
-
         </div>
       </div>
     </section>
