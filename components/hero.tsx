@@ -46,15 +46,15 @@ export function Hero() {
               <span className="inline-flex items-baseline">
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1em] shrink-0 translate-y-[0.08em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="relative inline-block h-[1.05em] shrink-0 overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
-                    width: hasChanged ? "2.6em" : "4.9em",
+                    width: hasChanged ? "2.75em" : "5.05em",
                   }}
                 >
                   <span
-                    className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                     style={{
-                      transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
+                     transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
                     }}
                   >
                     <span className="flex h-[1em] shrink-0 items-center">
@@ -71,21 +71,21 @@ export function Hero() {
               you launch
               <span
                 aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1em] translate-y-[0.08em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="relative ml-[0.02em] inline-block h-[1.05em] overflow-hidden transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
-                  width: hasChanged ? "0.25em" : "0.65em",
+                  width: hasChanged ? "0.3em" : "0.75em",
                 }}
               >
                 <span
-                  className="absolute inset-x-0 top-0 flex h-[2em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
-                    transform: hasChanged ? "translateY(0)" : "translateY(-1em)",
+                    transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
                   }}
                 >
-                  <span className="flex h-[1em] shrink-0 items-center">
+                  <span className="flex h-[1.05em] shrink-0 items-center">
                     .
                   </span>
-                  <span className="flex h-[1em] shrink-0 items-center">
+                  <span className="flex h-[1.05em] shrink-0 items-center">
                     ?
                   </span>
                 </span>
