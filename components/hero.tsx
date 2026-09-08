@@ -5,14 +5,23 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Shield, CheckCircle, ArrowUpRight } from "lucide-react"
 
-const EXTENSION_LINK =
-  "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_hero"
+const SIGNUP_LINK =
+  "https://mediacrater.com/signup"
 
 export function Hero() {
   const [hasChanged, setHasChanged] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setHasChanged(true), 4000)
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setPrefersReducedMotion(mediaQuery.matches)
+
+    // Reduced-motion visitors get a short, plain hold instead of the
+    // full 3s read-time for a slide they won't see play out.
+    const timer = window.setTimeout(
+      () => setHasChanged(true),
+      mediaQuery.matches ? 400 : 3000
+    )
     return () => window.clearTimeout(timer)
   }, [])
 
@@ -44,54 +53,106 @@ export function Hero() {
               className="max-w-3xl font-[family-name:var(--font-display)] text-5xl font-bold leading-[0.98] tracking-[-0.035em] text-foreground sm:text-6xl lg:text-7xl"
             >
               <span className="inline-flex items-baseline">
+                {prefersReducedMotion ? (
+                  // Reduced motion: both words stacked in the same grid
+                  // cell, swapped with opacity only — no sliding, no
+                  // animated width.
+                  <span
+                    aria-hidden="true"
+                    className="relative inline-grid h-[1.05em] shrink-0 translate-y-[0.16em] items-baseline"
+                  >
+                    <span
+                      className={`col-start-1 row-start-1 flex h-[1.05em] shrink-0 items-center whitespace-nowrap transition-opacity duration-300 ease-out ${
+                        hasChanged ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      Know
+                    </span>
+                    <span
+                      className={`col-start-1 row-start-1 flex h-[1.05em] shrink-0 items-center whitespace-nowrap transition-opacity duration-300 ease-out ${
+                        hasChanged ? "opacity-0" : "opacity-100"
+                      }`}
+                    >
+                      Question
+                    </span>
+                  </span>
+                ) : (
+                  // Original slide/reveal — untouched.
+                  <span
+                    aria-hidden="true"
+                    className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    style={{
+                      width: hasChanged ? "2.75em" : "4.35em",
+                    }}
+                  >
+                    <span
+                      className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                      style={{
+                        transform: hasChanged
+                          ? "translateY(0)"
+                          : "translateY(-1.05em)",
+                      }}
+                    >
+                      <span className="flex h-[1.05em] shrink-0 items-center">
+                        Know
+                      </span>
+                      <span className="flex h-[1.05em] shrink-0 items-center">
+                        Question
+                      </span>
+                    </span>
+                  </span>
+                )}
+                <span className="ml-[0.18em]">before</span>
+              </span>
+              <br />
+              you <span className="text-primary">launch</span>
+              {prefersReducedMotion ? (
                 <span
                   aria-hidden="true"
-                  className="relative inline-block h-[1.05em] shrink-0 translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="relative ml-[0.02em] inline-grid h-[1.05em] translate-y-[0.16em] items-baseline"
+                >
+                  <span
+                    className={`col-start-1 row-start-1 flex h-[1.05em] shrink-0 items-center whitespace-nowrap transition-opacity duration-300 ease-out ${
+                      hasChanged ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    .
+                  </span>
+                  <span
+                    className={`col-start-1 row-start-1 flex h-[1.05em] shrink-0 items-center whitespace-nowrap transition-opacity duration-300 ease-out ${
+                      hasChanged ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
+                    ..?
+                  </span>
+                </span>
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
-                    width: hasChanged ? "2.75em" : "4.35em",
+                    width: hasChanged ? "0.3em" : "1.1em",
                   }}
                 >
                   <span
                     className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                     style={{
-                     transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
+                      transform: hasChanged
+                        ? "translateY(0)"
+                        : "translateY(-1.05em)",
                     }}
                   >
                     <span className="flex h-[1.05em] shrink-0 items-center">
-                      Know
+                      .
                     </span>
                     <span className="flex h-[1.05em] shrink-0 items-center">
-                      Question
+                      ..?
                     </span>
                   </span>
                 </span>
-                <span className="ml-[0.18em]">before</span>
-              </span>
-              <br />
-              you <span className="text-primary">launch</span>
-              <span
-                aria-hidden="true"
-                className="relative ml-[0.02em] inline-block h-[1.05em] translate-y-[0.16em] overflow-hidden transition-[width] duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-                style={{
-                  width: hasChanged ? "0.3em" : "1.1em",
-                }}
-              >
-                <span
-                  className="absolute inset-x-0 top-0 flex h-[2.1em] flex-col transition-transform duration-[2500ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-                  style={{
-                    transform: hasChanged ? "translateY(0)" : "translateY(-1.05em)",
-                  }}
-                >
-                  <span className="flex h-[1.05em] shrink-0 items-center">
-                    .
-                  </span>
-                  <span className="flex h-[1.05em] shrink-0 items-center">
-                    ..?
-                  </span>
-                </span>
-              </span>
+              )}
             </h1>
-            
+
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Scan your video ads for potential Meta, TikTok, and Google
               policy issues before you spend money promoting them.
@@ -104,9 +165,7 @@ export function Hero() {
                 className="h-12 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
               >
                 <a
-                  href={EXTENSION_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={SIGNUP_LINK}
                 >
                   <Shield className="mr-2 h-4 w-4" />
                   Try it free
