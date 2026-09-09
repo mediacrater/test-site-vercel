@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Shield, CheckCircle, ArrowUpRight } from "lucide-react"
 
 const SIGNUP_LINK =
-  "https://mediacrater.com/signup"
+  "https://test1.mediacrater.com/signup"
 
 export function Hero() {
   const [hasChanged, setHasChanged] = useState(false)
