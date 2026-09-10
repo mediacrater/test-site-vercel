@@ -11,7 +11,7 @@
 // the signed-in Supabase session (same as the rest of the dashboard),
 // never from a URL parameter. There's no "open this from the right
 // place or the buttons stay disabled" state here — being signed in IS
-// the gate, enforced server-side by create-checkout-webapp itself.
+// the gate, enforced server-side by create-checkout-webapp itself
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
