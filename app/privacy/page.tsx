@@ -132,6 +132,24 @@ export default function PrivacyPolicy() {
           </li>
         </ul>
       </section>
+        <h3 className="text-lg font-semibold mb-2">Cloudflare usage</h3>
+        <p className="mb-4">
+          We use Cloudflare services (including Bot Fight Mode and related challenge mechanisms) 
+          to protect our infrastructure against automated abuse and malicious traffic. These 
+          services may process limited technical signals such as IP address, TLS fingerprint, and 
+          User-Agent. For details on how Cloudflare handles this data, see Cloudflare’s Turnstile 
+          Privacy Addendum:
+        </p>
+        <p className="mb-4">
+              <a
+                href="https://www.cloudflare.com/en-gb/turnstile-privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-4 underline underline-offset-2 transition-all duration-300 hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+              >
+                https://www.cloudflare.com/en-gb/turnstile-privacy-policy
+              </a>
+        </p>
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">How We Use Your Data</h2>
         <ul className="list-disc list-inside space-y-2">
