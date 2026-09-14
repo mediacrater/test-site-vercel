@@ -426,9 +426,10 @@ export function ScanWorkspace({
     try {
       await performAnalysis(controller.signal);
     } catch (error: any) {
-      if (error?.name === 'AbortError') {
-        // user cancelled — no banner
-      } else {
+      if (error?.name === 'AbortError' || controller.signal.aborted) {
+        setBanner({ tone: 'error', title: 'Analysis cancelled' });
+        return;
+      }
         const message: string = error?.message || '';
         const isDuplicateScanError =
           message.includes('Scan already in progress') || message.includes('already have a scan in progress');
@@ -706,8 +707,8 @@ export function ScanWorkspace({
                 }`}
               >
                 <p className="font-semibold">{banner.title}</p>
-                <p className="mt-0.5">{banner.message}</p>
-                {banner.actionLabel && banner.onAction && (
+                {banner.message && <p className="mt-0.5">{banner.message}</p>}
+                {banner.actionLabel && banner.onAction && (...)}
                   <button onClick={banner.onAction} className="mt-2 text-xs font-semibold underline underline-offset-2">
                     {banner.actionLabel}
                   </button>
