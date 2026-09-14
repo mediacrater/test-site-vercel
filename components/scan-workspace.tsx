@@ -749,6 +749,7 @@ export function ScanWorkspace({
                 >
                   Cancel
                 </button>
+              )}
             </div>
             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-sm font-medium">{progressText}</p>
