@@ -430,97 +430,97 @@ export function ScanWorkspace({
         setBanner({ tone: 'error', title: 'Analysis cancelled' });
         return;
       }
-        const message: string = error?.message || '';
-        const isDuplicateScanError =
-          message.includes('Scan already in progress') || message.includes('already have a scan in progress');
-        const isRateLimitError = message.includes('Rate limit exceeded') || message.includes('Free tier limit');
-        const isAccountFlaggedError =
-          message.includes('ACCOUNT_FLAGGED') || message.includes('locked pending resolution');
-        const isAudioLockedError =
-          message.includes('Audio analysis unavailable') ||
-          message.includes('Audio analysis is available on paid plans only');
-        const isTokenError = message.includes('Insufficient tokens');
-        const isAuthError = message.includes('Unauthorized') || message.includes('Not authenticated');
-        const isCorruptionError =
-          message.includes('corrupt') || message.includes('Failed to load') || message.includes('decode');
-        const isParseError = message.includes('parse') || message.includes('JSON');
 
-        if (isDuplicateScanError) {
-          setBanner({
-            tone: 'error',
-            title: 'One scan at a time',
-            message: 'You already have a scan in progress. Please wait for it to finish before starting another.',
-          });
-        } else if (isRateLimitError) {
-          setBanner({
-            tone: 'warning',
-            title: 'Scan limit reached',
-            message,
-            actionLabel: 'Buy tokens',
-            onAction: () => window.location.assign('/buy-tokens'),
-          });
-        } else if (isAccountFlaggedError) {
-          const notifiedDate = profile?.last_notified_at
-            ? new Date(profile.last_notified_at).toLocaleDateString(undefined, {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })
-            : null;
-          setBanner({
-            tone: 'warning',
-            title: 'Action required',
-            message: `We've paused scanning on this account pending a policy review. ${
-              notifiedDate
-                ? `We sent an email to both account emails with further instruction on ${notifiedDate}.`
-                : 'Check your email for details.'
-            }`,
-            actionLabel: 'Upgrade plan',
-            onAction: () => window.location.assign('/buy-tokens'),
-          });
-        } else if (isAuthError) {
-          setBanner({
-            tone: 'error',
-            title: 'Session expired',
-            message: 'Your session has expired. Please sign out and sign in again.',
-          });
-        } else if (isTokenError) {
-          setBanner({
-            tone: 'warning',
-            title: 'Out of tokens',
-            message: 'You have no tokens remaining. Purchase more to continue scanning.',
-            actionLabel: 'Buy tokens',
-            onAction: () => window.location.assign('/buy-tokens'),
-          });
-        } else if (isCorruptionError) {
-          setBanner({
-            tone: 'error',
-            title: 'Corrupt file',
-            message:
-              "Your content seems to be corrupt or we don't support this file type. Please upload another file or convert this file into a supported format.",
-          });
-        } else if (isParseError) {
-          setBanner({
-            tone: 'error',
-            title: 'Analysis error',
-            message:
-              'We returned an invalid response. This may be due to complex content or a temporary issue. Please try again or contact support if this persists.',
-          });
-        } else if (isAudioLockedError) {
-          setBanner({
-            tone: 'warning',
-            title: 'Paid plan required',
-            message: 'Audio analysis is available on paid plans only. Upgrade to analyze spoken claims in your ads.',
-            actionLabel: 'Upgrade plan',
-            onAction: () => window.location.assign('/buy-tokens'),
-          });
-        } else {
-          setBanner({
-            tone: 'error',
-            title: 'Analysis failed',
-            message: 'Something went wrong. Please try again or contact support.',
-          });
-        }
+      const message: string = error?.message || '';
+      const isDuplicateScanError =
+        message.includes('Scan already in progress') || message.includes('already have a scan in progress');
+      const isRateLimitError = message.includes('Rate limit exceeded') || message.includes('Free tier limit');
+      const isAccountFlaggedError =
+        message.includes('ACCOUNT_FLAGGED') || message.includes('locked pending resolution');
+      const isAudioLockedError =
+        message.includes('Audio analysis unavailable') ||
+        message.includes('Audio analysis is available on paid plans only');
+      const isTokenError = message.includes('Insufficient tokens');
+      const isAuthError = message.includes('Unauthorized') || message.includes('Not authenticated');
+      const isCorruptionError =
+        message.includes('corrupt') || message.includes('Failed to load') || message.includes('decode');
+      const isParseError = message.includes('parse') || message.includes('JSON');
+
+      if (isDuplicateScanError) {
+        setBanner({
+          tone: 'error',
+          title: 'One scan at a time',
+          message: 'You already have a scan in progress. Please wait for it to finish before starting another.',
+        });
+      } else if (isRateLimitError) {
+        setBanner({
+          tone: 'warning',
+          title: 'Scan limit reached',
+          message,
+          actionLabel: 'Buy tokens',
+          onAction: () => window.location.assign('/buy-tokens'),
+        });
+      } else if (isAccountFlaggedError) {
+        const notifiedDate = profile?.last_notified_at
+          ? new Date(profile.last_notified_at).toLocaleDateString(undefined, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : null;
+        setBanner({
+          tone: 'warning',
+          title: 'Action required',
+          message: `We've paused scanning on this account pending a policy review. ${
+            notifiedDate
+              ? `We sent an email to both account emails with further instruction on ${notifiedDate}.`
+              : 'Check your email for details.'
+          }`,
+          actionLabel: 'Upgrade plan',
+          onAction: () => window.location.assign('/buy-tokens'),
+        });
+      } else if (isAuthError) {
+        setBanner({
+          tone: 'error',
+          title: 'Session expired',
+          message: 'Your session has expired. Please sign out and sign in again.',
+        });
+      } else if (isTokenError) {
+        setBanner({
+          tone: 'warning',
+          title: 'Out of tokens',
+          message: 'You have no tokens remaining. Purchase more to continue scanning.',
+          actionLabel: 'Buy tokens',
+          onAction: () => window.location.assign('/buy-tokens'),
+        });
+      } else if (isCorruptionError) {
+        setBanner({
+          tone: 'error',
+          title: 'Corrupt file',
+          message:
+            "Your content seems to be corrupt or we don't support this file type. Please upload another file or convert this file into a supported format.",
+        });
+      } else if (isParseError) {
+        setBanner({
+          tone: 'error',
+          title: 'Analysis error',
+          message:
+            'We returned an invalid response. This may be due to complex content or a temporary issue. Please try again or contact support if this persists.',
+        });
+      } else if (isAudioLockedError) {
+        setBanner({
+          tone: 'warning',
+          title: 'Paid plan required',
+          message: 'Audio analysis is available on paid plans only. Upgrade to analyze spoken claims in your ads.',
+          actionLabel: 'Upgrade plan',
+          onAction: () => window.location.assign('/buy-tokens'),
+        });
+      } else {
+        setBanner({
+          tone: 'error',
+          title: 'Analysis failed',
+          message: 'Something went wrong. Please try again or contact support.',
+        });
       }
     } finally {
       stopElapsedTimer();
