@@ -708,7 +708,7 @@ export function ScanWorkspace({
               >
                 <p className="font-semibold">{banner.title}</p>
                 {banner.message && <p className="mt-0.5">{banner.message}</p>}
-                {banner.actionLabel && banner.onAction && (...)}
+                {banner.actionLabel && banner.onAction && (
                   <button onClick={banner.onAction} className="mt-2 text-xs font-semibold underline underline-offset-2">
                     {banner.actionLabel}
                   </button>
