@@ -77,7 +77,8 @@ export function ScanWorkspace({
   // Video scans only; irrelevant for images and reset whenever a new
   // file is chosen via removeFile()/resetForNewScan().
   const [analyzeAudio, setAnalyzeAudio] = useState(false);
-
+  const [canCancel, setCanCancel] = useState(true);
+  
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progressText, setProgressText] = useState('Initializing...');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -269,6 +270,7 @@ export function ScanWorkspace({
   }
 
   function handleCancelAnalysis() {
+    if (!canCancel) return;
     abortControllerRef.current?.abort();
     if (currentJobIdRef.current) {
       cancelQueuedScan(currentJobIdRef.current).catch((err) =>
@@ -321,7 +323,8 @@ export function ScanWorkspace({
     const framesWaitMs = framesExtractedTime ? framesExtractedTime - scanStartTime : 0;
     const platformList = platforms.join(', ').toUpperCase();
     setProgressText(`Analyzing your content against ${platformList} policies...`);
-
+    setCanCancel(false);
+    
     const rawResults = await Promise.all(
       platforms.map(async (platform) => {
         const scanId = crypto.randomUUID();
@@ -341,6 +344,7 @@ export function ScanWorkspace({
           if (!queueEnteredAt) queueEnteredAt = Date.now();
           jobId = response.jobId;
           currentJobIdRef.current = jobId;
+          setCanCancel(true);
           setProgressText(`You're queued at position ${response.position}. Waiting for your turn...`);
 
           await waitForQueueTurn(jobId, signal, (position) =>
@@ -350,6 +354,7 @@ export function ScanWorkspace({
           queueWaitMs = Date.now() - (queueEnteredAt as number);
 
           setProgressText(`Analyzing your content against ${platform.toUpperCase()} policies...`);
+          setCanCancel(false);
 
           response = isVideo
             ? await scanVideo(frames, audio, platform, scanType, jobId, signal, scanId, thumbnailPath, fileName)
@@ -413,6 +418,7 @@ export function ScanWorkspace({
 
     setIsAnalyzing(true);
     setResults(null);
+    setCanCancel(true);
     const controller = new AbortController();
     abortControllerRef.current = controller;
     startElapsedTimer();
@@ -724,15 +730,22 @@ export function ScanWorkspace({
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="flex items-center justify-between w-full mb-6">
               <h3 className="font-bold">Analyzing Your Ad...</h3>
-              <button
-                onClick={handleCancelAnalysis}
-                className="px-3 py-1.5 text-sm rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                Cancel
-              </button>
+              {canCancel && (
+                <button
+                  onClick={handleCancelAnalysis}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-sm font-medium">{progressText}</p>
+            {!canCancel && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Your scan is now running and can no longer be cancelled.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">Elapsed: {elapsedSeconds}s</p>
           </div>
         )}
