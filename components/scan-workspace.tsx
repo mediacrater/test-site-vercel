@@ -1,8 +1,6 @@
 'use client';
 
 // components/scan-workspace.tsx
-//
-// FOR CANCEL LOGIC
 
 import { useEffect, useRef, useState } from 'react';
 import { extractFrames, extractAudio, type ExtractedFrame, type ScanType } from '@/lib/mediacrater/dissector';
