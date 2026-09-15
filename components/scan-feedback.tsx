@@ -18,16 +18,60 @@ type FeedbackStage =
   | 'details'
   | 'submitted';
 
-export function ScanFeedback({
-  scanIds,
-}: {
+export interface ScanFeedbackItem {
+  creativeId: string;
+  fileName: string;
+  batchPosition: number | null;
   scanIds: string[];
-}) {
-  const [stage, setStage] =
-    useState<FeedbackStage>('question');
+}
 
-  const [comment, setComment] =
-    useState('');
+interface FeedbackItemState {
+  stage: FeedbackStage;
+  comment: string;
+  answer: boolean | null;
+}
+
+export function ScanFeedback({
+  items,
+  isBatch,
+}: {
+  items: ScanFeedbackItem[];
+  isBatch: boolean;
+}) {
+  const [
+    selectedCreativeId,
+    setSelectedCreativeId,
+  ] =
+    useState(
+      items[0]
+        ?.creativeId ??
+        ''
+    );
+
+  const [
+    states,
+    setStates,
+  ] =
+    useState<
+      Record<
+        string,
+        FeedbackItemState
+      >
+    >(() =>
+      Object.fromEntries(
+        items.map(
+          (item) => [
+            item.creativeId,
+            {
+              stage:
+                'question' as FeedbackStage,
+              comment: '',
+              answer: null,
+            },
+          ]
+        )
+      )
+    );
 
   const [submitting, setSubmitting] =
     useState(false);
@@ -35,11 +79,65 @@ export function ScanFeedback({
   const [error, setError] =
     useState<string | null>(null);
 
+  const currentItem =
+    items.find(
+      (item) =>
+        item.creativeId ===
+        selectedCreativeId
+    ) ??
+    items[0] ??
+    null;
+
+  const currentState =
+    currentItem
+      ? states[
+          currentItem
+            .creativeId
+        ]
+      : null;
+
+  const allSubmitted =
+    items.length > 0 &&
+    items.every(
+      (item) =>
+        states[
+          item.creativeId
+        ]?.stage ===
+        'submitted'
+    );
+
+  function patchCurrentState(
+    patch:
+      Partial<FeedbackItemState>
+  ) {
+    if (!currentItem) {
+      return;
+    }
+
+    setStates(
+      (previous) => ({
+        ...previous,
+        [currentItem.creativeId]:
+          {
+            ...previous[
+              currentItem.creativeId
+            ],
+            ...patch,
+          },
+      })
+    );
+  }
+
   async function submitFeedback(
     feedbackAnswer: boolean,
     feedbackComment: string | null
   ) {
-    if (submitting) return;
+    if (
+      submitting ||
+      !currentItem
+    ) {
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -80,7 +178,8 @@ export function ScanFeedback({
             },
 
             body: JSON.stringify({
-              scanIds,
+              scanIds:
+                currentItem.scanIds,
               feedbackAnswer,
               feedbackComment,
             }),
@@ -105,7 +204,12 @@ export function ScanFeedback({
         );
       }
 
-      setStage('submitted');
+       patchCurrentState({
+        stage:
+          'submitted',
+        answer:
+          feedbackAnswer,
+      });
     } catch (err: any) {
       setError(
         err?.message ||
@@ -118,12 +222,18 @@ export function ScanFeedback({
 
   function handleNo() {
     setError(null);
-    setStage('details');
+
+    patchCurrentState({
+      stage: 'details',
+    });
   }
 
   function handleSubmitNegative() {
     const trimmedComment =
-      comment.trim();
+      currentState
+        ?.comment
+        .trim() ??
+      '';
 
     submitFeedback(
       false,
@@ -131,7 +241,7 @@ export function ScanFeedback({
     );
   }
 
-  if (stage === 'submitted') {
+  if (allSubmitted) {
     return (
       <div
         className="bg-card border border-border rounded-xl p-6"
@@ -169,6 +279,15 @@ export function ScanFeedback({
     >
       <div className="flex flex-col gap-5">
         <div>
+        {currentState?.stage ===
+          'submitted' && (
+          <div
+            className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-3 text-sm text-green-800 dark:text-green-400"
+            role="status"
+          >
+            Feedback saved for this creative.
+          </div>
+        )}
           <p
             id="scan-feedback-title"
             className="font-semibold text-sm"
@@ -180,9 +299,67 @@ export function ScanFeedback({
             Your feedback helps us improve
             the quality of future scan results.
           </p>
+        {isBatch &&
+          items.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {items.map(
+              (item) => {
+                const state =
+                  states[
+                    item.creativeId
+                  ];
+
+                const status =
+                  state?.stage ===
+                  'submitted'
+                    ? state.answer ===
+                      true
+                      ? 'Yes'
+                      : 'No'
+                    : 'Pending';
+
+                return (
+                  <button
+                    key={
+                      item.creativeId
+                    }
+                    type="button"
+                    onClick={() => {
+                      setSelectedCreativeId(
+                        item.creativeId
+                      );
+
+                      setError(
+                        null
+                      );
+                    }}
+                    className={`px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                      currentItem
+                        ?.creativeId ===
+                      item.creativeId
+                        ? 'border-primary bg-primary/5 text-foreground'
+                        : 'border-border text-muted-foreground hover:border-primary/50'
+                    }`}
+                  >
+                    #{item.batchPosition}{' '}
+                    {
+                      item.fileName
+                    }{' '}
+                    · {status}
+                  </button>
+                );
+              }
+            )}
+          </div>
+        )}
         </div>
 
-        {stage === 'question' ? (
+        {currentState?.stage !==
+          'submitted' &&
+          (
+            currentState?.stage ===
+            'question'
+              ? (
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               type="button"
@@ -242,11 +419,15 @@ export function ScanFeedback({
 
             <textarea
               id="scan-feedback-comment"
-              value={comment}
+              value={
+                currentState?.comment ??
+                ''
+              }
               onChange={(event) =>
-                setComment(
-                  event.target.value
-                )
+                patchCurrentState({
+                   comment:
+                    event.target.value,
+                })
               }
               maxLength={
                 MAX_COMMENT_LENGTH
@@ -260,7 +441,8 @@ export function ScanFeedback({
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-[11px] text-muted-foreground">
-                {comment.length}/
+                {currentState?.comment
+                  .length ?? 0}/
                 {MAX_COMMENT_LENGTH}
               </span>
 
@@ -269,9 +451,11 @@ export function ScanFeedback({
                   type="button"
                   onClick={() => {
                     setError(null);
-                    setStage(
-                      'question'
-                    );
+
+                    patchCurrentState({
+                       stage:
+                         'question',
+                    });
                   }}
                   disabled={submitting}
                   className="px-3 py-2 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
