@@ -2848,31 +2848,8 @@ export function ScanWorkspace({
               </button>
             )}
 
-            {/* Platforms */}
-            <div>
-              <p className="text-sm font-semibold mb-2">Target Platforms</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {PLATFORMS.map((p) => (
-                  <label
-                    key={p.value}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
-                      platforms.includes(p.value)
-                        ? 'border-primary bg-primary/5 text-foreground'
-                        : 'border-border text-muted-foreground hover:border-primary/50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={platforms.includes(p.value)}
-                      onChange={() => togglePlatform(p.value)}
-                      className="accent-current"
-                    />
-                    <img src={p.icon} alt="" className="w-4 h-4 object-contain" />
-                    {p.label}
-                  </label>
-                ))}
-              </div>
-            </div>
+            {/* Platforms === DELETED */}
+
 
             {/* Scan type — video only */}
             {isVideo && (
