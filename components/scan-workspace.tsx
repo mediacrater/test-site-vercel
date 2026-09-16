@@ -398,7 +398,7 @@ export function ScanWorkspace({
     creatives.length > 0 &&
     creatives.every(
       (creative) =>
-        creative.platforms.length > 0
+        Boolean(creative.platforms[0])
     );
 
   const totalCost =
@@ -407,19 +407,17 @@ export function ScanWorkspace({
         total,
         creative
       ) => {
-        const perPlatformCost =
-          creative.kind ===
-            'video' &&
-          creative.scanType ===
-            'deep'
+        if (!creative.platforms[0]) {
+          return total;
+        }
+
+        const creativeCost =
+          creative.kind === 'video' &&
+          creative.scanType === 'deep'
             ? 2
             : 1;
 
-        return (
-          total +
-          creative.platforms.length *
-            perPlatformCost
-        );
+        return total + creativeCost;
       },
       0
     );
@@ -1156,25 +1154,10 @@ export function ScanWorkspace({
       (previous) =>
         previous.map(
           (creative) =>
-            creative.id ===
-            creativeId
+            creative.id === creativeId
               ? {
                   ...creative,
-                  platforms:
-                    creative.platforms.includes(
-                      value
-                    )
-                      ? creative.platforms.filter(
-                          (
-                            platform
-                          ) =>
-                            platform !==
-                            value
-                        )
-                      : [
-                          ...creative.platforms,
-                          value,
-                        ],
+                  platforms: [value],
                 }
               : creative
         )
@@ -1182,13 +1165,12 @@ export function ScanWorkspace({
   }
 
   function applyPlatformsToAll() {
-    if (!platformCreative) {
+    const selectedPlatform =
+      platformCreative?.platforms[0];
+
+    if (!selectedPlatform) {
       return;
     }
-
-    const nextPlatforms = [
-      ...platformCreative.platforms,
-    ];
 
     setCreatives(
       (previous) =>
@@ -1196,7 +1178,7 @@ export function ScanWorkspace({
           (creative) => ({
             ...creative,
             platforms: [
-              ...nextPlatforms,
+              selectedPlatform,
             ],
           })
         )
@@ -1564,17 +1546,22 @@ export function ScanWorkspace({
         let creativeError:
           Error | null = null;
 
-        for (
-          let platformIndex = 0;
-          platformIndex <
-          creative.platforms.length;
-          platformIndex++
-        ) {
-          const platform =
-            creative.platforms[
-              platformIndex
-            ];
+        const selectedPlatforms =
+  creative.platforms.slice(
+    0,
+    1
+  );
 
+for (
+  let platformIndex = 0;
+  platformIndex <
+  selectedPlatforms.length;
+  platformIndex++
+) {
+  const platform =
+    selectedPlatforms[
+      platformIndex
+    ];
           const scanId =
             crypto.randomUUID();
 
@@ -1816,7 +1803,7 @@ export function ScanWorkspace({
           if (
             isBatch &&
             platformIndex <
-              creative.platforms.length -
+              selectedPlatforms.length -
                 1
           ) {
             await runBatchCooldown(
@@ -2533,135 +2520,112 @@ const activeResultOption =
                   )}
                 </div>
 
-                {/* Target Platforms */}
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                    <p className="text-sm font-semibold">
-                      Target Platforms
-                    </p>
+                {/* Target Platform */}
+<div>
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+    <p className="text-sm font-semibold">
+      Target Platform
+    </p>
 
-                    {creatives.length >
-                      1 && (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={
-                            platformCreative
-                              ?.id ??
-                            ''
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            setPlatformCreativeId(
-                              event
-                                .target
-                                .value
-                            )
-                          }
-                          className="max-w-52 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
-                        >
-                          {creatives.map(
-                            (
-                              creative
-                            ) => (
-                              <option
-                                key={
-                                  creative.id
-                                }
-                                value={
-                                  creative.id
-                                }
-                              >
-                                {
-                                  creative
-                                    .file
-                                    .name
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
+    {creatives.length > 1 && (
+      <div className="flex items-center gap-2">
+        <select
+          value={
+            platformCreative?.id ?? ''
+          }
+          onChange={(event) =>
+            setPlatformCreativeId(
+              event.target.value
+            )
+          }
+          className="max-w-52 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        >
+          {creatives.map(
+            (creative) => (
+              <option
+                key={creative.id}
+                value={creative.id}
+              >
+                {creative.file.name}
+              </option>
+            )
+          )}
+        </select>
 
-                        <button
-                          type="button"
-                          onClick={
-                            applyPlatformsToAll
-                          }
-                          disabled={
-                            !platformCreative ||
-                            platformCreative
-                              .platforms
-                              .length ===
-                              0
-                          }
-                          className="px-2.5 py-1.5 rounded-lg border border-border text-xs font-semibold hover:bg-secondary disabled:opacity-50"
-                        >
-                          Apply to all
-                        </button>
-                      </div>
-                    )}
-                  </div>
+        <button
+          type="button"
+          onClick={
+            applyPlatformsToAll
+          }
+          disabled={
+            !platformCreative
+              ?.platforms[0]
+          }
+          className="px-2.5 py-1.5 rounded-lg border border-border text-xs font-semibold hover:bg-secondary disabled:opacity-50"
+        >
+          Apply platform to all
+        </button>
+      </div>
+    )}
+  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {PLATFORMS.map(
-                      (platform) => {
-                        const checked =
-                          platformCreative
-                            ?.platforms
-                            .includes(
-                              platform.value
-                            ) ??
-                          false;
+  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    {PLATFORMS.map(
+      (platform) => {
+        const checked =
+          platformCreative
+            ?.platforms[0] ===
+          platform.value;
 
-                        return (
-                          <label
-                            key={
-                              platform.value
-                            }
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
-                              checked
-                                ? 'border-primary bg-primary/5 text-foreground'
-                                : 'border-border text-muted-foreground hover:border-primary/50'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={
-                                checked
-                              }
-                              disabled={
-                                !platformCreative
-                              }
-                              onChange={() => {
-                                if (
-                                  platformCreative
-                                ) {
-                                  togglePlatform(
-                                    platformCreative.id,
-                                    platform.value
-                                  );
-                                }
-                              }}
-                              className="accent-current"
-                            />
+        return (
+          <label
+            key={platform.value}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
+              checked
+                ? 'border-primary bg-primary/5 text-foreground'
+                : 'border-border text-muted-foreground hover:border-primary/50'
+            }`}
+          >
+            <input
+              type="radio"
+              name={`platform-${
+                platformCreative?.id ??
+                'none'
+              }`}
+              checked={checked}
+              disabled={
+                !platformCreative
+              }
+              onChange={() => {
+                if (
+                  platformCreative
+                ) {
+                  togglePlatform(
+                    platformCreative.id,
+                    platform.value
+                  );
+                }
+              }}
+              className="accent-current"
+            />
 
-                            <img
-                              src={
-                                platform.icon
-                              }
-                              alt=""
-                              className="w-4 h-4 object-contain"
-                            />
+            <img
+              src={platform.icon}
+              alt=""
+              className="w-4 h-4 object-contain"
+            />
 
-                            {
-                              platform.label
-                            }
-                          </label>
-                        );
-                      }
-                    )}
-                  </div>
-                </div>
+            {platform.label}
+          </label>
+        );
+      }
+    )}
+  </div>
+
+  <p className="text-xs text-muted-foreground mt-2">
+    Choose one target platform per creative.
+  </p>
+</div>
 
                 {/* Video-only settings */}
                 {videoCreatives.length >
@@ -2867,7 +2831,8 @@ const activeResultOption =
             {banner && (
               <div
                 className={`p-3 rounded-lg border text-sm ${
-                  banner.tone === 'error'
+                  banner.tone ===
+                  'error'
                     ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400'
                     : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400'
                 }`}
@@ -2884,35 +2849,49 @@ const activeResultOption =
 
                 {banner.actionLabel &&
                   banner.onAction && (
-                  <button
-                    onClick={
-                      banner.onAction
-                    }
-                    className="mt-2 text-xs font-semibold underline underline-offset-2"
-                  >
-                    {
-                      banner.actionLabel
-                    }
-                  </button>
-                )}
+                    <button
+                      type="button"
+                      onClick={
+                        banner.onAction
+                      }
+                      className="mt-2 text-xs font-semibold underline underline-offset-2"
+                    >
+                      {
+                        banner.actionLabel
+                      }
+                    </button>
+                  )}
               </div>
             )}
 
             {creatives.length > 0 && (
               <>
                 <div className="flex items-center justify-between text-sm">
-                  <span>
-                    Scan cost: <strong>{totalCost} scans</strong>
+                  <span className="font-medium">
+                    Scan cost:{' '}
+                    <strong>
+                      {totalCost}{' '}
+                      scan
+                      {totalCost === 1
+                        ? ''
+                        : 's'}
+                    </strong>
                   </span>
 
                   <span className="text-muted-foreground">
-                    {scansRemaining} remaining
+                    {scansRemaining}{' '}
+                    remaining
                   </span>
                 </div>
 
                 <button
-                  onClick={handleAnalyze}
-                  disabled={analyzeDisabled}
+                  type="button"
+                  onClick={
+                    handleAnalyze
+                  }
+                  disabled={
+                    analyzeDisabled
+                  }
                   className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creatives.length > 1
@@ -2921,49 +2900,6 @@ const activeResultOption =
                 </button>
               </>
             )}
-
-            {/* Platforms === DELETED */}
-
-
-            {/* Scan type — video only = DELETED */}
-            
-
-            {/* Audio analysis — opt-in, video only = DELETED */}
-          
-
-            {/* Cost + banner */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">
-                Scan cost: <strong>{totalCost} scan{totalCost === 1 ? '' : 's'}</strong>
-              </span>
-              <span className="text-muted-foreground">{scansRemaining} remaining</span>
-            </div>
-
-            {banner && (
-              <div
-                className={`p-3 rounded-lg border text-sm ${
-                  banner.tone === 'error'
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400'
-                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400'
-                }`}
-              >
-                <p className="font-semibold">{banner.title}</p>
-                {banner.message && <p className="mt-0.5">{banner.message}</p>}
-                {banner.actionLabel && banner.onAction && (
-                  <button onClick={banner.onAction} className="mt-2 text-xs font-semibold underline underline-offset-2">
-                    {banner.actionLabel}
-                  </button>
-                )}
-              </div>
-            )}
-
-            <button
-              onClick={handleAnalyze}
-              disabled={analyzeDisabled}
-              className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Analyze Ad
-            </button>
           </>
         )}
 
