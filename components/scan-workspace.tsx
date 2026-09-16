@@ -2898,22 +2898,28 @@ const activeResultOption =
               </div>
             )}
 
-            {creatives.length >
-              0 && (
-              <button
-                onClick={
-                  handleAnalyze
-                }
-                disabled={
-                  analyzeDisabled
-                }
-                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {creatives.length >
-                1
-                  ? 'Analyze Batch'
-                  : 'Analyze Ad'}
-              </button>
+            {creatives.length > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span>
+                    Scan cost: <strong>{totalCost} scans</strong>
+                  </span>
+
+                  <span className="text-muted-foreground">
+                    {scansRemaining} remaining
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analyzeDisabled}
+                  className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {creatives.length > 1
+                    ? 'Analyze Batch'
+                    : 'Analyze Ad'}
+                </button>
+              </>
             )}
 
             {/* Platforms === DELETED */}
