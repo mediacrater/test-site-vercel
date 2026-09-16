@@ -354,135 +354,130 @@ export function ScanFeedback({
         )}
         </div>
 
-        {currentState?.stage !==
-          'submitted' &&
-          (
-            currentState?.stage ===
-            'question'
-              ? (
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                submitFeedback(
-                  true,
-                  null
-                )
-              }
-              disabled={submitting}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {submitting ? (
-                <Loader2
-                  className="h-4 w-4 animate-spin"
-                  aria-hidden="true"
-                />
-              ) : (
-                <ThumbsUp
+        {currentState?.stage !== 'submitted' && (
+          currentState?.stage === 'question' ? (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  submitFeedback(
+                    true,
+                    null
+                  )
+                }
+                disabled={submitting}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting ? (
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ThumbsUp
+                    className="h-4 w-4"
+                    aria-hidden="true"
+                  />
+                )}
+
+                Yes
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNo}
+                disabled={submitting}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ThumbsDown
                   className="h-4 w-4"
                   aria-hidden="true"
                 />
-              )}
 
-              Yes
-            </button>
+                No
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="scan-feedback-comment"
+                  className="text-sm font-semibold"
+                >
+                  What did we get wrong?
+                </label>
 
-            <button
-              type="button"
-              onClick={handleNo}
-              disabled={submitting}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <ThumbsDown
-                className="h-4 w-4"
-                aria-hidden="true"
+                <p className="text-xs text-muted-foreground mt-1">
+                  Optional, but specific details are especially useful.
+                </p>
+              </div>
+
+              <textarea
+                id="scan-feedback-comment"
+                value={
+                  currentState?.comment ??
+                  ''
+                }
+                onChange={(event) =>
+                  patchCurrentState({
+                    comment:
+                      event.target.value,
+                  })
+                }
+                maxLength={
+                  MAX_COMMENT_LENGTH
+                }
+                rows={4}
+                autoFocus
+                placeholder="For example: a violation was incorrect, something was missed, or the suggested fix wasn't useful."
+                className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={submitting}
               />
 
-              No
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div>
-              <label
-                htmlFor="scan-feedback-comment"
-                className="text-sm font-semibold"
-              >
-                What did we get wrong?
-              </label>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-muted-foreground">
+                  {currentState?.comment.length ?? 0}/
+                  {MAX_COMMENT_LENGTH}
+                </span>
 
-              <p className="text-xs text-muted-foreground mt-1">
-                Optional, but specific details
-                are especially useful.
-              </p>
-            </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
 
-            <textarea
-              id="scan-feedback-comment"
-              value={
-                currentState?.comment ??
-                ''
-              }
-              onChange={(event) =>
-                patchCurrentState({
-                   comment:
-                    event.target.value,
-                })
-              }
-              maxLength={
-                MAX_COMMENT_LENGTH
-              }
-              rows={4}
-              autoFocus
-              placeholder="For example: a violation was incorrect, something was missed, or the suggested fix wasn't useful."
-              className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={submitting}
-            />
+                      patchCurrentState({
+                        stage:
+                          'question',
+                      });
+                    }}
+                    disabled={submitting}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Back
+                  </button>
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[11px] text-muted-foreground">
-                {currentState?.comment
-                  .length ?? 0}/
-                {MAX_COMMENT_LENGTH}
-              </span>
+                  <button
+                    type="button"
+                    onClick={
+                      handleSubmitNegative
+                    }
+                    disabled={submitting}
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {submitting && (
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                    )}
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError(null);
-
-                    patchCurrentState({
-                       stage:
-                         'question',
-                    });
-                  }}
-                  disabled={submitting}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Back
-                </button>
-
-                <button
-                  type="button"
-                  onClick={
-                    handleSubmitNegative
-                  }
-                  disabled={submitting}
-                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submitting && (
-                    <Loader2
-                      className="h-4 w-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                  )}
-
-                  Send feedback
-                </button>
+                    Send feedback
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )
         )}
 
         {error && (
