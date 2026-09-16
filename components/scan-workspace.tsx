@@ -2291,6 +2291,74 @@ export function ScanWorkspace({
   !allCreativesConfigured ||
   isAnalyzing;
 
+const isBatchResult =
+  (backgroundScan.batchItems?.length ?? 0) > 1;
+
+const resultCreativeOptions =
+  isBatchResult
+    ? (backgroundScan.batchItems ?? []).map(
+        (item) => ({
+          creativeId:
+            item.creativeId,
+          fileName:
+            item.fileName,
+          batchPosition:
+            item.batchPosition,
+          status:
+            item.status,
+          error:
+            item.error,
+        })
+      )
+    : Array.from(
+        new Map(
+          (
+            results ?? []
+          ).map(
+            (result) => [
+              result.creativeId,
+              {
+                creativeId:
+                  result.creativeId,
+                fileName:
+                  result.fileName,
+                batchPosition:
+                  result.batchPosition,
+                status:
+                  'success' as const,
+                error:
+                  null,
+              },
+            ]
+          )
+        ).values()
+      );
+
+const activeResultCreativeId =
+  selectedResultCreativeId ??
+  resultCreativeOptions[0]
+    ?.creativeId ??
+  results?.[0]
+    ?.creativeId ??
+  null;
+
+const visibleResults =
+  (
+    results ?? []
+  ).filter(
+    (result) =>
+      result.creativeId ===
+      activeResultCreativeId
+  );
+
+const activeResultOption =
+  resultCreativeOptions.find(
+    (item) =>
+      item.creativeId ===
+      activeResultCreativeId
+  ) ??
+  null;
+  
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm">
       <div className="p-6 space-y-6">
@@ -3012,76 +3080,6 @@ export function ScanWorkspace({
                   : r.riskClass === 'confidence-medium'
                   ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
                   : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-
-
-              const isBatchResult =
-                backgroundScan.batchItems
-                  .length > 1;
-
-              const resultCreativeOptions =
-                isBatchResult
-                  ? backgroundScan.batchItems.map(
-                      (item) => ({
-                        creativeId:
-                          item.creativeId,
-                       fileName:
-                          item.fileName,
-                       batchPosition:
-                          item.batchPosition,
-                       status:
-                          item.status,
-                       error:
-                          item.error,
-                       })
-                  )
-                  : Array.from(
-                      new Map(
-                        (
-                          results ?? []
-                        ).map(
-                          (result) => [
-                            result.creativeId,
-                            {
-                              creativeId:
-                                result.creativeId,
-                              fileName:
-                                result.fileName,
-                              batchPosition:
-                                result.batchPosition,
-                              status:
-                                'success' as const,
-                              error:
-                                null,
-                            },
-                          ]
-                        )
-                      ).values()
-                    );
-
-              const activeResultCreativeId =
-                selectedResultCreativeId ??
-                resultCreativeOptions[0]
-                  ?.creativeId ??
-                results?.[0]
-                  ?.creativeId ??
-                null;
-
-              const visibleResults =
-                (
-                  results ?? []
-                ).filter(
-                  (result) =>
-                    result.creativeId ===
-                    activeResultCreativeId
-                );
-
-              const activeResultOption =
-                resultCreativeOptions.find(
-                  (item) =>
-                    item.creativeId ===
-                    activeResultCreativeId
-                ) ??
-                null;
             
               return (
                 <div
