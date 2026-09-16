@@ -53,13 +53,13 @@ function DashboardScanStatus({
 }: {
   scan: BackgroundScanState;
 }) {
-  if (scan.batchItems.length > 1) {
+  if ((scan.batchItems?.length ?? 0) > 1) {
     return (
       <span
         className="ml-auto inline-flex items-center gap-0.5"
         aria-label="Batch scan status"
       >
-        {scan.batchItems.map((item) => {
+        {(scan.batchItems ?? []).map((item) => {
           if (item.status === 'processing') {
             return (
               <Loader2
