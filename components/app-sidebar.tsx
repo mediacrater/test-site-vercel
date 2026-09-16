@@ -56,7 +56,7 @@ function DashboardScanStatus({
   if ((scan.batchItems?.length ?? 0) > 1) {
     return (
       <span
-        className="ml-auto inline-flex items-center gap-0.5"
+        className="ml-auto inline-flex items-center gap-1.5"
         aria-label="Batch scan status"
       >
         {(scan.batchItems ?? []).map((item) => {
