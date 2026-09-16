@@ -2804,27 +2804,6 @@ const activeResultOption =
                     </label>
                   </div>
                 )}
-
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">
-                    Scan cost:{' '}
-                    <strong>
-                      {totalCost}{' '}
-                      scan
-                      {totalCost ===
-                      1
-                        ? ''
-                        : 's'}
-                    </strong>
-                  </span>
-
-                  <span className="text-muted-foreground">
-                    {
-                      scansRemaining
-                    }{' '}
-                    remaining
-                  </span>
-                </div>
               </>
             )}
 
