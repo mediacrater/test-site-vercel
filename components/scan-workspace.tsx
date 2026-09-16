@@ -2851,84 +2851,11 @@ export function ScanWorkspace({
             {/* Platforms === DELETED */}
 
 
-            {/* Scan type — video only */}
-            {isVideo && (
-              <div>
-                <p className="text-sm font-semibold mb-2">Scan Type</p>
-                <div className="space-y-2">
-                  <label className="flex items-start gap-3 p-3 rounded-lg border border-border cursor-pointer">
-                    <input
-                      type="radio"
-                      name="scanType"
-                      checked={scanType === 'regular'}
-                      onChange={() => setScanType('regular')}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="block font-medium text-sm">Regular Scan</span>
-                      <span className="block text-xs text-muted-foreground">
-                        Fast and optimized for standard commercials, "talking head" videos, and VSLs
-                      </span>
-                    </span>
-                  </label>
-                  <label
-                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
-                      canDeepScan ? 'border-border' : 'border-border opacity-60 cursor-not-allowed'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="scanType"
-                      disabled={!canDeepScan}
-                      checked={scanType === 'deep'}
-                      onChange={() => setScanType('deep')}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="block font-medium text-sm">
-                        Deep Scan{' '}
-                        {!canDeepScan && (
-                          <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                            Paid plan required
-                          </span>
-                        )}
-                      </span>
-                      <span className="block text-xs text-muted-foreground">
-                        Slower, but designed for fast-paced "UGC-style" ads or montages where violations might be
-                        hidden in fast cuts
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-            )}
+            {/* Scan type — video only = DELETED */}
+            
 
-            {/* Audio analysis — opt-in, video only */}
-            {isVideo && (
-              <label
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-fit ${
-                  canAnalyzeAudio
-                    ? 'border-border cursor-pointer'
-                    : 'border-border opacity-60 cursor-not-allowed'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  disabled={!canAnalyzeAudio}
-                  checked={canAnalyzeAudio && analyzeAudio}
-                  onChange={(e) => setAnalyzeAudio(e.target.checked)}
-                  className="accent-current"
-                />
-                <span className="font-medium">
-                  Analyze Audio Content
-                  {!canAnalyzeAudio && (
-                    <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                      Paid plan required
-                    </span>
-                  )}
-                </span>
-              </label>
-            )}
+            {/* Audio analysis — opt-in, video only = DELETED */}
+          
 
             {/* Cost + banner */}
             <div className="flex items-center justify-between text-sm">
