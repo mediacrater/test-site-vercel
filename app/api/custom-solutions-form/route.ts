@@ -205,7 +205,7 @@ function buildSlackPayload(data: FormPayload) {
   const blocks: Record<string, unknown>[] = [
     {
       type: "header",
-      text: { type: "plain_text", text: "TEST New custom solutions inquiry", emoji: true },
+      text: { type: "plain_text", text: `${process.env.NEXT_PUBLIC_STATE} New custom solutions inquiry`, emoji: true }
     },
     { type: "section", fields },
   ]
@@ -220,7 +220,7 @@ function buildSlackPayload(data: FormPayload) {
   blocks.push({ type: "divider" })
 
   return {
-    text: `TEST New custom solutions inquiry from ${data.name} (${data.email})`,
+    text: `${process.env.NEXT_PUBLIC_STATE} New custom solutions inquiry from ${data.name} (${data.email})`,
     blocks,
   }
 }
