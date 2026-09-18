@@ -63,7 +63,7 @@ async function verifyTurnstileToken(token: string, remoteIp: string): Promise<bo
 // same table, and the check + insert happen atomically in one DB round trip.
 // ---------------------------------------------------------------------------
 
-const RATE_LIMIT_MAX_REQUESTS = 4
+const RATE_LIMIT_MAX_REQUESTS = 10
 const RATE_LIMIT_WINDOW_MINUTES = 24 * 60
 
 function getClientIp(req: NextRequest): string {
