@@ -224,7 +224,7 @@ function buildSlackPayload(data: FormPayload) {
   blocks.push({ type: "divider" })
 
   return {
-    text: `New custom solutions inquiry from ${data.name} (${data.email})`,
+    text: `TEST ENVIRONMENT: New custom solutions inquiry from ${data.name} (${data.email})`,
     blocks,
   }
 }
