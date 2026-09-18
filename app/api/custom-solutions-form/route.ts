@@ -312,16 +312,23 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Fixed: previously sent a nonsensical Retry-After header on a 200
+  // success response, and hardcoded X-RateLimit-Remaining to "0" on every
+  // successful submission (including the very first of 10 allowed). Since
+  // an allowed request always has retryAfterSeconds === 0 (see the RPC's
+  // `return query select true, 0`), there's no meaningful "remaining"
+  // count available from this call to report — it's dropped rather than
+  // reported as a wrong number. Retry-After is dropped entirely, since it
+  // only makes sense on a throttled (429) response.
   return NextResponse.json(
-  { success: true },
-  {
-    status: 200,
-    headers: {
-      "X-RateLimit-Action": "solutions_form",
-      "Retry-After": String(rateLimit.retryAfterSeconds),
-      "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
-      "X-RateLimit-Remaining": "0",
-    },
-  }
-)
+    { success: true },
+    {
+      status: 200,
+      headers: {
+        "X-RateLimit-Action": "solutions_form",
+        "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+      },
+    }
+  )
 }
+
