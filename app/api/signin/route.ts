@@ -30,12 +30,14 @@ export async function POST(req: NextRequest) {
   const { email, password, turnstileToken } = await req.json()
 
   if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Email and password are required." },
+      { status: 400 }
+    )
   }
 
   const ip = clientIpFrom(req)
 
-  // Verify Turnstile before touching the rate limiter or Supabase auth.
   const isHuman = await verifyTurnstileToken(turnstileToken, ip)
   if (!isHuman) {
     return NextResponse.json(
@@ -50,26 +52,50 @@ export async function POST(req: NextRequest) {
     SIGNIN_MAX_ATTEMPTS,
     SIGNIN_WINDOW_SECONDS
   )
+
+  const rateLimitHeaders = {
+    "X-RateLimit-Action": "signin",
+    "X-RateLimit-Limit": String(SIGNIN_MAX_ATTEMPTS),
+  }
+
+  if (rateLimit.error) {
+    return NextResponse.json(
+      { error: "Something went wrong. Please try again." },
+      { status: 500, headers: rateLimitHeaders }
+    )
+  }
+
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Too many sign-in attempts. Please try again shortly." },
       {
         status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+        headers: {
+          ...rateLimitHeaders,
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+          "X-RateLimit-Remaining": "0",
+        },
       }
     )
   }
 
-  const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabaseAnon.auth.signInWithPassword({
+    email,
+    password,
+  })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    return NextResponse.json(
+      { error: error.message },
+      { status: 400, headers: rateLimitHeaders }
+    )
   }
 
-  // Return the session so the client can set it via supabase.auth.setSession,
-  // since the auth call now happens server-side rather than in the browser.
-  return NextResponse.json({
-    success: true,
-    session: data.session,
-  })
+  return NextResponse.json(
+    {
+      success: true,
+      session: data.session,
+    },
+    { headers: rateLimitHeaders }
+  )
 }
