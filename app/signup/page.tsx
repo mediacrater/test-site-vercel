@@ -108,7 +108,21 @@ export default function SignUpPage() {
   useEffect(() => {
     if (!mounted || !scriptReady) return;
     const turnstile = getTurnstile();
-    if (!turnstile || !widgetRef.current || widgetIdRef.current) return;
+    if (!turnstile || !widgetRef.current) return;
+
+    // Re-render whenever the active container changes (form view vs.
+    // checkEmail view each have their own <div ref={widgetRef}>, and only
+    // one is mounted in the DOM at a time). Tearing down any previous
+    // widget first avoids silently no-op'ing because widgetIdRef.current
+    // was already set from a render into the *other* view's now-unmounted
+    // div — that was the original bug: the effect only checked
+    // widgetIdRef.current and returned early, so switching views left the
+    // new container empty and turnstileToken permanently null.
+    if (widgetIdRef.current) {
+      turnstile.remove(widgetIdRef.current);
+      widgetIdRef.current = null;
+    }
+
     widgetIdRef.current = turnstile.render(widgetRef.current, {
       sitekey: TURNSTILE_SITE_KEY,
       theme: resolvedTheme === 'dark' ? 'dark' : 'light',
@@ -117,17 +131,15 @@ export default function SignUpPage() {
       'expired-callback': () => setTurnstileToken(null),
       'error-callback': () => setTurnstileToken(null),
     });
+    setTurnstileToken(null); // fresh container, no token until user completes it
+
     return () => {
       if (widgetIdRef.current) {
         turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
-      setTurnstileToken(null);
     };
-    // Widget now stays mounted across the checkEmail transition (it lives
-    // in both views — see JSX below) rather than being torn down, since
-    // the resend action also needs a valid token.
-  }, [mounted, scriptReady, resolvedTheme]);
+  }, [mounted, scriptReady, resolvedTheme, checkEmail]);
 
   const logoSrc = mounted && resolvedTheme === 'dark' ? '/images/header-logo-dark.png' : '/images/header-logo.png';
   function resetTurnstile() {
