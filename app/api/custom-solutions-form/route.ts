@@ -79,20 +79,59 @@ function getClientIp(req: NextRequest): string {
   return "unknown"
 }
 
-async function checkRateLimit(ip: string): Promise<{ allowed: boolean; error?: string }> {
-  const { data, error } = await supabase.rpc("check_and_log_form_attempt", {
-    p_ip: ip,
-    p_user_id: null,
-    p_max_attempts: RATE_LIMIT_MAX_REQUESTS,
-    p_window_minutes: RATE_LIMIT_WINDOW_MINUTES,
-  })
+async function checkRateLimit(
+  ip: string
+): Promise<{ allowed: boolean; error?: string }> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (error) {
-    console.error("Rate limit RPC error:", error)
-    return { allowed: false, error: error.message }
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error("Solutions form: missing Supabase server configuration.")
+    return {
+      allowed: false,
+      error: "Missing Supabase server configuration.",
+    }
   }
 
-  return { allowed: data === true }
+  try {
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    })
+
+    const { data, error } = await supabaseAdmin.rpc(
+      "check_and_log_solutions_form_attempt",
+      {
+        p_ip: ip,
+        p_max_attempts: RATE_LIMIT_MAX_REQUESTS,
+        p_window_minutes: RATE_LIMIT_WINDOW_MINUTES,
+      }
+    )
+
+    if (error) {
+      console.error("Solutions form rate limit RPC error:", error)
+      return { allowed: false, error: error.message }
+    }
+
+    if (typeof data !== "boolean") {
+      console.error("Solutions form rate limit RPC returned invalid data.")
+      return {
+        allowed: false,
+        error: "Invalid rate limit response.",
+      }
+    }
+
+    return { allowed: data }
+  } catch (error) {
+    console.error("Solutions form rate limit request failed:", error)
+    return {
+      allowed: false,
+      error: "Rate limit request failed.",
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
