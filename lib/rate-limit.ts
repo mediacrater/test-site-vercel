@@ -22,7 +22,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export type RateLimitAction = "signup" | "signin" | "reset_password" | "resend_verification"
+export type RateLimitAction = "signup" | "signin" | "reset_password" | "resend_verification" | "solutions_form"
 
 export type RateLimitResult = {
   allowed: boolean
@@ -36,25 +36,64 @@ export async function checkAndLogRateLimit(
   maxAttempts: number,
   windowSeconds: number
 ): Promise<RateLimitResult> {
-  const { data, error } = await supabaseAdmin
-    .rpc("check_and_log_rate_limit", {
-      p_action: action,
-      p_ip: ip,
-      p_user_id: null,
-      p_max_attempts: maxAttempts,
-      p_window_seconds: windowSeconds,
-    })
-    .single()
+  try {
+    const { data, error } = await supabaseAdmin
+      .rpc("check_and_log_rate_limit", {
+        p_action: action,
+        p_ip: ip,
+        p_user_id: null,
+        p_max_attempts: maxAttempts,
+        p_window_seconds: windowSeconds,
+      })
+      .single()
 
-  if (error) {
-    console.error(`[RATE LIMIT] RPC error for action "${action}":`, error.message)
-    // Fail closed — an RPC error is treated as "not allowed" rather than
-    // silently letting the request through.
-    return { allowed: false, retryAfterSeconds: windowSeconds, error: error.message }
+    if (error) {
+      console.error(
+        `[RATE LIMIT] RPC error for action "${action}":`,
+        error.message
+      )
+
+      return {
+        allowed: false,
+        retryAfterSeconds: windowSeconds,
+        error: error.message,
+      }
+    }
+
+    if (
+      !data ||
+      typeof data.allowed !== "boolean" ||
+      !Number.isInteger(data.retry_after_seconds) ||
+      data.retry_after_seconds < 0 ||
+      (!data.allowed && data.retry_after_seconds < 1)
+    ) {
+      console.error(
+        `[RATE LIMIT] Invalid RPC response for action "${action}".`
+      )
+
+      return {
+        allowed: false,
+        retryAfterSeconds: windowSeconds,
+        error: "Invalid rate limit response.",
+      }
+    }
+
+    return {
+      allowed: data.allowed,
+      retryAfterSeconds: data.retry_after_seconds,
+    }
+  } catch (error) {
+    console.error(
+      `[RATE LIMIT] Request failed for action "${action}":`,
+      error
+    )
+
+    return {
+      allowed: false,
+      retryAfterSeconds: windowSeconds,
+      error: "Rate limit request failed.",
+    }
   }
-
-  const result = data as { allowed: boolean; retry_after_seconds: number }
-  return { allowed: result.allowed, retryAfterSeconds: result.retry_after_seconds }
 }
 
 export function clientIpFrom(req: NextRequest): string {
