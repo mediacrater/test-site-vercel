@@ -1,6 +1,7 @@
 // app/api/signup/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkAndLogRateLimit } from "@/lib/rate-limit";
 import {
   attachDeviceCookie,
   clientIpFrom,
@@ -80,62 +81,34 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── Per-IP signup rate limit (10 attempts per rolling 24 hours) ──
+    // Per-IP signup rate limit: 10 attempts per rolling 24 hours.
   if (ip) {
-    try {
-      const { data: rateLimit, error: rateLimitError } =
-        await supabaseAdmin.rpc('check_and_log_signup_attempt', {
-          p_ip: ip,
-          p_max_attempts: MAX_SIGNUPS_PER_WINDOW,
-          p_window_seconds: SIGNUP_RATE_LIMIT_MS / 1000,
-        });
+    const rateLimit = await checkAndLogRateLimit(
+      "signup",
+      ip,
+      MAX_SIGNUPS_PER_WINDOW,
+      SIGNUP_RATE_LIMIT_MS / 1000
+    );
 
-      if (rateLimitError) {
-        console.error('[SIGNUP] Rate limit RPC failed:', rateLimitError);
-
-        return jsonWithDevice(
-          { error: 'Something went wrong. Please try again.' },
-          500,
-          deviceId
-        );
-      }
-
-      if (
-        !rateLimit ||
-        typeof rateLimit.allowed !== 'boolean' ||
-        !Number.isInteger(rateLimit.retry_after) ||
-        rateLimit.retry_after < 0 ||
-        (!rateLimit.allowed && rateLimit.retry_after < 1)
-      ) {
-        console.error('[SIGNUP] Invalid rate limit RPC response.');
-
-        return jsonWithDevice(
-          { error: 'Something went wrong. Please try again.' },
-          500,
-          deviceId
-        );
-      }
-
-      if (!rateLimit.allowed) {
-        return jsonWithDevice(
-          { error: 'Too many signup attempts. Please try again later.' },
-          429,
-          deviceId,
-          {
-            'Retry-After': String(rateLimit.retry_after),
-            'X-RateLimit-Action': 'signup',
-            'X-RateLimit-Limit': String(MAX_SIGNUPS_PER_WINDOW),
-            'X-RateLimit-Remaining': '0',
-          }
-        );
-      }
-    } catch (error) {
-      console.error('[SIGNUP] Rate limit request failed:', error);
-
+    if (rateLimit.error) {
       return jsonWithDevice(
-        { error: 'Something went wrong. Please try again.' },
+        { error: "Something went wrong. Please try again." },
         500,
         deviceId
+      );
+    }
+
+    if (!rateLimit.allowed) {
+      return jsonWithDevice(
+        { error: "Too many signup attempts. Please try again later." },
+        429,
+        deviceId,
+        {
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+          "X-RateLimit-Action": "signup",
+          "X-RateLimit-Limit": String(MAX_SIGNUPS_PER_WINDOW),
+          "X-RateLimit-Remaining": "0",
+        }
       );
     }
   }
