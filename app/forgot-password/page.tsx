@@ -26,9 +26,14 @@ function ForgotPasswordForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Resend recovery link state (matching signup flow). resendCooldown is
-  // now driven by the server's actual retryAfterSeconds (10/24hr limit,
-  // same RPC as everything else) rather than a flat client-side 60s timer.
+  // Resend recovery link state. resendCooldown is a fixed 60s client-side
+  // pacing cooldown — deliberately NOT tied to the server's 10/24hr
+  // reset_password rate limit (that limit is backend abuse protection and
+  // has no sane UI countdown), and NOT tied to Supabase's own internal
+  // per-email send cooldown either (undocumented, not worth parsing from
+  // its error response). This is just "don't let someone mash the button,"
+  // shown clearly so the button's state is never a silent mystery.
+  const RESEND_COOLDOWN_SECONDS = 90;
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resendError, setResendError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -122,6 +127,11 @@ function ForgotPasswordForm() {
 
       setSuccess(true);
       resetTurnstile();
+      // Start the cooldown immediately on the original send, not just on
+      // resend — this is the gap that caused the confusing "Email limit
+      // exceeded" flash: the button was fully clickable with no visible
+      // state right after the first email went out.
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err: any) {
       setError(err.message || 'Failed to request password reset. Please try again.');
       resetTurnstile();
@@ -159,6 +169,7 @@ function ForgotPasswordForm() {
 
       setResendStatus('sent');
       resetTurnstile();
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err: any) {
       setResendStatus('error');
       setResendError(err.message || 'Failed to resend recovery email');
