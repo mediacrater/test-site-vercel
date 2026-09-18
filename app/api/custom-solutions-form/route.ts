@@ -318,7 +318,9 @@ export async function POST(req: NextRequest) {
     status: 200,
     headers: {
       "X-RateLimit-Action": "solutions_form",
+      "Retry-After": String(rateLimit.retryAfterSeconds),
       "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+      "X-RateLimit-Remaining": "0",
     },
   }
 )
