@@ -80,73 +80,63 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── Per-IP signup rate limit (10 signups per 24 hours) ──────────────────────────────
+  // ── Per-IP signup rate limit (10 attempts per rolling 24 hours) ──
   if (ip) {
-    const { data: existingLimit } = await supabaseAdmin
-      .from('signup_rate_limits')
-      .select('first_attempt_at, last_attempt_at, attempt_count')
-      .eq('ip', ip)
-      .maybeSingle();
-
-    const now = new Date();
-    const nowMs = now.getTime();
-
-    if (existingLimit) {
-      const firstAttemptMs = new Date(existingLimit.first_attempt_at).getTime();
-      const elapsedMs = nowMs - firstAttemptMs;
-
-      if (elapsedMs < SIGNUP_RATE_LIMIT_MS) {
-        if (existingLimit.attempt_count >= MAX_SIGNUPS_PER_WINDOW) {
-          const retryAfterSeconds = Math.ceil((SIGNUP_RATE_LIMIT_MS - elapsedMs) / 1000);
-          return jsonWithDevice(
-            { error: 'Too many signup attempts. Please try again later.' },
-            429,
-            deviceId,
-            { 'Retry-After': String(retryAfterSeconds) }
-          );
-        }
-
-        // Within 24hr window and under limit -> Increment attempt count
-        const { error: rateLimitError } = await supabaseAdmin
-          .from('signup_rate_limits')
-          .update({
-            attempt_count: existingLimit.attempt_count + 1,
-            last_attempt_at: now.toISOString(),
-          })
-          .eq('ip', ip);
-
-        if (rateLimitError) {
-          console.error('[SIGNUP] Failed to increment rate limit attempt:', rateLimitError.message);
-        }
-      } else {
-        // Window expired -> Reset count to 1 and update window start time
-        const { error: rateLimitError } = await supabaseAdmin
-          .from('signup_rate_limits')
-          .update({
-            attempt_count: 1,
-            first_attempt_at: now.toISOString(),
-            last_attempt_at: now.toISOString(),
-          })
-          .eq('ip', ip);
-
-        if (rateLimitError) {
-          console.error('[SIGNUP] Failed to reset rate limit window:', rateLimitError.message);
-        }
-      }
-    } else {
-      // First attempt for this IP
-      const { error: rateLimitError } = await supabaseAdmin
-        .from('signup_rate_limits')
-        .insert({
-          ip,
-          attempt_count: 1,
-          first_attempt_at: now.toISOString(),
-          last_attempt_at: now.toISOString(),
+    try {
+      const { data: rateLimit, error: rateLimitError } =
+        await supabaseAdmin.rpc('check_and_log_signup_attempt', {
+          p_ip: ip,
+          p_max_attempts: MAX_SIGNUPS_PER_WINDOW,
+          p_window_seconds: SIGNUP_RATE_LIMIT_MS / 1000,
         });
 
       if (rateLimitError) {
-        console.error('[SIGNUP] Failed to record initial rate limit attempt:', rateLimitError.message);
+        console.error('[SIGNUP] Rate limit RPC failed:', rateLimitError);
+
+        return jsonWithDevice(
+          { error: 'Something went wrong. Please try again.' },
+          500,
+          deviceId
+        );
       }
+
+      if (
+        !rateLimit ||
+        typeof rateLimit.allowed !== 'boolean' ||
+        !Number.isInteger(rateLimit.retry_after) ||
+        rateLimit.retry_after < 0 ||
+        (!rateLimit.allowed && rateLimit.retry_after < 1)
+      ) {
+        console.error('[SIGNUP] Invalid rate limit RPC response.');
+
+        return jsonWithDevice(
+          { error: 'Something went wrong. Please try again.' },
+          500,
+          deviceId
+        );
+      }
+
+      if (!rateLimit.allowed) {
+        return jsonWithDevice(
+          { error: 'Too many signup attempts. Please try again later.' },
+          429,
+          deviceId,
+          {
+            'Retry-After': String(rateLimit.retry_after),
+            'X-RateLimit-Action': 'signup',
+            'X-RateLimit-Limit': String(MAX_SIGNUPS_PER_WINDOW),
+            'X-RateLimit-Remaining': '0',
+          }
+        );
+      }
+    } catch (error) {
+      console.error('[SIGNUP] Rate limit request failed:', error);
+
+      return jsonWithDevice(
+        { error: 'Something went wrong. Please try again.' },
+        500,
+        deviceId
+      );
     }
   }
 
@@ -218,6 +208,10 @@ export async function POST(req: NextRequest) {
       deviceError,
     },
     200,
-    deviceId
+    deviceId,
+    {
+      'X-RateLimit-Action': 'signup',
+      'X-RateLimit-Limit': String(MAX_SIGNUPS_PER_WINDOW),
+    }
   );
 }
