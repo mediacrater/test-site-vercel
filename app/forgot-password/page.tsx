@@ -1,11 +1,23 @@
+// app/forgot-password/page.tsx
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Script from 'next/script';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 
-const RESEND_COOLDOWN_SECONDS = 60;
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!;
+
+type TurnstileAPI = {
+  render: (container: HTMLElement, options: Record<string, unknown>) => string;
+  reset: (widgetId: string) => void;
+  remove: (widgetId: string) => void;
+};
+
+function getTurnstile(): TurnstileAPI | undefined {
+  return (window as unknown as { turnstile?: TurnstileAPI }).turnstile;
+}
 
 function ForgotPasswordForm() {
   const searchParams = useSearchParams();
@@ -14,10 +26,17 @@ function ForgotPasswordForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Resend recovery link state (matching signup flow)
+  // Resend recovery link state (matching signup flow). resendCooldown is
+  // now driven by the server's actual retryAfterSeconds (10/24hr limit,
+  // same RPC as everything else) rather than a flat client-side 60s timer.
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resendError, setResendError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  const [scriptReady, setScriptReady] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
 
   // Pre-fill email from extension URL query if available
   useEffect(() => {
@@ -36,16 +55,47 @@ function ForgotPasswordForm() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    if (!scriptReady) return;
+    const turnstile = getTurnstile();
+    if (!turnstile || !widgetRef.current || widgetIdRef.current) return;
+    widgetIdRef.current = turnstile.render(widgetRef.current, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'auto',
+      size: 'flexible',
+      callback: (token: string) => setTurnstileToken(token),
+      'expired-callback': () => setTurnstileToken(null),
+      'error-callback': () => setTurnstileToken(null),
+    });
+    return () => {
+      if (widgetIdRef.current) {
+        turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+      setTurnstileToken(null);
+    };
+  }, [scriptReady]);
+
+  function resetTurnstile() {
+    const id = widgetIdRef.current;
+    if (id) getTurnstile()?.reset(id);
+    setTurnstileToken(null);
+  }
+
   const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!turnstileToken) {
+      setError('Please complete the verification check.');
+      return;
+    }
     setLoading(true);
 
     try {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       });
 
       const data = await response.json();
@@ -55,8 +105,10 @@ function ForgotPasswordForm() {
       }
 
       setSuccess(true);
+      resetTurnstile();
     } catch (err: any) {
       setError(err.message || 'Failed to request password reset. Please try again.');
+      resetTurnstile();
     } finally {
       setLoading(false);
     }
@@ -65,6 +117,10 @@ function ForgotPasswordForm() {
   // Resend recovery link handler
   const handleResendReset = async () => {
     if (resendCooldown > 0 || resendStatus === 'sending') return;
+    if (!turnstileToken) {
+      setResendError('Please complete the verification check.');
+      return;
+    }
 
     setResendStatus('sending');
     setResendError('');
@@ -73,20 +129,24 @@ function ForgotPasswordForm() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend recovery email');
+        setResendStatus('error');
+        setResendError(data.error || 'Failed to resend recovery email');
+        resetTurnstile();
+        return;
       }
 
       setResendStatus('sent');
-      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      resetTurnstile();
     } catch (err: any) {
       setResendStatus('error');
       setResendError(err.message || 'Failed to resend recovery email');
+      resetTurnstile();
     }
   };
 
@@ -94,6 +154,11 @@ function ForgotPasswordForm() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+          onReady={() => setScriptReady(true)}
+        />
         <div className="flex items-center justify-center min-h-screen px-4 pt-16">
           <div className="w-full max-w-md">
             <div className="bg-card border border-border rounded-lg shadow-lg p-8 text-center">
@@ -120,10 +185,12 @@ function ForgotPasswordForm() {
 
               <p className="text-xs text-muted-foreground mb-2">Don't see the email? Check your spam folder.</p>
 
+              <div ref={widgetRef} className="flex justify-center mb-4" />
+
               {/* Resend recovery link button */}
               <button
                 onClick={handleResendReset}
-                disabled={resendCooldown > 0 || resendStatus === 'sending'}
+                disabled={resendCooldown > 0 || resendStatus === 'sending' || !turnstileToken}
                 className="text-sm font-semibold text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline mb-6 block w-full text-center"
               >
                 {resendStatus === 'sending'
@@ -133,7 +200,7 @@ function ForgotPasswordForm() {
                   : 'Resend recovery email'}
               </button>
 
-              {resendStatus === 'sent' && resendCooldown === RESEND_COOLDOWN_SECONDS && (
+              {resendStatus === 'sent' && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-4">
                   <p className="text-sm text-green-800 dark:text-green-400">Recovery link resent. Check your inbox.</p>
                 </div>
@@ -158,6 +225,11 @@ function ForgotPasswordForm() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        strategy="afterInteractive"
+        onReady={() => setScriptReady(true)}
+      />
       <div className="flex items-center justify-center min-h-screen px-4 pt-16">
         <div className="w-full max-w-md">
           <div className="bg-card border border-border rounded-lg shadow-lg p-8">
@@ -178,6 +250,13 @@ function ForgotPasswordForm() {
                 />
               </div>
 
+              <div ref={widgetRef} />
+              {!TURNSTILE_SITE_KEY && (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  Turnstile site key is missing. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY and redeploy.
+                </p>
+              )}
+
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                   <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
@@ -186,7 +265,7 @@ function ForgotPasswordForm() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !turnstileToken}
                 className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Sending Recovery Link...' : 'Send Recovery Link'}
