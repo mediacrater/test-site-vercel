@@ -58,7 +58,22 @@ function ForgotPasswordForm() {
   useEffect(() => {
     if (!scriptReady) return;
     const turnstile = getTurnstile();
-    if (!turnstile || !widgetRef.current || widgetIdRef.current) return;
+    if (!turnstile || !widgetRef.current) return;
+
+    // Re-render whenever the active container changes (the initial form
+    // and the post-submit success view each have their own
+    // <div ref={widgetRef}>, and only one is mounted at a time — success
+    // swaps the entire returned JSX tree). Tearing down any previous
+    // widget first avoids the original bug: checking only
+    // widgetIdRef.current caused the effect to no-op after the first
+    // render, leaving the success view's container permanently empty and
+    // turnstileToken stuck null — which is why the resend button never
+    // showed a countdown, just stayed disabled.
+    if (widgetIdRef.current) {
+      turnstile.remove(widgetIdRef.current);
+      widgetIdRef.current = null;
+    }
+
     widgetIdRef.current = turnstile.render(widgetRef.current, {
       sitekey: TURNSTILE_SITE_KEY,
       theme: 'auto',
@@ -67,14 +82,15 @@ function ForgotPasswordForm() {
       'expired-callback': () => setTurnstileToken(null),
       'error-callback': () => setTurnstileToken(null),
     });
+    setTurnstileToken(null);
+
     return () => {
       if (widgetIdRef.current) {
         turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
-      setTurnstileToken(null);
     };
-  }, [scriptReady]);
+  }, [scriptReady, success]);
 
   function resetTurnstile() {
     const id = widgetIdRef.current;
