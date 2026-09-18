@@ -43,6 +43,12 @@ import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 import { collectDeviceClient } from '@/lib/collect-device-client';
 import { supabase } from "@/lib/mediacrater/supabaseClient"
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!;
+// Mirrors RESEND_WINDOW_SECONDS in app/api/resend-verification/route.ts.
+// Kept as a constant here (rather than only trusting the server's
+// response) so the countdown can start immediately after the original
+// signup send, before any /api/resend-verification call has happened to
+// return a real retryAfterSeconds value.
+const RESEND_WINDOW_SECONDS = 100;
 
 type TurnstileAPI = {
   render: (container: HTMLElement, options: Record<string, unknown>) => string;
@@ -196,6 +202,12 @@ export default function SignUpPage() {
       } else {
         setCheckEmail(true);
         resetTurnstile(); // fresh token required for the resend action
+        // Start the same cooldown that /api/resend-verification enforces
+        // (1 per 100s) immediately, since the original signup call just
+        // sent the first confirmation email — the resend button should
+        // reflect that from the moment this screen appears, not stay
+        // silently clickable until the first rejected click reveals it.
+        setResendCooldown(RESEND_WINDOW_SECONDS);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
@@ -232,7 +244,7 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Failed to resend verification email');
       }
       setResendState('sent');
-      setResendCooldown(data.retryAfterSeconds ?? 100);
+      setResendCooldown(data.retryAfterSeconds ?? RESEND_WINDOW_SECONDS);
       resetTurnstile();
     } catch (err: any) {
       setResendError(err.message || 'Failed to resend verification email. Please try again.');
