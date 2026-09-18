@@ -317,6 +317,7 @@ export async function POST(req: NextRequest) {
         status: 429,
         headers: {
           "Retry-After": String(RATE_LIMIT_WINDOW_MINUTES * 60),
+          "X-RateLimit-Action": "solutions_form",
           "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
           "X-RateLimit-Remaining": "0",
         },
@@ -356,5 +357,14 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ success: true }, { status: 200 })
+  return NextResponse.json(
+  { success: true },
+  {
+    status: 200,
+    headers: {
+      "X-RateLimit-Action": "solutions_form",
+      "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+    },
+  }
+)
 }
