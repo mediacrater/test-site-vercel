@@ -39,6 +39,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [scriptReady, setScriptReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -62,6 +63,16 @@ export default function SignInPage() {
       mounted = false
     }
   }, [router])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('reason') === 'scan_login_required') {
+      setLoginNotice(
+        'You need to be logged in to scan an ad. Please sign in, then go back to the extension and click Scan again.'
+      );
+    }
+  }, []);
   
   useEffect(() => {
     if (!scriptReady) return;
@@ -150,6 +161,11 @@ export default function SignInPage() {
                 Create an account
               </Link>
             </p>
+            {loginNotice && (
+              <div className="mb-5 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-sm text-blue-800 dark:text-blue-300">
+                {loginNotice}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5">Email</label>
