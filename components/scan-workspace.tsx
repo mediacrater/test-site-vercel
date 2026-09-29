@@ -30,6 +30,8 @@ import {
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { uploadScanThumbnail } from '@/lib/mediacrater/thumbnails';
 
+const [urlInput, setUrlInput] = useState('');
+const [resolvingUrl, setResolvingUrl] = useState(false);
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
   { value: 'meta', label: 'Meta (FB/IG)', icon: '/images/platform-icons/meta.png' },
@@ -597,6 +599,17 @@ export function ScanWorkspace({
   }, [
     backgroundScan.updatedAt,
   ]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const scanUrl = params.get('scan_url');
+    if (scanUrl) {
+      setUrlInput(scanUrl);
+      handleUrlSubmit(scanUrl);
+    // clean the URL so a refresh doesn't re-trigger it
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
   
   function startElapsedTimer(
     startTime = Date.now()
@@ -2408,7 +2421,16 @@ const activeResultOption =
                     )
                   }
                 />
-
+                <input
+                 type="url"
+                 placeholder="Or paste a video or image URL"
+                 value={urlInput}
+                 onChange={(e) => setUrlInput(e.target.value)}
+                 onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
+               />
+               <button onClick={handleUrlSubmit} disabled={!urlInput || resolvingUrl}>
+                 {resolvingUrl ? 'Checking...' : 'Add'}
+               </button>
                 <p className="font-medium text-foreground">
                   {canBatchScan
                     ? 'Drop up to 5 videos or images here, or click to browse'
