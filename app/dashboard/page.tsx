@@ -134,9 +134,15 @@ function DashboardContent() {
           await supabase.auth.getSession();
 
         if (!session) {
-          router.push(
-            '/signin'
-          );
+          const scanUrl =
+            searchParams.get('scan_url');
+
+          const redirectUrl =
+            scanUrl
+              ? `/signin?reason=scan_login_required`
+              : '/signin';
+
+          router.push(redirectUrl);
 
           return;
         }
