@@ -47,15 +47,6 @@ interface UserProfile
     | null;
 }
 
-interface VideoUrlCreative extends CreativeBase {
-  kind: 'video_url';
-  sourceUrl: string;
-}
-interface ImageUrlCreative extends CreativeBase {
-  kind: 'image_url';
-  sourceUrl: string;
-}
-type BatchCreative = ImageCreative | VideoCreative | VideoUrlCreative | ImageUrlCreative;
 
 export default function DashboardPage() {
   return (
