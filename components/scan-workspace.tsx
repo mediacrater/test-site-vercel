@@ -18,6 +18,11 @@ import {
   waitForQueueTurn,
 } from '@/lib/mediacrater/scanApi';
 import {
+  resolveCreativeUrl,
+  scanImageUrl,
+  scanVideoUrl,
+} from '@/lib/mediacrater/scanApiUrl';
+import {
   beginBackgroundScan,
   clearBackgroundScanState,
   completeBackgroundScan,
@@ -56,11 +61,13 @@ export interface WorkspaceProfile {
 
 type CreativeKind =
   | 'video'
-  | 'image';
+  | 'image'
+  | 'video_url'
+  | 'image_url';
 
 interface CreativeBase {
   id: string;
-  file: File;
+  displayName: string;
   previewUrl: string;
   platforms: string[];
 }
@@ -68,18 +75,36 @@ interface CreativeBase {
 interface ImageCreative
   extends CreativeBase {
   kind: 'image';
+  file: File;
 }
 
 interface VideoCreative
   extends CreativeBase {
   kind: 'video';
+  file: File;
+  scanType: ScanType;
+  analyzeAudio: boolean;
+}
+
+interface ImageUrlCreative
+  extends CreativeBase {
+  kind: 'image_url';
+  sourceUrl: string;
+}
+
+interface VideoUrlCreative
+  extends CreativeBase {
+  kind: 'video_url';
+  sourceUrl: string;
   scanType: ScanType;
   analyzeAudio: boolean;
 }
 
 type BatchCreative =
   | ImageCreative
-  | VideoCreative;
+  | VideoCreative
+  | ImageUrlCreative
+  | VideoUrlCreative;
 
 export interface CompletedScanFeedbackItem {
   creativeId: string;
@@ -113,17 +138,37 @@ interface Banner {
   onAction?: () => void;
 }
 
+function isVideoCreative(
+  creative: BatchCreative
+): creative is
+  | VideoCreative
+  | VideoUrlCreative {
+  return (
+    creative.kind === 'video' ||
+    creative.kind === 'video_url'
+  );
+}
+
+function isImageCreative(
+  creative: BatchCreative
+): creative is
+  | ImageCreative
+  | ImageUrlCreative {
+  return (
+    creative.kind === 'image' ||
+    creative.kind === 'image_url'
+  );
+}
+
 function orderCreativesForExecution(
   creatives: BatchCreative[]
 ) {
   return [
     ...creatives.filter(
-      (creative) =>
-        creative.kind === 'image'
+      isImageCreative
     ),
     ...creatives.filter(
-      (creative) =>
-        creative.kind === 'video'
+      isVideoCreative
     ),
   ];
 }
@@ -316,12 +361,6 @@ export function ScanWorkspace({
     useState<string | null>(null);
 
   const [
-    platformCreativeId,
-    setPlatformCreativeId,
-  ] =
-    useState<string | null>(null);
-
-  const [
     videoCreativeId,
     setVideoCreativeId,
   ] =
@@ -385,8 +424,10 @@ export function ScanWorkspace({
     creatives.filter(
       (
         creative
-      ): creative is VideoCreative =>
-        creative.kind === 'video'
+      ): creative is
+        | VideoCreative
+        | VideoUrlCreative =>
+        isVideoCreative(creative)
     );
 
   const platformCreative =
@@ -430,7 +471,7 @@ export function ScanWorkspace({
         }
 
         const creativeCost =
-          creative.kind === 'video' &&
+          isVideoCreative(creative) &&
           creative.scanType === 'deep'
             ? 2
             : 1;
@@ -478,8 +519,7 @@ export function ScanWorkspace({
       (previous) =>
         previous.map(
           (creative) =>
-            creative.kind ===
-            'video'
+            isVideoCreative(creative)
               ? {
                   ...creative,
                   analyzeAudio:
@@ -895,6 +935,8 @@ export function ScanWorkspace({
       const base = {
         id:
           crypto.randomUUID(),
+        displayName:
+          file.name,
         file,
         previewUrl:
           objectUrl,
@@ -920,6 +962,149 @@ export function ScanWorkspace({
       );
 
       throw error;
+    }
+  }
+
+  async function handleUrlSubmit(
+    providedUrl?: string
+  ) {
+    const sourceUrl =
+      (providedUrl ?? urlInput).trim();
+
+    if (!sourceUrl) {
+      return;
+    }
+
+    clearBackgroundScanState();
+    setBanner(null);
+    setResults(null);
+    setSelectedResultCreativeId(
+      null
+    );
+    onResultsChange?.(null);
+
+    if (
+      !canBatchScan &&
+      creatives.length > 0
+    ) {
+      setBanner({
+        tone: 'warning',
+        title:
+          'Paid plan required',
+        message:
+          'Batch scanning is available on paid plans. Free accounts can scan one creative at a time.',
+        actionLabel:
+          'Upgrade plan',
+        onAction: () =>
+          window.location.assign(
+            '/buy-tokens'
+          ),
+      });
+
+      return;
+    }
+
+    const maxFiles =
+      canBatchScan
+        ? MAX_BATCH_FILES
+        : 1;
+
+    if (
+      creatives.length + 1 >
+      maxFiles
+    ) {
+      setBanner({
+        tone: 'warning',
+        title:
+          'Batch limit reached',
+        message:
+          `You can add up to ${maxFiles} creative${maxFiles === 1 ? '' : 's'} at a time.`,
+      });
+
+      return;
+    }
+
+    setResolvingUrl(true);
+
+    try {
+      const resolved =
+        await resolveCreativeUrl(
+          sourceUrl
+        );
+
+      const displayName =
+        resolved.fileName ||
+        new URL(
+          resolved.url
+        ).hostname;
+
+      const creative:
+        BatchCreative =
+        resolved.kind === 'video'
+          ? {
+              id:
+                crypto.randomUUID(),
+              kind: 'video_url',
+              sourceUrl:
+                resolved.url,
+              displayName,
+              previewUrl:
+                resolved.url,
+              platforms: [],
+              scanType:
+                'regular',
+              analyzeAudio:
+                false,
+            }
+          : {
+              id:
+                crypto.randomUUID(),
+              kind: 'image_url',
+              sourceUrl:
+                resolved.url,
+              displayName,
+              previewUrl:
+                resolved.url,
+              platforms: [],
+            };
+
+      setCreatives(
+        (previous) => [
+          ...previous,
+          creative,
+        ]
+      );
+
+      setPlatformCreativeId(
+        (previous) =>
+          previous ??
+          creative.id
+      );
+
+      if (
+        isVideoCreative(
+          creative
+        )
+      ) {
+        setVideoCreativeId(
+          (previous) =>
+            previous ??
+            creative.id
+        );
+      }
+
+      setUrlInput('');
+    } catch (error: any) {
+      setBanner({
+        tone: 'error',
+        title:
+          'URL not supported',
+        message:
+          error?.message ||
+          'This URL could not be resolved. Please use a direct image or video URL from a supported source.',
+      });
+    } finally {
+      setResolvingUrl(false);
     }
   }
 
@@ -1080,8 +1265,7 @@ export function ScanWorkspace({
         (
           creative
         ): creative is VideoCreative =>
-          creative.kind ===
-          'video'
+          isVideoCreative(creative)
       );
 
     if (firstNewVideo) {
@@ -1145,9 +1329,10 @@ export function ScanWorkspace({
       next.filter(
         (
           item
-        ): item is VideoCreative =>
-          item.kind ===
-          'video'
+        ): item is
+          | VideoCreative
+          | VideoUrlCreative =>
+          isVideoCreative(item)
       );
 
     setVideoCreativeId(
@@ -1235,8 +1420,7 @@ export function ScanWorkspace({
           (creative) =>
             creative.id ===
               selectedVideoCreative.id &&
-            creative.kind ===
-              'video'
+            isVideoCreative(creative)
               ? {
                   ...creative,
                   ...patch,
@@ -1257,8 +1441,7 @@ export function ScanWorkspace({
       (previous) =>
         previous.map(
           (creative) =>
-            creative.kind ===
-            'video'
+            isVideoCreative(creative)
               ? {
                   ...creative,
                   scanType:
@@ -1511,7 +1694,10 @@ export function ScanWorkspace({
                 signal
               );
           }
-        } else {
+        } else if (
+          creative.kind ===
+          'image'
+        ) {
           const imageData =
             await fileToBase64(
               creative.file
@@ -1526,6 +1712,9 @@ export function ScanWorkspace({
             data: imageData,
           }];
 
+          framesExtractedTime =
+            Date.now();
+        } else {
           framesExtractedTime =
             Date.now();
         }
@@ -1599,7 +1788,7 @@ for (
 
           const fileName =
             profile?.scan_history
-              ? creative.file.name
+              ? creative.displayName
               : null;
 
           try {
@@ -1631,6 +1820,33 @@ for (
                     fileName,
                     batchMeta
                   )
+                : creative.kind ===
+                  'video_url'
+                  ? await scanVideoUrl(
+                      creative.sourceUrl,
+                      platform,
+                      creative.scanType,
+                      null,
+                      signal,
+                      scanId,
+                      null,
+                      fileName,
+                      batchMeta,
+                      creative.analyzeAudio &&
+                        canAnalyzeAudio
+                    )
+                  : creative.kind ===
+                    'image_url'
+                    ? await scanImageUrl(
+                        creative.sourceUrl,
+                        platform,
+                        null,
+                        signal,
+                        scanId,
+                        null,
+                        fileName,
+                        batchMeta
+                      )
                 : await scanImage(
                     frames[0].data,
                     platform,
@@ -1716,7 +1932,7 @@ for (
 
               response =
                 creative.kind ===
-                  'video'
+                'video'
                   ? await scanVideo(
                       frames,
                       audio,
@@ -1729,6 +1945,33 @@ for (
                       fileName,
                       batchMeta
                     )
+                  : creative.kind ===
+                    'video_url'
+                    ? await scanVideoUrl(
+                        creative.sourceUrl,
+                        platform,
+                        creative.scanType,
+                        jobId,
+                        signal,
+                        scanId,
+                        null,
+                        fileName,
+                        batchMeta,
+                        creative.analyzeAudio &&
+                          canAnalyzeAudio
+                      )
+                    : creative.kind ===
+                      'image_url'
+                      ? await scanImageUrl(
+                          creative.sourceUrl,
+                          platform,
+                          jobId,
+                          signal,
+                          scanId,
+                          null,
+                          fileName,
+                          batchMeta
+                        )
                   : await scanImage(
                       frames[0].data,
                       platform,
@@ -1776,7 +2019,7 @@ for (
               creativeId:
                 creative.id,
               fileName:
-                creative.file.name,
+                creative.displayName,
               fileKind:
                 creative.kind,
               batchPosition,
@@ -2059,7 +2302,7 @@ for (
                 creativeId:
                   creative.id,
                 fileName:
-                  creative.file.name,
+                  creative.displayName,
                 fileKind:
                   creative.kind,
                 batchPosition:
@@ -2444,7 +2687,7 @@ const activeResultOption =
                  onChange={(e) => setUrlInput(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
                />
-               <button onClick={handleUrlSubmit} disabled={!urlInput || resolvingUrl}>
+               <button onClick={() => handleUrlSubmit()} disabled={!urlInput || resolvingUrl}>
                  {resolvingUrl ? 'Checking...' : 'Add'}
                </button>
                 <p className="font-medium text-foreground">
@@ -2492,8 +2735,7 @@ const activeResultOption =
                           className="flex items-center gap-3 border border-border rounded-lg p-3"
                         >
                           <div className="w-16 h-12 shrink-0 rounded-md overflow-hidden bg-muted">
-                            {creative.kind ===
-                            'video' ? (
+                            {isVideoCreative(creative) ? (
                               <video
                                 src={
                                   creative.previewUrl
@@ -2516,14 +2758,12 @@ const activeResultOption =
                             <p className="text-sm font-medium truncate">
                               {
                                 creative
-                                  .file
-                                  .name
+                                  .displayName
                               }
                             </p>
 
                             <p className="text-xs text-muted-foreground">
-                              {creative.kind ===
-                              'video'
+                              {isVideoCreative(creative)
                                 ? 'Video'
                                 : 'Image'}
 
@@ -2541,7 +2781,7 @@ const activeResultOption =
                               )
                             }
                             className="text-muted-foreground hover:text-foreground text-lg leading-none px-2"
-                            aria-label={`Remove ${creative.file.name}`}
+                            aria-label={`Remove ${creative.displayName}`}
                           >
                             ×
                           </button>
@@ -2584,7 +2824,7 @@ const activeResultOption =
                 key={creative.id}
                 value={creative.id}
               >
-                {creative.file.name}
+                {creative.displayName}
               </option>
             )
           )}
@@ -2702,8 +2942,7 @@ const activeResultOption =
                               >
                                 {
                                   creative
-                                    .file
-                                    .name
+                                    .displayName
                                 }
                               </option>
                             )
