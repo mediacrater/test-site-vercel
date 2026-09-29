@@ -14,94 +14,122 @@ function PurchaseSuccessContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const verifyPurchase = async () => {
-  const sessionId = searchParams.get('session_id');
+  let cancelled = false;
 
-  if (!sessionId) {
-    setErrorMessage(
-      'No session ID was found. If you completed a purchase, please contact support.'
-    );
-    setStatus('error');
-    return;
-  }
+  const wait = (milliseconds: number) =>
+    new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
-  const maximumAttempts = 12;
-  const retryDelayMs = 1500;
+  const verifyPurchase = async () => {
+    const sessionId = searchParams.get('session_id');
 
-  for (let attempt = 1; attempt <= maximumAttempts; attempt++) {
-    try {
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/verify-session`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            apikey: SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sessionId }),
-        }
-      );
-
-      const responseText = await response.text();
-      let data: {
-        success?: boolean;
-        status?: string;
-        tokens?: number;
-        error?: string;
-      } = {};
-
-      if (responseText) {
-        try {
-          data = JSON.parse(responseText);
-        } catch {
-          throw new Error(
-            `Verification returned an invalid response (${response.status})`
-          );
-        }
-      }
-
-      if (response.ok && data.success) {
-        setScanAmount(data.tokens ?? 0);
-        setStatus('success');
-        return;
-      }
-
-      if (response.status === 202 || data.status === 'pending') {
-        await new Promise((resolve) =>
-          window.setTimeout(resolve, retryDelayMs)
+    if (!sessionId) {
+      if (!cancelled) {
+        setErrorMessage(
+          'No session ID was found. If you completed a purchase, please contact support.'
         );
-        continue;
+        setStatus('error');
       }
+      return;
+    }
 
-      throw new Error(
-        data.error || `Purchase verification failed (${response.status})`
-      );
-    } catch (error) {
-      console.error('Purchase verification attempt failed:', error);
+    const maximumAttempts = 12;
+    const retryDelayMs = 1500;
+    let lastError = '';
+
+    for (let attempt = 1; attempt <= maximumAttempts; attempt++) {
+      if (cancelled) return;
+
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/functions/v1/verify-session`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              apikey: SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ sessionId }),
+          }
+        );
+
+        const responseText = await response.text();
+        let data: {
+          success?: boolean;
+          status?: string;
+          tokens?: number;
+          scans?: number;
+          error?: string;
+        } = {};
+
+        if (responseText) {
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            throw new Error(
+              `Verification returned an invalid response (${response.status})`
+            );
+          }
+        }
+
+        if (response.ok && data.success) {
+          if (!cancelled) {
+            setScanAmount(data.scans ?? data.tokens ?? 0);
+            setStatus('success');
+          }
+          return;
+        }
+
+        if (response.status === 202 || data.status === 'pending') {
+          if (attempt < maximumAttempts) {
+            await wait(retryDelayMs);
+            continue;
+          }
+
+          lastError =
+            'Your payment was completed, but your plan is still being activated.';
+          break;
+        }
+
+        lastError =
+          data.error || `Verification failed (${response.status}).`;
+
+        if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          break;
+        }
+      } catch (error) {
+        console.error('Purchase verification attempt failed:', error);
+
+        lastError =
+          error instanceof Error
+            ? error.message
+            : 'Purchase verification request failed.';
+      }
 
       if (attempt < maximumAttempts) {
-        await new Promise((resolve) =>
-          window.setTimeout(resolve, retryDelayMs)
-        );
-        continue;
+        await wait(retryDelayMs);
       }
+    }
 
+    if (!cancelled) {
       setErrorMessage(
-        'Your payment was completed, but your updated plan could not be confirmed on this page. Reopen the Mediacrater extension in a moment. Contact support only if the plan remains unchanged.'
+        lastError ||
+          'Your payment was completed, but your updated plan could not be confirmed. Reopen the Mediacrater extension in a moment.'
       );
       setStatus('error');
     }
-  }
+  };
 
-  setErrorMessage(
-    'Your payment was completed and your plan is still being activated. Reopen the Mediacrater extension in a moment.'
-  );
-  setStatus('error');
-};
+  verifyPurchase();
 
-    verifyPurchase();
-  }, [searchParams]);
+  return () => {
+    cancelled = true;
+  };
+}, [searchParams]);
 
   return (
     <div className="min-h-screen bg-background">
