@@ -15,47 +15,90 @@ function PurchaseSuccessContent() {
 
   useEffect(() => {
     const verifyPurchase = async () => {
-      const sessionId = searchParams.get('session_id');
+  const sessionId = searchParams.get('session_id');
 
-      if (!sessionId) {
-        setErrorMessage('No session ID found in the URL. If you completed a purchase, please contact support.');
-        setStatus('error');
+  if (!sessionId) {
+    setErrorMessage(
+      'No session ID was found. If you completed a purchase, please contact support.'
+    );
+    setStatus('error');
+    return;
+  }
+
+  const maximumAttempts = 12;
+  const retryDelayMs = 1500;
+
+  for (let attempt = 1; attempt <= maximumAttempts; attempt++) {
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/verify-session`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            apikey: SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        }
+      );
+
+      const responseText = await response.text();
+      let data: {
+        success?: boolean;
+        status?: string;
+        tokens?: number;
+        error?: string;
+      } = {};
+
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error(
+            `Verification returned an invalid response (${response.status})`
+          );
+        }
+      }
+
+      if (response.ok && data.success) {
+        setScanAmount(data.tokens ?? 0);
+        setStatus('success');
         return;
       }
 
-      try {
-        const response = await fetch(
-          `${SUPABASE_URL}/functions/v1/verify-session?session_id=${sessionId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            }
-          }
+      if (response.status === 202 || data.status === 'pending') {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, retryDelayMs)
         );
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setScanAmount(data.tokens);
-          setStatus('success');
-        } else {
-          console.error('Purchase verification failed:', {
-            status: response.status,
-            error: data.error,
-            sessionId,
-          });
-
-          setErrorMessage(
-              'Your checkout completed, but we could not confirm the updated plan on this page. Return to the Mediacrater extension and reopen it. If your plan is not updated after a minute, contact support.'
-          );
-          setStatus('error');
-        }
-      } catch (error: any) {
-        console.error('Verification error:', error);
-        setErrorMessage('A network error occurred while verifying your purchase. Please check your connection and try again, or contact support if you were charged.');
-        setStatus('error');
+        continue;
       }
-    };
+
+      throw new Error(
+        data.error || `Purchase verification failed (${response.status})`
+      );
+    } catch (error) {
+      console.error('Purchase verification attempt failed:', error);
+
+      if (attempt < maximumAttempts) {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, retryDelayMs)
+        );
+        continue;
+      }
+
+      setErrorMessage(
+        'Your payment was completed, but your updated plan could not be confirmed on this page. Reopen the Mediacrater extension in a moment. Contact support only if the plan remains unchanged.'
+      );
+      setStatus('error');
+    }
+  }
+
+  setErrorMessage(
+    'Your payment was completed and your plan is still being activated. Reopen the Mediacrater extension in a moment.'
+  );
+  setStatus('error');
+};
 
     verifyPurchase();
   }, [searchParams]);
