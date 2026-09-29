@@ -744,6 +744,162 @@ export function ScanWorkspace({
     });
   }
 
+  async function createVideoUrlThumbnail(
+    videoUrl: string
+  ): Promise<string | null> {
+    return new Promise(
+      (resolve) => {
+        const video =
+          document.createElement(
+            'video'
+          );
+
+        const canvas =
+          document.createElement(
+            'canvas'
+          );
+
+        const timeout =
+          window.setTimeout(
+            () => {
+              cleanup();
+              resolve(null);
+            },
+            8000
+          );
+
+        const cleanup = () => {
+          window.clearTimeout(
+            timeout
+          );
+
+          video.removeAttribute(
+            'src'
+          );
+
+          video.load();
+        };
+
+        video.crossOrigin =
+          'anonymous';
+        video.muted = true;
+        video.playsInline = true;
+        video.preload =
+          'metadata';
+
+        video.addEventListener(
+          'loadedmetadata',
+          () => {
+            if (
+              Number.isFinite(
+                video.duration
+              ) &&
+              video.duration > 0
+            ) {
+              video.currentTime =
+                Math.min(
+                  0.1,
+                  video.duration / 2
+                );
+            }
+          },
+          {
+            once: true,
+          }
+        );
+
+        video.addEventListener(
+          'seeked',
+          () => {
+            try {
+              const ctx =
+                canvas.getContext(
+                  '2d'
+                );
+
+              if (
+                !ctx ||
+                !video.videoWidth ||
+                !video.videoHeight
+              ) {
+                cleanup();
+                resolve(null);
+                return;
+              }
+
+              const maxLongEdge =
+                180;
+
+              const scale =
+                Math.min(
+                  1,
+                  maxLongEdge /
+                    Math.max(
+                      video.videoWidth,
+                      video.videoHeight
+                    )
+                );
+
+              canvas.width =
+                Math.max(
+                  1,
+                  Math.round(
+                    video.videoWidth *
+                      scale
+                  )
+                );
+
+              canvas.height =
+                Math.max(
+                  1,
+                  Math.round(
+                    video.videoHeight *
+                      scale
+                  )
+                );
+
+              ctx.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+              const dataUrl =
+                canvas.toDataURL(
+                  'image/jpeg',
+                  0.55
+                );
+
+              cleanup();
+              resolve(dataUrl);
+            } catch {
+              cleanup();
+              resolve(null);
+            }
+          },
+          {
+            once: true,
+          }
+        );
+
+        video.addEventListener(
+          'error',
+          () => {
+            cleanup();
+            resolve(null);
+          },
+          {
+            once: true,
+          }
+        );
+
+        video.src = videoUrl;
+      }
+    );
+  }
+
   async function prepareCreative(
     file: File
   ): Promise<BatchCreative> {
@@ -1038,6 +1194,13 @@ export function ScanWorkspace({
           resolved.url
         ).hostname;
 
+      const previewUrl =
+        resolved.kind === 'video'
+          ? await createVideoUrlThumbnail(
+              resolved.url
+            )
+          : resolved.url;
+
       const creative:
         BatchCreative =
         resolved.kind === 'video'
@@ -1049,7 +1212,7 @@ export function ScanWorkspace({
                 resolved.url,
               displayName,
               previewUrl:
-                resolved.url,
+                previewUrl || '',
               platforms: [],
               scanType:
                 'regular',
@@ -2680,16 +2843,66 @@ const activeResultOption =
                     )
                   }
                 />
-                <input
-                 type="url"
-                 placeholder="Or paste a video or image URL"
-                 value={urlInput}
-                 onChange={(e) => setUrlInput(e.target.value)}
-                 onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
-               />
-               <button onClick={() => handleUrlSubmit()} disabled={!urlInput || resolvingUrl}>
-                 {resolvingUrl ? 'Checking...' : 'Add'}
-               </button>
+                <div
+                  className="max-w-3xl mx-auto mb-5"
+                  onClick={(event) =>
+                    event.stopPropagation()
+                  }
+                  onPointerDown={(event) =>
+                    event.stopPropagation()
+                  }
+                >
+                  <label
+                    htmlFor="creative-url"
+                    className="block text-sm font-semibold text-foreground mb-2"
+                  >
+                    Paste a video or image URL
+                  </label>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      id="creative-url"
+                      type="url"
+                      placeholder="https://..."
+                      value={urlInput}
+                      onChange={(event) =>
+                        setUrlInput(
+                          event.target.value
+                        )
+                      }
+                      onKeyDown={(event) => {
+                        event.stopPropagation();
+
+                        if (
+                          event.key ===
+                          'Enter'
+                        ) {
+                          event.preventDefault();
+                          handleUrlSubmit();
+                        }
+                      }}
+                      className="min-w-0 flex-1 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleUrlSubmit();
+                      }}
+                      disabled={
+                        !urlInput ||
+                        resolvingUrl
+                      }
+                      className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {resolvingUrl
+                        ? 'Checking...'
+                        : 'Add URL'}
+                    </button>
+                  </div>
+                </div>
+
                 <p className="font-medium text-foreground">
                   {canBatchScan
                     ? 'Drop up to 5 videos or images here, or click to browse'
@@ -2735,7 +2948,8 @@ const activeResultOption =
                           className="flex items-center gap-3 border border-border rounded-lg p-3"
                         >
                           <div className="w-16 h-12 shrink-0 rounded-md overflow-hidden bg-muted">
-                            {isVideoCreative(creative) ? (
+                            {creative.kind ===
+                            'video' ? (
                               <video
                                 src={
                                   creative.previewUrl
@@ -2743,7 +2957,7 @@ const activeResultOption =
                                 muted
                                 className="w-full h-full object-cover"
                               />
-                            ) : (
+                            ) : creative.previewUrl ? (
                               <img
                                 src={
                                   creative.previewUrl
@@ -2751,6 +2965,10 @@ const activeResultOption =
                                 alt=""
                                 className="w-full h-full object-cover"
                               />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground">
+                                URL
+                              </div>
                             )}
                           </div>
 
