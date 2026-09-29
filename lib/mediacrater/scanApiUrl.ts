@@ -1,3 +1,5 @@
+//scanApiUrl.ts
+
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 const API_BASE_URL =
@@ -81,20 +83,16 @@ async function postJson<T>(
 
   const payload =
     await response.json().catch(
-      () => ({})
+      () => null
     );
-
-  const json = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(
-      json?.message ||
-        json?.error ||
-        'Video URL scan failed. Please try again.'
+      payload?.message ||
+        payload?.error ||
+        'URL scan failed. Please try again.'
     );
   }
-
-  return json;
 
   return payload as T;
 }
