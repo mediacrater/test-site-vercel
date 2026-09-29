@@ -162,7 +162,7 @@ export default function SignInPage() {
               </Link>
             </p>
             {loginNotice && (
-              <div className="mb-5 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-sm text-blue-800 dark:text-blue-300">
+              <div className="mb-5 p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 text-sm text-orange-800 dark:text-orange-300">
                 {loginNotice}
               </div>
             )}
