@@ -84,13 +84,17 @@ async function postJson<T>(
       () => ({})
     );
 
+  const json = await response.json().catch(() => null);
+
   if (!response.ok) {
     throw new Error(
-      payload.message ||
-      payload.error ||
-      'Request failed'
+      json?.message ||
+        json?.error ||
+        'Video URL scan failed. Please try again.'
     );
   }
+
+  return json;
 
   return payload as T;
 }
