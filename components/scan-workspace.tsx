@@ -30,8 +30,6 @@ import {
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { uploadScanThumbnail } from '@/lib/mediacrater/thumbnails';
 
-const [urlInput, setUrlInput] = useState('');
-const [resolvingUrl, setResolvingUrl] = useState(false);
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
   { value: 'meta', label: 'Meta (FB/IG)', icon: '/images/platform-icons/meta.png' },
@@ -298,6 +296,24 @@ export function ScanWorkspace({
     setCreatives,
   ] =
     useState<BatchCreative[]>([]);
+
+  const [
+    urlInput,
+    setUrlInput,
+  ] =
+    useState('');
+
+  const [
+    resolvingUrl,
+    setResolvingUrl,
+  ] =
+    useState(false);
+
+  const [
+    platformCreativeId,
+    setPlatformCreativeId,
+  ] =
+    useState<string | null>(null);
 
   const [
     platformCreativeId,
