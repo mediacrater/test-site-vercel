@@ -39,7 +39,15 @@ function PurchaseSuccessContent() {
           setScanAmount(data.tokens);
           setStatus('success');
         } else {
-          setErrorMessage(data.error || `Verification failed (${response.status}). If you were charged, please contact support.`);
+          console.error('Purchase verification failed:', {
+            status: response.status,
+            error: data.error,
+            sessionId,
+          });
+
+          setErrorMessage(
+              'Your checkout completed, but we could not confirm the updated plan on this page. Return to the Mediacrater extension and reopen it. If your plan is not updated after a minute, contact support.'
+          );
           setStatus('error');
         }
       } catch (error: any) {
