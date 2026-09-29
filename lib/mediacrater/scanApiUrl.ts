@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 
 const API_BASE_URL =
-  '/api/mediacrater';
+  process.env.NEXT_PUBLIC_VPS_API_URL || '';
 
 interface BatchMeta {
   batchedByClient: boolean;
