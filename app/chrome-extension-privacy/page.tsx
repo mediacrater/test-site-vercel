@@ -30,7 +30,7 @@ export default function ExtensionPrivacyPolicy() {
         <p>
           This policy applies specifically to the Mediacrater Chrome extension. Our web app is
           also governed by the main Mediacrater{' '}
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/privacy" className="underline">
+          <a href="/privacy" className="underline">
             Privacy Policy
           </a>.
         </p>
