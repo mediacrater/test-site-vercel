@@ -1,3 +1,4 @@
+//app/api/[...path]/route.ts
 import { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { timingSafeEqual } from "node:crypto"
