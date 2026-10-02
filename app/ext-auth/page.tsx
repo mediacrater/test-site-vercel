@@ -1,7 +1,7 @@
 // app/ext-auth/page.tsx
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Script from "next/script"
 
@@ -15,9 +15,9 @@ declare global {
   }
 }
 
-const EXTENSION_ID = process.env.NEXT_PUBLIC_EXTENSION_ID! // set this in Vercel
+const EXTENSION_ID = process.env.NEXT_PUBLIC_EXTENSION_ID!
 
-export default function ExtAuthPage() {
+function ExtAuthContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
   const password = searchParams.get("password") || ""
@@ -31,12 +31,13 @@ export default function ExtAuthPage() {
     if (!email || !password) {
       setStatus("error")
       setErrorMsg("Missing credentials.")
-      return
     }
   }, [email, password])
 
   function onTurnstileLoad() {
     if (!containerRef.current || !window.turnstile) return
+    if (!email || !password) return
+
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!,
       callback: async (token: string) => {
@@ -50,18 +51,18 @@ export default function ExtAuthPage() {
           const data = await res.json()
           if (!res.ok) throw new Error(data.error || "Sign in failed")
 
-          // Send session back to the extension
           if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
             chrome.runtime.sendMessage(
               EXTENSION_ID,
-              { type: "MEDIACRATER_EXT_SIGNIN_RESULT", success: true, session: data.session },
-              () => {
-                // ignore lastError; tab will close anyway
-              }
+              {
+                type: "MEDIACRATER_EXT_SIGNIN_RESULT",
+                success: true,
+                session: data.session,
+              },
+              () => {}
             )
           }
           setStatus("done")
-          // give the extension a moment to receive the message
           setTimeout(() => window.close(), 400)
         } catch (err: any) {
           setStatus("error")
@@ -93,5 +94,13 @@ export default function ExtAuthPage() {
       {status === "error" && <p style={{ color: "crimson" }}>{errorMsg}</p>}
       <div ref={containerRef} style={{ marginTop: 16 }} />
     </div>
+  )
+}
+
+export default function ExtAuthPage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: "center", marginTop: 40 }}>Loading…</div>}>
+      <ExtAuthContent />
+    </Suspense>
   )
 }
