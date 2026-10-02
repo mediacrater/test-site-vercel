@@ -1,121 +1,166 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+import { timingSafeEqual } from "node:crypto"
+import { isIP } from "node:net"
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_VPS_API_URL ||
-  '';
+// Shared rate limiting and Turnstile verification. Cloudflare sets both
+// private request headers; Vercel authenticates them before using the IP.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-const ALLOWED_PATHS = new Set([
-  'resolve-url',
-  'scan-video-url',
-  'scan-image-url',
-]);
+export type RateLimitAction = "signup" | "signin" | "reset_password" | "resend_verification" | "solutions_form"
 
-async function proxyRequest(
-  request: NextRequest,
-  context: {
-    params:
-      | {
-          path?: string[];
-        }
-      | Promise<{
-          path?: string[];
-        }>;
-  }
-) {
-  if (!API_BASE_URL) {
-    return NextResponse.json(
-      {
-        error:
-          'Mediacrater API URL is not configured.',
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-
-  const params =
-    await Promise.resolve(
-      context.params
-    );
-
-  const path =
-    (params.path || []).join('/');
-
-  if (!ALLOWED_PATHS.has(path)) {
-    return NextResponse.json(
-      {
-        error:
-          'Endpoint not allowed.',
-      },
-      {
-        status: 404,
-      }
-    );
-  }
-
-  const upstreamUrl =
-    `${API_BASE_URL.replace(/\/$/, '')}/${path}`;
-
-  const body =
-    request.method === 'GET' ||
-    request.method === 'HEAD'
-      ? undefined
-      : await request.text();
-
-  const upstreamResponse =
-    await fetch(upstreamUrl, {
-      method:
-        request.method,
-      headers: {
-        Authorization:
-          request.headers.get(
-            'authorization'
-          ) || '',
-        'Content-Type':
-          request.headers.get(
-            'content-type'
-          ) || 'application/json',
-        'x-scan-origin':
-          'webapp',
-      },
-      body,
-      cache:
-        'no-store',
-    });
-
-  const responseText =
-    await upstreamResponse.text();
-
-  return new NextResponse(
-    responseText,
-    {
-      status:
-        upstreamResponse.status,
-      headers: {
-        'Content-Type':
-          upstreamResponse.headers.get(
-            'content-type'
-          ) || 'application/json',
-      },
-    }
-  );
+export type RateLimitResult = {
+  allowed: boolean
+  retryAfterSeconds: number
+  error?: string
 }
 
-export async function POST(
-  request: NextRequest,
-  context: {
-    params:
-      | {
-          path?: string[];
-        }
-      | Promise<{
-          path?: string[];
-        }>;
+export async function checkAndLogRateLimit(
+  action: RateLimitAction,
+  ip: string,
+  maxAttempts: number,
+  windowSeconds: number
+): Promise<RateLimitResult> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .rpc("check_and_log_rate_limit", {
+        p_action: action,
+        p_ip: ip,
+        p_user_id: null,
+        p_max_attempts: maxAttempts,
+        p_window_seconds: windowSeconds,
+      })
+      .single()
+
+    if (error) {
+      console.error(
+        `[RATE LIMIT] RPC error for action "${action}":`,
+        error.message
+      )
+
+      return {
+        allowed: false,
+        retryAfterSeconds: windowSeconds,
+        error: error.message,
+      }
+    }
+
+    if (
+      !data ||
+      typeof data.allowed !== "boolean" ||
+      !Number.isInteger(data.retry_after_seconds) ||
+      data.retry_after_seconds < 0 ||
+      (!data.allowed && data.retry_after_seconds < 1)
+    ) {
+      console.error(
+        `[RATE LIMIT] Invalid RPC response for action "${action}".`
+      )
+
+      return {
+        allowed: false,
+        retryAfterSeconds: windowSeconds,
+        error: "Invalid rate limit response.",
+      }
+    }
+
+    return {
+      allowed: data.allowed,
+      retryAfterSeconds: data.retry_after_seconds,
+    }
+  } catch (error) {
+    console.error(
+      `[RATE LIMIT] Request failed for action "${action}":`,
+      error
+    )
+
+    return {
+      allowed: false,
+      retryAfterSeconds: windowSeconds,
+      error: "Rate limit request failed.",
+    }
   }
-) {
-  return proxyRequest(
-    request,
-    context
-  );
+}
+
+export function clientIpFrom(req: NextRequest): string {
+  const expectedSecret = process.env.CLOUDFLARE_PROXY_SECRET
+  const suppliedSecret = req.headers.get("x-mediacrater-proxy-secret")
+
+  if (!expectedSecret || !/^[0-9a-f]{64}$/i.test(expectedSecret)) {
+    throw new Error("Trusted proxy configuration is unavailable.")
+  }
+
+  if (
+    !suppliedSecret ||
+    !/^[0-9a-f]{64}$/i.test(suppliedSecret) ||
+    !timingSafeEqual(
+      Buffer.from(suppliedSecret, "hex"),
+      Buffer.from(expectedSecret, "hex")
+    )
+  ) {
+    throw new Error("Request did not arrive through the trusted proxy.")
+  }
+
+  const ip = req.headers.get("x-mediacrater-client-ip")?.trim()
+  if (!ip || ip.includes("%") || isIP(ip) === 0) {
+    throw new Error("Trusted proxy did not supply a valid client IP.")
+  }
+
+  if (isIP(ip) === 4) return ip
+
+  // Store equivalent IPv6 spellings under the same rate-limit key.
+  const canonical = new URL(`http://[${ip}]/`).hostname.slice(1, -1)
+  if (canonical.startsWith("::ffff:")) {
+    const [high, low] = canonical.slice(7).split(":")
+    const highValue = Number.parseInt(high, 16)
+    const lowValue = Number.parseInt(low, 16)
+    return `${highValue >> 8}.${highValue & 255}.${lowValue >> 8}.${lowValue & 255}`
+  }
+  return canonical
+}
+
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+export async function verifyTurnstileToken(
+  token: string | undefined | null,
+  ip: string
+): Promise<boolean> {
+  if (!token) return false
+
+  const secretKey = process.env.TURNSTILE_SECRET_KEY
+  if (!secretKey) {
+    console.error("TURNSTILE_SECRET_KEY is not set.")
+    return false
+  }
+
+  try {
+    const params = new URLSearchParams()
+    params.append("secret", secretKey)
+    params.append("response", token)
+    if (ip && ip !== "unknown") {
+      params.append("remoteip", ip)
+    }
+
+    const res = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    })
+
+    if (!res.ok) {
+      console.error("Turnstile siteverify HTTP error:", res.status)
+      return false
+    }
+
+    const result = (await res.json()) as { success: boolean; [key: string]: unknown }
+    if (!result.success) {
+      console.error("Turnstile verification failed:", result)
+    }
+    return result.success === true
+  } catch (err) {
+    console.error("Failed to reach Turnstile siteverify:", err)
+    return false
+  }
 }
