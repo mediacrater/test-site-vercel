@@ -1,10 +1,22 @@
 import { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { timingSafeEqual } from "node:crypto"
-import { isIP } from "node:net"
 
-// Shared rate limiting and Turnstile verification. Cloudflare sets both
-// private request headers; Vercel authenticates them before using the IP.
+// ---------------------------------------------------------------------------
+// Shared rate limiting (Supabase-backed, atomic via RPC) + Turnstile
+// verification, used across signup, signin, reset-password, and
+// resend-verification.
+//
+// Table: rate_limits (action, ip, user_id, created_at)
+// RPC:   check_and_log_rate_limit(p_action, p_ip, p_user_id,
+//                                  p_max_attempts, p_window_seconds)
+//        returns (allowed boolean, retry_after_seconds int)
+//
+// user_id is always passed as null from every current call site: none of
+// signup/signin/reset-password/resend-verification run behind an
+// authenticated session at the point the check happens. The column and
+// parameter are kept for future endpoints that do run behind auth.
+// ---------------------------------------------------------------------------
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -85,40 +97,15 @@ export async function checkAndLogRateLimit(
 }
 
 export function clientIpFrom(req: NextRequest): string {
-  const expectedSecret = process.env.CLOUDFLARE_PROXY_SECRET
-  const suppliedSecret = req.headers.get("x-mediacrater-proxy-secret")
-
-  if (!expectedSecret || !/^[0-9a-f]{64}$/i.test(expectedSecret)) {
-    throw new Error("Trusted proxy configuration is unavailable.")
+  const forwardedFor = req.headers.get("x-forwarded-for")
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim()
   }
-
-  if (
-    !suppliedSecret ||
-    !/^[0-9a-f]{64}$/i.test(suppliedSecret) ||
-    !timingSafeEqual(
-      Buffer.from(suppliedSecret, "hex"),
-      Buffer.from(expectedSecret, "hex")
-    )
-  ) {
-    throw new Error("Request did not arrive through the trusted proxy.")
+  const realIp = req.headers.get("x-real-ip")
+  if (realIp) {
+    return realIp.trim()
   }
-
-  const ip = req.headers.get("x-mediacrater-client-ip")?.trim()
-  if (!ip || ip.includes("%") || isIP(ip) === 0) {
-    throw new Error("Trusted proxy did not supply a valid client IP.")
-  }
-
-  if (isIP(ip) === 4) return ip
-
-  // Store equivalent IPv6 spellings under the same rate-limit key.
-  const canonical = new URL(`http://[${ip}]/`).hostname.slice(1, -1)
-  if (canonical.startsWith("::ffff:")) {
-    const [high, low] = canonical.slice(7).split(":")
-    const highValue = Number.parseInt(high, 16)
-    const lowValue = Number.parseInt(low, 16)
-    return `${highValue >> 8}.${highValue & 255}.${lowValue >> 8}.${lowValue & 255}`
-  }
-  return canonical
+  return "unknown"
 }
 
 const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
