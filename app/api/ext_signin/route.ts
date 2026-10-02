@@ -15,16 +15,22 @@ export async function POST(req: NextRequest) {
   const { email, password, turnstileToken } = await req.json()
 
   if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Email and password are required." },
+      { status: 400 }
+    )
   }
   if (!turnstileToken) {
-    return NextResponse.json({ error: "Verification required." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Verification required." },
+      { status: 400 }
+    )
   }
 
   const ip = clientIpFrom(req)
 
   const rateLimit = await checkAndLogRateLimit(
-    "ext_signin",          // separate action
+    "ext_signin",
     ip,
     MAX_ATTEMPTS,
     WINDOW_SECONDS
@@ -36,8 +42,12 @@ export async function POST(req: NextRequest) {
   }
 
   if (rateLimit.error) {
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500, headers })
+    return NextResponse.json(
+      { error: "Something went wrong. Please try again." },
+      { status: 500, headers }
+    )
   }
+
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Too many sign-in attempts. Please try again shortly." },
@@ -59,7 +69,10 @@ export async function POST(req: NextRequest) {
   })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400, headers })
+    return NextResponse.json(
+      { error: error.message },
+      { status: 400, headers }
+    )
   }
 
   return NextResponse.json(
