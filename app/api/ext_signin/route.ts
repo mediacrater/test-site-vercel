@@ -1,0 +1,69 @@
+// app/api/ext_signin/route.ts
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+import { checkAndLogRateLimit, clientIpFrom } from "@/lib/rate-limit"
+
+const supabaseAnon = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+const MAX_ATTEMPTS = 8
+const WINDOW_SECONDS = 120
+
+export async function POST(req: NextRequest) {
+  const { email, password, turnstileToken } = await req.json()
+
+  if (!email || !password) {
+    return NextResponse.json({ error: "Email and password are required." }, { status: 400 })
+  }
+  if (!turnstileToken) {
+    return NextResponse.json({ error: "Verification required." }, { status: 400 })
+  }
+
+  const ip = clientIpFrom(req)
+
+  const rateLimit = await checkAndLogRateLimit(
+    "ext_signin",          // separate action
+    ip,
+    MAX_ATTEMPTS,
+    WINDOW_SECONDS
+  )
+
+  const headers = {
+    "X-RateLimit-Action": "ext_signin",
+    "X-RateLimit-Limit": String(MAX_ATTEMPTS),
+  }
+
+  if (rateLimit.error) {
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500, headers })
+  }
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many sign-in attempts. Please try again shortly." },
+      {
+        status: 429,
+        headers: {
+          ...headers,
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    )
+  }
+
+  const { data, error } = await supabaseAnon.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: turnstileToken },
+  })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400, headers })
+  }
+
+  return NextResponse.json(
+    { success: true, session: data.session },
+    { headers }
+  )
+}
