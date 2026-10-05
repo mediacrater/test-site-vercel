@@ -1,4 +1,8 @@
 // middleware.ts
+
+console.log('proxy-secret header:', req.headers.get('x-mediacrater-proxy-secret'));
+console.log('env secret present:', !!process.env.CLOUDFLARE_PROXY_SECRET);
+
 import { NextRequest, NextResponse } from 'next/server';
 import { attachDeviceCookie, readOrMintDeviceId } from '@/lib/account-device';
 
