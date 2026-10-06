@@ -22,7 +22,7 @@ const supabaseAdmin = createClient(
 );
 
 const SIGNUP_RATE_LIMIT_MS = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_SIGNUPS_PER_WINDOW = 24;
+const MAX_SIGNUPS_PER_WINDOW = 10;
 
 function jsonWithDevice(body: unknown, status: number, deviceId: string, extraHeaders?: HeadersInit) {
   const res = NextResponse.json(body, { status, headers: extraHeaders });
