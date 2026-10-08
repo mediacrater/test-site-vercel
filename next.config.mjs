@@ -81,8 +81,10 @@ const securityHeaders = [
   // same-origin-allow-popups keeps window.open() (Stripe billing portal) working.
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
   {
+    // browsing-topics was removed: current Chrome no longer recognises it and
+    // logs a console error on every page.
     key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   },
 ];
 
