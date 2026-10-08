@@ -38,19 +38,24 @@ if (isProductionBuild && cspMode !== 'off' && (!supabaseOrigin || !vpsOrigin)) {
 }
 
 const TURNSTILE = 'https://challenges.cloudflare.com';
+// Cloudflare Web Analytics: Cloudflare inserts this beacon into every proxied
+// page in the mediacrater.com zone (LIVE uses these stats), and it sends its
+// data to cloudflareinsights.com.
+const CF_INSIGHTS_SCRIPT = 'https://static.cloudflareinsights.com';
+const CF_INSIGHTS_CONNECT = 'https://cloudflareinsights.com';
 
 function buildCsp() {
   const directives = {
     'default-src': ["'self'"],
     // 'unsafe-inline' is required for Next.js's inline scripts on static pages.
     // Replacing it with per-page hashes is the possible future upgrade.
-    'script-src': ["'self'", "'unsafe-inline'", TURNSTILE],
+    'script-src': ["'self'", "'unsafe-inline'", TURNSTILE, CF_INSIGHTS_SCRIPT],
     // React style={} attributes and the chart component's <style> need this.
     'style-src': ["'self'", "'unsafe-inline'"],
     // data:/blob: = canvas and video thumbnails; Supabase = signed thumbnail URLs.
     'img-src': ["'self'", 'data:', 'blob:', supabaseOrigin],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", supabaseOrigin, vpsOrigin, TURNSTILE],
+    'connect-src': ["'self'", supabaseOrigin, vpsOrigin, TURNSTILE, CF_INSIGHTS_CONNECT],
     // Turnstile widget + the VPS cf-ok clearance iframe (ApiHostClearance.tsx).
     'frame-src': [TURNSTILE, vpsOrigin],
     // Audio extraction worker; blob: covers bundlers that start workers from blob URLs.
