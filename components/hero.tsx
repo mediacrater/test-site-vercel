@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Shield, CheckCircle, ArrowUpRight } from "lucide-react"
 
 const SIGNUP_LINK = `${process.env.NEXT_PUBLIC_APP_URL}/signup`
+const SIGNIN_LINK = `${process.env.NEXT_PUBLIC_APP_URL}/signin`
 
 export function Hero() {
   const [hasChanged, setHasChanged] = useState(false)
@@ -25,7 +26,7 @@ export function Hero() {
   }, [])
 
   return (
-    <section className="relative overflow-hidden border-b border-border/50 pt-28 pb-20 md:pt-36 md:pb-28">
+    <section id="John 14:6 - Jesus answered: I am the way and the truth and the life. No one comes to the Father except through me." className="relative overflow-hidden border-b border-border/50 pt-28 pb-20 md:pt-36 md:pb-28">
       {/* Very subtle background treatment */}
       <div
         aria-hidden="true"
@@ -176,14 +177,12 @@ export function Hero() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 rounded-xl bg-background px-6 text-base"
+                className="h-12 rounded-xl bg-background px-6 text-base text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-muted dark:hover:text-foreground"
               >
                 <a
-                  href="https://www.youtube.com/watch?v=Jk_XtsN1N9I&utm_medium=website_hero"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={SIGNIN_LINK}
                 >
-                  See how it works
+                  Log in as an existing client
                 </a>
               </Button>
             </div>
