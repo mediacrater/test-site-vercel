@@ -46,6 +46,16 @@
 //   to be hidden, because the error only rendered while resendCooldown > 0.
 //   The button simply reappeared, so users clicked again and again. Errors
 //   now stay visible; only countdown errors disappear when the countdown ends.
+//
+// CHANGES (email typo prevention):
+// - "Create Account" now opens a "Double check if we got your email right"
+//   popup before anything is sent. "You got this wrong, change email" closes
+//   it and puts the cursor back in the email field; "That is my email" creates
+//   the account (which sends the confirmation email).
+// - If the domain looks like a misspelling of a common provider
+//   ("gmail.copm", "hotmial.com"), the popup offers "Did you mean …?"
+//   (lib/email-typo.ts). The server also rejects domains that can't receive
+//   mail (lib/email-domain.ts, in /api/signup).
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
@@ -54,6 +64,14 @@ import { useTheme } from 'next-themes';
 import { AuthShowcasePanel } from '@/components/auth-showcase-panel';
 import { collectDeviceClient } from '@/lib/collect-device-client';
 import { supabase } from "@/lib/mediacrater/supabaseClient"
+import { suggestEmailCorrection } from '@/lib/email-typo';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!;
 // Mirrors RESEND_WINDOW_SECONDS in app/api/resend-verification/route.ts.
 // Kept as a constant here (rather than only trusting the server's
@@ -91,6 +109,11 @@ export default function SignUpPage() {
   // disappear when the countdown ends. Other errors stay until the next try.
   const [resendErrorTiedToCooldown, setResendErrorTiedToCooldown] = useState(false);
   const [alreadyConfirmed, setAlreadyConfirmed] = useState(false);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  // Set by "You got this wrong" so closing the popup focuses the email field
+  // instead of returning focus to the submit button.
+  const focusEmailOnClose = useRef(false);
   const [scriptReady, setScriptReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -212,6 +235,22 @@ export default function SignUpPage() {
       setError('Please complete the verification check.');
       return;
     }
+    // Ask the user to double-check the address before anything is sent.
+    setShowEmailConfirm(true);
+  }
+
+  function handleChangeEmail() {
+    focusEmailOnClose.current = true;
+    setShowEmailConfirm(false);
+  }
+
+  function handleConfirmEmail() {
+    setShowEmailConfirm(false);
+    void createAccount();
+  }
+
+  async function createAccount() {
+    setError(null);
     setLoading(true);
     try {
       const device = await collectDeviceClient();
@@ -385,10 +424,64 @@ export default function SignUpPage() {
                     Sign in
                   </Link>
                 </p>
+                <Dialog open={showEmailConfirm} onOpenChange={setShowEmailConfirm}>
+                  <DialogContent
+                    className="sm:max-w-sm"
+                    onCloseAutoFocus={(event) => {
+                      if (focusEmailOnClose.current) {
+                        event.preventDefault();
+                        focusEmailOnClose.current = false;
+                        emailInputRef.current?.focus();
+                        emailInputRef.current?.select();
+                      }
+                    }}
+                  >
+                    <DialogHeader>
+                      <DialogTitle>Double check if we got your email right</DialogTitle>
+                      <DialogDescription className="break-all pt-2 text-center text-base font-semibold text-foreground">
+                        {email.trim()}
+                      </DialogDescription>
+                    </DialogHeader>
+                    {(() => {
+                      const suggestion = suggestEmailCorrection(email);
+                      return suggestion ? (
+                        <p className="text-center text-sm text-muted-foreground">
+                          Did you mean{' '}
+                          <button
+                            type="button"
+                            onClick={() => setEmail(suggestion)}
+                            className="break-all font-medium text-primary underline"
+                          >
+                            {suggestion}
+                          </button>
+                          ?
+                        </p>
+                      ) : null;
+                    })()}
+                    <div className="flex flex-col items-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleChangeEmail}
+                        className="text-sm text-muted-foreground underline hover:text-foreground"
+                      >
+                        You got this wrong, change email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmEmail}
+                        disabled={loading}
+                        className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        That is my email
+                      </button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Email</label>
                     <input
+                      ref={emailInputRef}
                       type="email"
                       required
                       value={email}
