@@ -34,6 +34,18 @@
 //
 // TODO (Phase C): referral attribution (reading the mc_referrer cookie)
 // still not built — hook point is wherever signup succeeds below.
+//
+// CHANGES (email verification fixes):
+// - "Already confirmed" state: once the email is confirmed, the resend button
+//   and Turnstile widget are hidden and a warning is shown instead. Detected
+//   two ways: (1) the confirmation link opened in another tab of this browser
+//   signs the user in, which Supabase broadcasts to this tab; (2) the resend
+//   API answers { alreadyConfirmed: true } for an account created from this
+//   browser (covers confirming on a different device).
+// - Resend errors without a countdown (e.g. Supabase refusing to send) used
+//   to be hidden, because the error only rendered while resendCooldown > 0.
+//   The button simply reappeared, so users clicked again and again. Errors
+//   now stay visible; only countdown errors disappear when the countdown ends.
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
@@ -75,6 +87,10 @@ export default function SignUpPage() {
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+  // True when the current resendError belongs to a countdown (429), so it can
+  // disappear when the countdown ends. Other errors stay until the next try.
+  const [resendErrorTiedToCooldown, setResendErrorTiedToCooldown] = useState(false);
+  const [alreadyConfirmed, setAlreadyConfirmed] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -110,6 +126,30 @@ export default function SignUpPage() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
   useEffect(() => setMounted(true), []);
+
+  // While the "Check your email" screen is open, detect the confirmation
+  // happening elsewhere in this browser: the link signs the user in, and
+  // Supabase shares that sign-in across tabs. The focus check is a fallback
+  // for when the user comes back to this tab.
+  useEffect(() => {
+    if (!checkEmail) return;
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setAlreadyConfirmed(true);
+    });
+
+    const checkSession = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setAlreadyConfirmed(true);
+      });
+    };
+    window.addEventListener('focus', checkSession);
+
+    return () => {
+      data.subscription.unsubscribe();
+      window.removeEventListener('focus', checkSession);
+    };
+  }, [checkEmail]);
 
   useEffect(() => {
     if (!mounted || !scriptReady) return;
@@ -227,6 +267,7 @@ export default function SignUpPage() {
       return;
     }
     setResendError(null);
+    setResendErrorTiedToCooldown(false);
     setResendState('sending');
     try {
       const response = await fetch('/api/resend-verification', {
@@ -235,11 +276,18 @@ export default function SignUpPage() {
         body: JSON.stringify({ email, turnstileToken }),
       });
       const data = await response.json();
+      if (response.ok && data.alreadyConfirmed) {
+        setAlreadyConfirmed(true);
+        setResendState('idle');
+        setResendCooldown(0);
+        return;
+      }
       if (!response.ok) {
         // Even on a 429, the server tells us the real remaining wait —
         // reflect it in the countdown rather than leaving it at 0.
         if (typeof data.retryAfterSeconds === 'number') {
           setResendCooldown(data.retryAfterSeconds);
+          setResendErrorTiedToCooldown(true);
         }
         throw new Error(data.error || 'Failed to resend verification email');
       }
@@ -284,26 +332,48 @@ export default function SignUpPage() {
                 <p className="text-sm text-muted-foreground mb-5">
                   We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
                 </p>
-                <div ref={widgetRef} className="flex justify-center mb-4" />
-                <button
-                  onClick={handleResendVerification}
-                  disabled={resendState === 'sending' || resendCooldown > 0 || !turnstileToken}
-                  className="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
-                >
-                  {resendState === 'sending'
-                    ? 'Sending...'
-                    : resendCooldown > 0
-                    ? `Resend available in ${resendCooldown}s`
-                    : 'Resend Email'}
-                </button>
-                {resendState === 'sent' && (
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-2">✓ Verification email sent!</p>
-                )}
-                {/* Red error text disappears once the countdown reaches 0,
-                    since at that point a fresh attempt is allowed again
-                    and the stale error no longer reflects current state. */}
-                {resendError && resendCooldown > 0 && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">{resendError}</p>
+                {/* The widget container stays mounted (hidden) so the
+                    Turnstile effect's cleanup keeps working. */}
+                <div
+                  ref={widgetRef}
+                  className={alreadyConfirmed ? 'hidden' : 'flex justify-center mb-4'}
+                />
+                {alreadyConfirmed ? (
+                  <div
+                    role="status"
+                    className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-left text-sm text-amber-800 dark:text-amber-300"
+                  >
+                    Your email has already been confirmed. Please refresh the page to access
+                    the dashboard. If you confirmed it on another device,{' '}
+                    <Link href="/signin" className="font-medium underline">
+                      sign in
+                    </Link>{' '}
+                    instead. If you&apos;re encountering issues, please contact support for
+                    assistance.
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleResendVerification}
+                      disabled={resendState === 'sending' || resendCooldown > 0 || !turnstileToken}
+                      className="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+                    >
+                      {resendState === 'sending'
+                        ? 'Sending...'
+                        : resendCooldown > 0
+                        ? `Resend available in ${resendCooldown}s`
+                        : 'Resend Email'}
+                    </button>
+                    {resendState === 'sent' && (
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2">✓ Verification email sent!</p>
+                    )}
+                    {/* Countdown errors disappear when the countdown reaches 0,
+                        since a fresh attempt is allowed again. Other errors
+                        stay visible until the next attempt. */}
+                    {resendError && (!resendErrorTiedToCooldown || resendCooldown > 0) && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">{resendError}</p>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
