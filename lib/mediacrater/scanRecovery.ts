@@ -17,7 +17,7 @@
 import { supabase } from './supabaseClient';
 
 const POLL_INTERVAL_MS = 5_000;
-const RECOVERY_TIMEOUT_MS = 1 * 60 * 1000; // the server gives up after 280 s
+const RECOVERY_TIMEOUT_MS = 6 * 60 * 1000; // the server gives up after 360 s
 
 // Shown when a scan's connection is lost and its result can't be recovered.
 // Scans are only charged after the analysis succeeds, so a deduction means a
