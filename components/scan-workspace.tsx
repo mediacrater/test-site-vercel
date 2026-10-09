@@ -3257,7 +3257,7 @@ const activeResultOption =
                             </span>
 
                             <span className="block text-xs text-muted-foreground">
-                              Slower and costs 2 scans, but works through your ad step by step to catch subtler issues a Regular scan can miss.
+                              Costs 2 scans and takes longer. We analyze your ad more carefully, step by step, to catch subtler issues a Regular scan can miss.
                             </span>
                           </span>
                         </label>
