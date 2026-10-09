@@ -3257,7 +3257,7 @@ const activeResultOption =
                             </span>
 
                             <span className="block text-xs text-muted-foreground">
-                              Thinking mode: Slower and costs 2 scans, but works through your ad step by step to catch subtler issues a Regular scan can miss.
+                              Slower and costs 2 scans, but works through your ad step by step to catch subtler issues a Regular scan can miss.
                             </span>
                           </span>
                         </label>
