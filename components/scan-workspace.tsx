@@ -3257,7 +3257,7 @@ const activeResultOption =
                             </span>
 
                             <span className="block text-xs text-muted-foreground">
-                              2x to 5x slower. Send us hard to work to find violations hidden deep in your creative that might not get identified with regular scans
+                              Thinking mode: Twice the cost but 2x to 6x slower. Send us hard to work to find violations not picked up by Regular scans.
                             </span>
                           </span>
                         </label>
