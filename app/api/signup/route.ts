@@ -52,7 +52,7 @@ const SIGNUP_RATE_LIMIT_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const ACCOUNT_EXISTS_MESSAGE =
   'An account with this email already exists. Please log in to continue.';
-const MAX_SIGNUPS_PER_WINDOW = 10;
+const MAX_SIGNUPS_PER_WINDOW = 100;
 
 function jsonWithDevice(body: unknown, status: number, deviceId: string, extraHeaders?: HeadersInit) {
   const res = NextResponse.json(body, { status, headers: extraHeaders });
