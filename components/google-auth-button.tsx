@@ -91,7 +91,7 @@ export function GoogleAuthButton({
     >
       {!logoMissing && (
         <img
-          src="/images/google-g.svg"
+          src="/images/google-g.png"
           alt=""
           width={18}
           height={18}
