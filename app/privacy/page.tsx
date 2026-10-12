@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
             servers beyond what Supabase requires for session management.
           </li>
         </ul>
-        <h3 className="text-lg font-semibold mb-2">Account Data</h3>
+        <h3 className="text-lg font-semibold mb-2">Google Sign-In</h3>
         <p className="mb-4">
           If you choose "Sign up with Google" or "Sign in with Google", Google shares the following with us, only after you approve it on Google's consent screen:
         </p>
@@ -85,12 +85,12 @@ export default function PrivacyPolicy() {
           <li>
             <strong>Google account identifier</strong> — a unique ID that lets us recognise your Google account when you sign in again. Stored by Supabase.
           </li>
-          <li>
+          <p className="mb-4">
             We only request the basic sign-in permissions (openid, email, profile). We do not access your Gmail, Google Drive, contacts, calendar, or any other Google service, and we cannot post or act on your behalf. 
             Google user data is used only to create your account and sign you in. It is never sold, never used for advertising, and never sent to AI model providers or used to train or improve any AI model. It is not shared with anyone except Supabase, which provides our sign-in system.
             Mediacrater's use of information received from Google APIs adheres to the Google API Services User Data Policy (https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
             You can remove Mediacrater's access at any time in your Google Account under Security → Your connections to third-party apps & services. To delete the data we hold, email us to delete your account (see Your Rights below).
-          </li>
+          </p>
         </ul>
         <h3 className="text-lg font-semibold mb-2">Device and abuse-prevention data</h3>
         <p className="mb-4">
@@ -186,6 +186,7 @@ export default function PrivacyPolicy() {
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">How We Use Your Data</h2>
         <ul className="list-disc list-inside space-y-2">
+          <li>To let you sign up and sign in with your Google account</li>
           <li>To authenticate you and maintain your account session</li>
           <li>To scan your ad content and return a policy compliance report</li>
           <li>To manage your token balance accurately across purchases and scans</li>
@@ -233,6 +234,9 @@ export default function PrivacyPolicy() {
             network intelligence service to derive approximate location (country and city) and
             connection type (for example, residential or data center). Used only for free-plan
             enforcement. We do not receive a street address.
+          </li>
+          <li>
+            <strong>Google</strong> — optional sign-in with your Google account.
           </li>
         </ul>
         <p className="mt-4">
