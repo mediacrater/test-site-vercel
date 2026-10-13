@@ -1,5 +1,5 @@
 //lib/tools/registry.ts
-export type ToolStatus = "draft" | "live"
+export type ToolStatus = "live"
 
 export interface ToolDef {
   slug: string
