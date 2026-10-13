@@ -94,12 +94,13 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   },
-    // Set NOINDEX=true ONLY on the test/staging Vercel project.
-    // Default is indexable, so forgetting the variable can never deindex production.
-    if (process.env.NOINDEX === 'true') {
-      securityHeaders.push({ key: 'X-Robots-Tag', value: 'noindex, nofollow' });
-    }
 ];
+
+// Set NOINDEX=true ONLY on the test/staging Vercel project.
+// Default is indexable, so forgetting the variable can never deindex production.
+if (process.env.NOINDEX === 'true') {
+  securityHeaders.push({ key: 'X-Robots-Tag', value: 'noindex, nofollow' });
+}
 
 if (isProductionBuild && cspMode !== 'off') {
   securityHeaders.push({
