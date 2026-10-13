@@ -22,26 +22,30 @@ export default function Page() {
   return (
     <ToolPageShell
       tool={tool}
-      intro="See what your video or photo reveals (GPS location, device, editing software, dates), then download a clean copy. Works with MP4, MOV, JPG and PNG, entirely on your device."
+      intro="See every metadata field in your video or photo (GPS location, device, editing software, dates, encoder and more), then download a copy with all of it removed. Works with MP4, MOV, JPG, PNG, WebP and HEIC, entirely on your device."
       method={
         <>
           <p>
-            Phones record the location, device model and date in every video and photo. Editing apps add their own
-            name, and Adobe apps can add a full editing history. When you send a raw file to a client, hire a UGC
-            creator, or share a creative outside your team, all of that travels with it, including GPS coordinates
-            that can point to someone's home.
+            Phones record the location, device model and date in every video and photo. Editing apps add their
+            own name and version, and Adobe apps can add a full editing history. When you send a raw file to a
+            client, hire a UGC creator, or share a creative outside your team, all of it travels with the file,
+            including GPS coordinates that can point to someone's home.
           </p>
           <p>
-            <strong>Videos:</strong> the tool blanks out the metadata sections inside the file and zeroes the
-            recording dates. The video and audio aren't re-encoded or even read, so quality is identical and large
-            files work fine.
+            This tool runs <strong>ExifTool</strong>, the open-source standard for reading and writing metadata
+            created by Phil Harvey, directly in your browser. It lists every field it finds, grouped by where it's
+            stored, and highlights the ones that could identify a person, place, device or workflow.
           </p>
           <p>
-            <strong>Photos:</strong> EXIF, XMP, IPTC and comment data are removed without touching the image itself.
-            Photos that rely on a rotation flag are redrawn upright so they don't turn sideways.
+            <strong>Removing</strong> deletes every field ExifTool can write, blanks the recording dates in video
+            headers, and clears the encoder name stored with the video codec. The picture and sound aren't
+            re-encoded, so quality is identical. Afterwards the cleaned file is scanned again, so you can see exactly
+            what's left.
           </p>
           <p>
-            After cleaning, the tool scans the new file again so you can see exactly what's left.
+            <strong>What stays on purpose:</strong> technical fields the file needs to open and play (dimensions,
+            codec, duration, frame rate), and for photos, the rotation and colour profile, so the picture doesn't
+            turn sideways or change colour. None of these identify you.
           </p>
           <p>
             <strong>What this doesn't do:</strong> removing metadata doesn't change how Meta, TikTok or Google review
@@ -51,15 +55,19 @@ export default function Page() {
         </>
       }
       limits={[
-        "Some encoders also write their name inside the video stream itself. Removing that requires re-encoding, which this tool doesn't do.",
-        "Timed metadata tracks (used by some cameras and drones for GPS paths) are detected but not removed.",
-        "Supports JPG, PNG, MP4 and MOV. HEIC, WebP and other formats aren't supported yet.",
-        "Photos up to 50 MB. Videos can be much larger, because only the file's header is processed.",
+        "Some encoders also write their settings inside the compressed video stream itself. Removing that requires re-encoding, which this tool doesn't do.",
+        "Timed metadata tracks (used by some drones, dashcams and action cameras for GPS paths) live inside the video stream and can't be removed without re-encoding.",
+        "Supports MP4, MOV, JPG, PNG, WebP and HEIC up to 1 GB. Very large videos may run out of memory on phones.",
+        "The metadata engine (about 8 MB) downloads the first time you pick a file.",
       ]}
       faqs={[
         {
           q: "Does removing metadata reduce quality?",
-          a: "No for videos and for most photos: the picture and sound data aren't changed. The only exception is a photo that relies on a rotation flag. It's redrawn upright and re-saved at high quality, and the tool tells you when this happens.",
+          a: "No. The picture and sound data aren't touched or re-encoded. Only the metadata around them is removed.",
+        },
+        {
+          q: "Why are some fields still shown after cleaning?",
+          a: "Every video and photo needs some technical information to open at all, like its dimensions, codec and duration. Those fields describe the file, not you. The cleaned report highlights anything privacy-sensitive, and for supported files that should be zero.",
         },
         {
           q: "Don't Facebook and Instagram remove metadata anyway?",
@@ -71,11 +79,7 @@ export default function Page() {
         },
         {
           q: "Is my file uploaded anywhere?",
-          a: "No. Everything happens in your browser. You can check: load this page, turn off your internet connection, and the tool still works.",
-        },
-        {
-          q: "How can I double-check the result?",
-          a: "The tool re-scans the cleaned file automatically. For a second opinion, run the free command-line tool ExifTool on the downloaded file.",
+          a: "No. Everything happens in your browser. You can check: load this page, pick one file so the engine loads, then turn off your internet connection. The tool keeps working.",
         },
       ]}
     >
