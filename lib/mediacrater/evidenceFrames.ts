@@ -22,18 +22,23 @@ export function parseTimestampSeconds(value: string): number | null {
   return minutes * 60 + seconds + fraction;
 }
 
-// The model returns timestamps as one comma-joined string
-// ("00:02.43, 00:10.67, ..."), which scoreCalculator wraps in an array, so
-// split every entry on commas. Model output is untrusted, so non-strings
-// are dropped.
-export function evidenceTimestamps(violation: Violation): string[] {
+// Every distinct timestamp the model cited for a violation (no cap). The
+// model returns them as one comma-joined string ("00:02.43, 00:10.67, ..."),
+// which scoreCalculator wraps in an array, so split each entry on commas.
+// Model output is untrusted, so non-strings are dropped.
+export function violationTimestamps(violation: Violation): string[] {
   const all = (violation.timestamps ?? [])
     .filter((value): value is string => typeof value === 'string')
     .flatMap((value) => value.split(','))
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
 
-  return Array.from(new Set(all)).slice(0, MAX_FRAMES_PER_VIOLATION);
+  return Array.from(new Set(all));
+}
+
+// The first few, for thumbnails.
+export function evidenceTimestamps(violation: Violation): string[] {
+  return violationTimestamps(violation).slice(0, MAX_FRAMES_PER_VIOLATION);
 }
 
 // timestamp string -> frame data URL, only for timestamps with a close frame.
