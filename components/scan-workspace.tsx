@@ -171,6 +171,30 @@ function isImageCreative(
   );
 }
 
+// What the results-page video player plays. Uploads play from the local
+// file's preview URL. URL scans play straight from the source (browsers can
+// play cross-origin video without CORS; CORS only matters for reading
+// pixels). The server only accepts https URLs, so anything else is refused
+// here too.
+function playbackSrcFor(creative: BatchCreative | null): string | null {
+  if (!creative) return null;
+
+  if (creative.kind === 'video') {
+    return creative.previewUrl || null;
+  }
+
+  if (creative.kind === 'video_url') {
+    try {
+      const parsed = new URL(creative.sourceUrl);
+      return parsed.protocol === 'https:' ? parsed.href : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 function orderCreativesForExecution(
   creatives: BatchCreative[]
 ) {
@@ -2840,8 +2864,10 @@ const activeVideoCreative =
   creatives.find(
     (creative) =>
       creative.id === activeResultCreativeId &&
-      creative.kind === 'video'
+      (creative.kind === 'video' || creative.kind === 'video_url')
   ) ?? null;
+
+const activePlaybackSrc = playbackSrcFor(activeVideoCreative);
   
 const activeResultOption =
   resultCreativeOptions.find(
@@ -3565,10 +3591,10 @@ const activeResultOption =
               </div>
             )}
             
-            {activeVideoCreative && visibleResults[0] && (
+            {activePlaybackSrc && visibleResults[0] && (
               <VideoTimeline
                 key={visibleResults[0].scanId}
-                src={activeVideoCreative.previewUrl}
+                src={activePlaybackSrc}
                 violations={visibleResults[0].processedViolations}
                 onSelectViolation={(violationIndex) =>
                   focusViolation(visibleResults[0].scanId, violationIndex)
