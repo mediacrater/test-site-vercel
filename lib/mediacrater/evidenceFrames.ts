@@ -6,7 +6,7 @@ import type { Violation } from '@/lib/mediacrater/scoreCalculator';
 // Frames are taken roughly every 0.5 s, so the nearest frame is never more
 // than ~1 s from any moment in the video. Farther than that, show nothing.
 const MAX_MATCH_DISTANCE_SECONDS = 1;
-const MAX_FRAMES_PER_VIOLATION = 4;
+const MAX_FRAMES_PER_VIOLATION = 8;
 
 export type EvidenceFrames = Record<string, string>;
 
