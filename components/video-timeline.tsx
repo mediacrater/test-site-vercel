@@ -464,8 +464,16 @@ export function VideoTimeline({
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered. Scan results below will persist until you click "New Scan" in the top right of this box.
+      <p className="text-xs italic text-muted-foreground">
+        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered. Scan results below will persist until you click &quot;New Scan&quot; in the top right.{' '}
+        <a
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium underline underline-offset-2 hover:text-foreground"
+        >
+          Why do we do this? ↗
+        </a>
       </p>
     </div>
   );
