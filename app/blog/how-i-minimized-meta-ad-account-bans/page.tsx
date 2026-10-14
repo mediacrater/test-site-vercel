@@ -80,16 +80,16 @@ export default function Page() {
         </LI>
       </UL>
       <P>
-        At the same time, I also used an anti-detect browser{" "}
-          <A href="https://incogniton.com/aff/1929570/" sponsored>
-            Incogniton
-          </A>        
-        , which keeps your browser fingerprint consistent and also helps you manage multiple accounts at the same time.
-        Because I changed both at once, I can&apos;t tell you which one made the difference. While this worked for me in
-        the moment, it comes with its risks. These tools are mostly used to run multiple accounts, using accounts to get around a
-        restriction is against Meta&apos;s rules, and the browser holds your login sessions. It's a bit hypocricital given
-        the voliatility of how Meta bans accounts, and I likely wouldn't have resorted to these methods if Meta was actually 
-        consistent and predictable with their policies.
+        At the same time, I also used an anti-detect browser,{" "}
+        <A href="https://incogniton.com/aff/1929570/" sponsored>
+          Incogniton
+        </A>{" "}
+        (affiliate link), which keeps your browser fingerprint consistent. Because I changed both at once, I
+        can&apos;t tell you which one made the difference. It worked for me at the time, but it comes with
+        risks. These tools are mostly used to run multiple accounts. Using accounts to get around a restriction is
+        against Meta&apos;s rules, and the browser holds your login sessions. I know it&apos;s a bit hypocritical
+        coming from someone who now builds a compliance tool. Honestly, I wouldn&apos;t have resorted to these tools
+        if Meta&apos;s enforcement were consistent and predictable.
       </P>
       <Callout title="If you use an IP service, know the risks">
         <p>
