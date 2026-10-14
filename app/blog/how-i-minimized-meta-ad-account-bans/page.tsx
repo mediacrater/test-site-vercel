@@ -44,8 +44,8 @@ export default function Page() {
       disclosure={
         <>
           <p>
-            Disclosure: I&apos;m the founder of Mediacrater, which is mentioned below. This post also contains an
-            affiliate link. If you buy through it, I earn a commission at no extra cost to you.
+            Disclosure: I&apos;m the founder of Mediacrater, which is mentioned below. This post also contains
+            affiliate links. If you buy through it, I earn a commission at no extra cost to you.
           </p>
           <p className="mt-2">
             Nothing here guarantees your account stays safe. Platform rules change, and everything below is based on
