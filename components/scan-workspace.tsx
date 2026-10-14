@@ -41,6 +41,7 @@ import {
   type EvidenceFrames,
 } from '@/lib/mediacrater/evidenceFrames';
 import { loadEvidence, saveEvidence } from '@/lib/mediacrater/evidenceStore';
+import { VideoTimeline, violationDomId } from '@/components/video-timeline';
 
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
@@ -402,6 +403,18 @@ export function ScanWorkspace({
   // scanId -> { timestamp -> frame data URL }. Kept in a ref, not in
   // PlatformResult, so frames never go through the background scan store.
   const evidenceRef = useRef<Map<string, EvidenceFrames>>(new Map());
+    // Which violation card to flash after a timeline bubble is clicked
+  // ("scanId:violationIndex").
+  const [highlightedViolation, setHighlightedViolation] = useState<string | null>(null);
+  const highlightTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current !== null) {
+        window.clearTimeout(highlightTimerRef.current);
+      }
+    };
+  }, []);
 
   const previewUrlsRef =
   useRef<Set<string>>(
@@ -2406,6 +2419,23 @@ for (
       await onScanComplete();
     }
   }
+  
+  function focusViolation(scanId: string, violationIndex: number) {
+    document
+      .getElementById(violationDomId(scanId, violationIndex))
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setHighlightedViolation(`${scanId}:${violationIndex}`);
+
+    if (highlightTimerRef.current !== null) {
+      window.clearTimeout(highlightTimerRef.current);
+    }
+
+    highlightTimerRef.current = window.setTimeout(() => {
+      setHighlightedViolation(null);
+      highlightTimerRef.current = null;
+    }, 2000);
+  }
 
   async function handleAnalyze() {
     setBanner(null);
@@ -2806,6 +2836,13 @@ const visibleResults =
       activeResultCreativeId
   );
 
+const activeVideoCreative =
+  creatives.find(
+    (creative) =>
+      creative.id === activeResultCreativeId &&
+      creative.kind === 'video'
+  ) ?? null;
+  
 const activeResultOption =
   resultCreativeOptions.find(
     (item) =>
@@ -3528,6 +3565,17 @@ const activeResultOption =
               </div>
             )}
             
+            {activeVideoCreative && visibleResults[0] && (
+              <VideoTimeline
+                key={visibleResults[0].scanId}
+                src={activeVideoCreative.previewUrl}
+                violations={visibleResults[0].processedViolations}
+                onSelectViolation={(violationIndex) =>
+                  focusViolation(visibleResults[0].scanId, violationIndex)
+                }
+              />
+            )}
+            
             {visibleResults.map((r) => {
               const grouped = groupViolationsByType(r.processedViolations);
               const riskColorClass =
@@ -3570,10 +3618,18 @@ const activeResultOption =
                               const location = v.timestamps?.length
                                 ? `⏱ ${v.timestamps.join(', ')}`
                                 : v.frames?.length
-                                ? `🎞️ Frames: ${v.frames.join(', ')}`
+                                ? `Frames: ${v.frames.join(', ')}`
                                 : null;
                               return (
-                                <div key={idx} className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm`}>
+                                  <div
+                                    key={idx}
+                                     id={violationDomId(r.scanId, r.processedViolations.indexOf(v))}
+                                      className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm transition-shadow ${
+                                         highlightedViolation === `${r.scanId}:${r.processedViolations.indexOf(v)}`
+                                         ? 'ring-2 ring-primary'
+                                         : ''
+                                     }`}
+                                  >                               
                                   {location && <div className="text-xs text-muted-foreground mb-1">{location}</div>}
                                   <ViolationFrames violation={v} evidence={evidenceRef.current.get(r.scanId)} />
                                   <div className="mb-2">{v.reason}</div>
