@@ -465,7 +465,7 @@ export function VideoTimeline({
       </div>
 
       <p className="text-xs italic text-muted-foreground">
-        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered. Scan results below will persist until you click &quot;New Scan&quot; in the top right.{' '}
+        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered. Scan results below will persist until you close this tab or click &quot;New Scan&quot; in the top right.{' '}
         <a
           href="/privacy"
           target="_blank"
