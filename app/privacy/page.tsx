@@ -151,6 +151,15 @@ export default function PrivacyPolicy() {
             History. We do not use your creative assets, or any thumbnail derived from them, for
             any purpose beyond what is outlined in this Privacy Policy.
           </li>
+          <li>
+            <strong>Results page video player and frames</strong> — the video player and the
+            frame images shown beside each violation on your results page are built from the
+            file on your own device, inside your browser. They are not stored on our servers.
+            The frame images are kept only in your browser&apos;s memory and temporary session
+            storage, and are removed when you click &quot;New Scan&quot;, start another scan, or
+            close the tab. Refreshing the page ends video playback, because the file is no
+            longer held in your browser.
+          </li>
         </ul>
       </section>
         <h3 className="text-lg font-semibold mb-2">Cloudflare usage</h3>
