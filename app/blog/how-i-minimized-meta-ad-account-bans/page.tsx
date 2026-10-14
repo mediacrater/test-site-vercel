@@ -87,9 +87,10 @@ export default function Page() {
         (affiliate link), which keeps your browser fingerprint consistent. Because I changed both at once, I
         can&apos;t tell you which one made the difference. It worked for me at the time, but it comes with
         risks. These tools are mostly used to run multiple accounts. Using accounts to get around a restriction is
-        against Meta&apos;s rules, and the browser holds your login sessions. I know it&apos;s a bit hypocritical
-        coming from someone who now builds a compliance tool. Honestly, I wouldn&apos;t have resorted to these tools
-        if Meta&apos;s enforcement were consistent and predictable.
+        against Meta&apos;s rules, and the browser holds your login sessions. Honestly, I find Meta a bit
+        hypocritical here. It bans circumvention, yet in my experience its enforcement mostly bans people who have
+        no intention of circumventing anything and just want to make sales. I wouldn&apos;t have resorted to these
+        tools and methods if Meta&apos;s enforcement were consistent and predictable.
       </P>
       <Callout title="If you use an IP service, know the risks">
         <p>
