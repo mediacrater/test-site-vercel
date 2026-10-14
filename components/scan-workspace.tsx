@@ -3575,7 +3575,9 @@ const activeResultOption =
                 }
               />
             )}
-            
+            <div className="text-xs bg-primary/5 border border-primary/20 rounded-md p-2">
+              Refreshing the page removes the video playback feature.
+            </div>
             {visibleResults.map((r) => {
               const grouped = groupViolationsByType(r.processedViolations);
               const riskColorClass =
