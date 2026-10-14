@@ -465,7 +465,7 @@ export function VideoTimeline({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered.
+        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered. Scan results below will persist until you click "New Scan" in the top right of this box.
       </p>
     </div>
   );
