@@ -44,11 +44,11 @@ export default function Page() {
       disclosure={
         <>
           <p>
-            Disclosure: I&apos;m the founder of Mediacrater, which is mentioned at the end of this post.
+            Disclosure: Affiliate links are included in this page.
           </p>
           <p className="mt-2">
-            Nothing here guarantees your account stays safe. Platform rules change, and I can&apos;t prove which of
-            my changes made the difference.
+            Nothing here guarantees your account stays safe. Platform rules change, and I am basing
+            the difference off of visible patterns I have experieneced with Meta and the resources listed below.
           </p>
         </>
       }
@@ -73,15 +73,15 @@ export default function Page() {
           party sits between you and your ad account.
         </LI>
         <LI>
-          <strong>Use a dedicated static residential IP from a service.</strong> I used
+          <strong>Use a dedicated static residential IP from a service.</strong> I used 
             <a href="https://www.myprivateproxy.net/billing/aff.php?aff=4193" className="underline">
               MyPrivateProxy
-            </a>
-          along with an anti detect browser called
+            </a> 
+          along with an anti detect browser called 
             <a href="https://incogniton.com/aff/1929570/" className="underline">
               Icnogniton
-            </a>.
-          These were my go to services when dealing with Meta directly with advertising.
+            </a>. 
+          These were my go to services when dealing with Meta directly with advertising. It has worked for me for a long time.
         </LI>
       </UL>
       <Callout title="If you use an IP service, know the risks">
