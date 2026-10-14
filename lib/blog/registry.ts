@@ -37,7 +37,7 @@ export const POSTS: PostDef[] = [
     // Switch to { type: "Person", name: "Your Real Name", url: "/about" } if you want a personal byline.
     author: { type: "Organization", name: "Mediacrater", url: "/about" },
     readingMinutes: 4,
-    status: "draft",
+    status: "live",
   },
 ]
 
