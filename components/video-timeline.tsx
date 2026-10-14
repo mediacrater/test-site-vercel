@@ -19,6 +19,9 @@ import type { Violation } from '@/lib/mediacrater/scoreCalculator';
 // 0 = exactly the cited moment. Set to 1 for a short lead-in.
 const SEEK_LEAD_SECONDS = 0;
 
+// Level restored when unmuting after the slider was dragged to 0.
+const DEFAULT_UNMUTE_VOLUME = 0.5;
+
 type Severity = 'low' | 'medium' | 'high';
 
 const SEVERITY_RANK: Record<Severity, number> = { low: 1, medium: 2, high: 3 };
@@ -128,6 +131,8 @@ export function VideoTimeline({
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [volumeSupported, setVolumeSupported] = useState(false);
   const [failed, setFailed] = useState(false);
   const [openMarker, setOpenMarker] = useState<number | null>(null);
 
@@ -162,7 +167,18 @@ export function VideoTimeline({
       setCurrentTime(video.currentTime);
     };
     const onSeeked = () => setCurrentTime(video.currentTime);
+    const onVolumeChange = () => {
+      setMuted(video.muted);
+      setVolume(video.volume);
+    };
     const onError = () => setFailed(true);
+
+    // iOS Safari ignores programmatic volume (it always reads back 1), so
+    // only show the slider where setting the volume actually sticks.
+    const originalVolume = video.volume;
+    video.volume = 0.5;
+    setVolumeSupported(Math.abs(video.volume - 0.5) < 0.01);
+    video.volume = originalVolume;
 
     syncDuration();
     video.addEventListener('loadedmetadata', syncDuration);
@@ -171,6 +187,7 @@ export function VideoTimeline({
     video.addEventListener('pause', onPause);
     video.addEventListener('ended', onPause);
     video.addEventListener('seeked', onSeeked);
+    video.addEventListener('volumechange', onVolumeChange);
     video.addEventListener('error', onError);
 
     return () => {
@@ -181,6 +198,7 @@ export function VideoTimeline({
       video.removeEventListener('pause', onPause);
       video.removeEventListener('ended', onPause);
       video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('volumechange', onVolumeChange);
       video.removeEventListener('error', onError);
     };
   }, []);
@@ -239,8 +257,29 @@ export function VideoTimeline({
   function toggleMute() {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = !video.muted;
-    setMuted(video.muted);
+
+    if (video.muted || video.volume === 0) {
+      // Unmute. If the slider had been dragged to 0, restore an audible level.
+      if (video.volume === 0) {
+        video.volume = DEFAULT_UNMUTE_VOLUME;
+        setVolume(DEFAULT_UNMUTE_VOLUME);
+      }
+      video.muted = false;
+      setMuted(false);
+    } else {
+      video.muted = true;
+      setMuted(true);
+    }
+  }
+
+  function handleVolumeChange(next: number) {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(next)) return;
+    const clamped = Math.min(Math.max(next, 0), 1);
+    video.volume = clamped;
+    video.muted = clamped === 0;
+    setVolume(clamped);
+    setMuted(clamped === 0);
   }
 
   function handleMarkerClick(markerIndex: number) {
@@ -252,6 +291,8 @@ export function VideoTimeline({
     duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
   const open = openMarker !== null ? markers[openMarker] : undefined;
   const openPercent = open && duration > 0 ? (open.time / duration) * 100 : 0;
+  const soundOff = muted || volume === 0;
+  const sliderValue = muted ? 0 : volume;
 
   return (
     <div ref={wrapperRef} className="space-y-2">
@@ -397,15 +438,35 @@ export function VideoTimeline({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={toggleMute}
-          aria-label={muted ? 'Unmute' : 'Mute'}
-          className="shrink-0 rounded-full p-1.5 hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={soundOff ? 'Unmute' : 'Mute'}
+            className="rounded-full p-1.5 hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {soundOff ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
+          </button>
+
+          {volumeSupported && (
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={sliderValue}
+              onChange={(event) => handleVolumeChange(Number(event.target.value))}
+              aria-label="Volume"
+              aria-valuetext={`${Math.round(sliderValue * 100)}%`}
+              className="hidden h-1.5 w-20 cursor-pointer accent-primary sm:block"
+            />
+          )}
+        </div>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Refreshing the page after receiving your results will result in loss of video playback features and cannot be recovered.
+      </p>
     </div>
   );
 }
