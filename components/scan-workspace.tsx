@@ -40,6 +40,7 @@ import {
   pickEvidenceFrames,
   type EvidenceFrames,
 } from '@/lib/mediacrater/evidenceFrames';
+import { loadEvidence, saveEvidence } from '@/lib/mediacrater/evidenceStore';
 
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
@@ -615,6 +616,7 @@ export function ScanWorkspace({
 
       const restoredResults =
         backgroundScan.results as PlatformResult[];
+            evidenceRef.current = loadEvidence();
 
       setResults(
         restoredResults
@@ -2370,7 +2372,7 @@ for (
 
     const operationId =
       backgroundOperationIdRef.current;
-
+    saveEvidence(evidenceRef.current);
     if (operationId) {
       completeBackgroundScan(
         operationId,
