@@ -2,7 +2,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { BlogPostShell } from "@/components/blog/blog-post-shell"
-import { A, Callout, Fill, H2, LI, P, UL } from "@/components/blog/prose"
+import { A, Callout, H2, LI, P, UL } from "@/components/blog/prose"
 import { blogSignupUrl, getPost, isPostVisible } from "@/lib/blog/registry"
 
 const post = getPost("how-i-minimized-meta-ad-account-bans")
@@ -44,27 +44,26 @@ export default function Page() {
       disclosure={
         <>
           <p>
-            Disclosure: Affiliate links are included in this page.
+            Disclosure: I&apos;m the founder of Mediacrater, which is mentioned below. This post also contains an
+            affiliate link. If you buy through it, I earn a commission at no extra cost to you.
           </p>
           <p className="mt-2">
-            Nothing here guarantees your account stays safe. Platform rules change, and I am basing
-            the difference off of visible patterns I have experieneced with Meta and the resources listed below.
+            Nothing here guarantees your account stays safe. Platform rules change, and everything below is based on
+            patterns I&apos;ve seen in my own Meta accounts, not on anything Meta has confirmed.
           </p>
         </>
       }
     >
       <P>
-        I&apos;ve run Meta ads since 2019 and had dozens of ad accounts banned. Even then I was clueless as to why, because
-        Meta never told me what I was doing wrong. It became trial and error.
-        These are the three habits that came with fewer bans for me.
+        I&apos;ve run Meta ads since 2019 and had dozens of ad accounts banned, usually with no clear explanation
+        from Meta. Figuring out why became trial and error. These are the three habits that came with fewer bans
+        for me.
       </P>
 
       <H2 id="stable-ip">1. I stopped my IP address from changing</H2>
       <P>
         My internet provider rotated my home IP address every month, so my logins kept appearing from different
-        addresses. I can&apos;t prove this caused my bans, but they stopped after I fixed it.{" "}
-        When I started using fixed IP addresses I noticed that random ad account bans as soon as I logged in no longer
-        were happening to me anymore.
+        addresses. After I switched to a fixed IP, the random bans that used to hit right after I logged in stopped.
       </P>
       <P>There are two ways to get a stable IP:</P>
       <UL>
@@ -73,17 +72,19 @@ export default function Page() {
           party sits between you and your ad account.
         </LI>
         <LI>
-          <strong>Use a dedicated static residential IP from a service.</strong> I used 
-            <a href="https://www.myprivateproxy.net/billing/aff.php?aff=4193" className="underline">
-              MyPrivateProxy
-            </a> 
-          along with an anti detect browser called 
-            <a href="https://incogniton.com/aff/1929570/" className="underline">
-              Icnogniton
-            </a>. 
-          These were my go to services when dealing with Meta directly with advertising. It has worked for me for a long time.
+          <strong>Use a dedicated static residential IP from a service.</strong> I used{" "}
+          <A href="https://www.myprivateproxy.net/billing/aff.php?aff=4193" sponsored>
+            MyPrivateProxy
+          </A>{" "}
+          (affiliate link) for a long time.
         </LI>
       </UL>
+      <P>
+        At the same time, I also used an anti-detect browser, which keeps your browser fingerprint consistent.
+        Because I changed both at once, I can&apos;t tell you which one made the difference. I don&apos;t recommend
+        starting with one: these tools are mostly used to run multiple accounts, using accounts to get around a
+        restriction is against Meta&apos;s rules, and the browser holds your login sessions.
+      </P>
       <Callout title="If you use an IP service, know the risks">
         <p>
           You&apos;re routing your ad account logins through a third party. Shared or datacenter IPs may already be
@@ -104,8 +105,8 @@ export default function Page() {
 
       <H2 id="check-ads">3. I checked my ads before uploading them</H2>
       <P>
-        Many rejections come from the creative itself, such as a line that sounds like a guaranteed result.{" "}
-        This is why I built Mediacrater.
+        Many rejections come from the creative itself, such as a line that sounds like a guaranteed result. This is
+        why I built Mediacrater.
       </P>
       <P>
         Mediacrater scans video and image ads for likely Meta, TikTok and Google policy issues and shows findings with
@@ -116,10 +117,14 @@ export default function Page() {
 
       <H2 id="limits">The honest limits</H2>
       <P>
-        These habits worked for me over a year, which has garnered me far more success than anything I've tried before. 
-        They&apos;re not a guarantee, and bans still came my way, but for things inside of my creatives that I had no idea
-        I was doing wrong. After building Mediacrater, fine tuning the output with many media files, I now see where and how
-        I went wrong.
+        These habits worked for me for over a year, better than anything I&apos;d tried before. They&apos;re not a
+        guarantee. I still had bans, and looking back, they came from things in my creatives I didn&apos;t know were
+        a problem. Running my old ads through Mediacrater has shown me the likely issues I missed.
+      </P>
+      <P>
+        For the official rules, read{" "}
+        <A href="https://transparency.meta.com/policies/ad-standards/">Meta&apos;s Advertising Standards</A>, and
+        treat everything above as one advertiser&apos;s experience.
       </P>
       <P>
         If you&apos;re deciding between renting an agency ad account and building your own,{" "}
