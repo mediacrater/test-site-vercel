@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Token balance</strong> — the number of scan tokens available on your account.
-            Updated after each scan and each purchase. Stored via Supabase.
+            Updated after each scan and each purchase. Deep scan costs 2 tokens. Stored via Supabase.
           </li>
           <li>
             <strong>Purchase records</strong> — when you make a purchase, we store the session ID,
@@ -44,7 +44,9 @@ export default function PrivacyPolicy() {
           <li>
             <strong>Scan metadata</strong> — when you run a scan, we log the timestamp, tokens
             consumed, platform selected, content type (video or image), and analysis duration.
-            No ad content, video files, or images are stored as part of this metadata. This data
+            We store a low resolution first frame of video files and images for paying users' 
+            Scan History interface. We deliberately compress this media so we cannot use it while
+            the user can still identify their respective scan data. This data
             is used solely to diagnose technical issues and to evaluate refund requests. Stored
             via Supabase.
           </li>
@@ -150,15 +152,6 @@ export default function PrivacyPolicy() {
             scan, and is not generated or retained at all if your plan does not include Scan
             History. We do not use your creative assets, or any thumbnail derived from them, for
             any purpose beyond what is outlined in this Privacy Policy.
-          </li>
-          <li>
-            <strong>Results page video player and frames</strong> — the video player and the
-            frame images shown beside each violation on your results page are built from the
-            file on your own device, inside your browser. They are not stored on our servers.
-            The frame images are kept only in your browser&apos;s memory and temporary session
-            storage, and are removed when you click &quot;New Scan&quot;, start another scan, or
-            close the tab. Refreshing the page ends video playback, because the file is no
-            longer held in your browser.
           </li>
         </ul>
       </section>
