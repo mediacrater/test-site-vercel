@@ -35,6 +35,12 @@ import {
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { uploadScanThumbnail } from '@/lib/mediacrater/thumbnails';
 
+import { ViolationFrames } from '@/components/violation-frames';
+import {
+  pickEvidenceFrames,
+  type EvidenceFrames,
+} from '@/lib/mediacrater/evidenceFrames';
+
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
   { value: 'meta', label: 'Meta (FB/IG)', icon: '/images/platform-icons/meta.png' },
@@ -392,6 +398,9 @@ export function ScanWorkspace({
   const currentJobIdRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // scanId -> { timestamp -> frame data URL }. Kept in a ref, not in
+  // PlatformResult, so frames never go through the background scan store.
+  const evidenceRef = useRef<Map<string, EvidenceFrames>>(new Map());
 
   const previewUrlsRef =
   useRef<Set<string>>(
@@ -1643,6 +1652,7 @@ export function ScanWorkspace({
     }
 
     setCreatives([]);
+    evidenceRef.current.clear();
     setPlatformCreativeId(
       null
     );
@@ -1730,6 +1740,7 @@ export function ScanWorkspace({
     executionCreatives:
       BatchCreative[]
   ) {
+    evidenceRef.current.clear();
     const isBatch =
       executionCreatives.length >
       1;
@@ -2181,7 +2192,14 @@ for (
                 completed.result
                   .violations as Violation[]
               );
-
+            
+            if (creative.kind === 'video') {
+              const evidence = pickEvidenceFrames(frames, processedViolations);
+              if (Object.keys(evidence).length > 0) {
+                evidenceRef.current.set(scanId, evidence);
+              }
+            }
+            
             creativeResults.push({
               creativeId:
                 creative.id,
@@ -3555,6 +3573,7 @@ const activeResultOption =
                               return (
                                 <div key={idx} className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm`}>
                                   {location && <div className="text-xs text-muted-foreground mb-1">{location}</div>}
+                                  <ViolationFrames violation={v} evidence={evidenceRef.current.get(r.scanId)} />
                                   <div className="mb-2">{v.reason}</div>
                                   {v.suggestedFix && (
                                     <div className="text-xs bg-primary/5 border border-primary/20 rounded-md p-2">
