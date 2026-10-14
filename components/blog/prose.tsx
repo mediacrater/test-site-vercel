@@ -31,14 +31,18 @@ export function LI({ children }: { children: ReactNode }) {
   return <li className="pl-1">{children}</li>
 }
 
-/** Internal links use next/link. External links open safely in a new tab. */
-export function A({ href, children }: { href: string; children: ReactNode }) {
+/**
+ * Internal links use next/link. External links open safely in a new tab.
+ * Set `sponsored` on affiliate or paid links: Google requires rel="sponsored" on them.
+ */
+export function A({ href, sponsored = false, children }: { href: string; sponsored?: boolean; children: ReactNode }) {
   const className = "font-medium text-primary underline underline-offset-4 hover:opacity-80"
-  if (href.startsWith("/")) {
+  if (href.startsWith("/") && !sponsored) {
     return <Link href={href} className={className}>{children}</Link>
   }
+  const rel = sponsored ? "sponsored noopener noreferrer" : "noopener noreferrer"
   return (
-    <a href={href} className={className} target="_blank" rel="noopener noreferrer">
+    <a href={href} className={className} target="_blank" rel={rel}>
       {children}
     </a>
   )
