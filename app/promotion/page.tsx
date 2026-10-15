@@ -15,6 +15,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { SignupCta } from "@/components/promotion/signup-cta"
+import { DemoVideo } from "@/components/promotion/demo-video"
 
 export const metadata: Metadata = {
   title: "I lost five ad accounts. So I built Mediacrater.",
@@ -134,12 +135,18 @@ export default function PromotionPage() {
                 <p className="mt-3 text-sm text-muted-foreground">
                   3 free scans a month. No credit card. Sign up with email or Google.
                 </p>
+                <a
+                  href="#demo"
+                  className="mt-5 inline-block rounded-md text-sm font-medium text-primary underline underline-offset-4 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Or watch the 2-minute demo first
+                </a>
               </div>
             </div>
 
             <div className="lg:col-span-6">
               <Shot
-                src="public/bulk-restriction-redacted.png"
+                src="/restriction_images/bulk-restriction-redacted.png"
                 alt="Meta Business Manager list of five ad accounts, each with the status Disabled"
                 width={1900}
                 height={1082}
@@ -183,7 +190,7 @@ export default function PromotionPage() {
                 caption="The notice on one of my accounts. That was the whole explanation."
               />
               <Shot
-                src="public/restriction-1-redacted.png"
+                src="/restriction_images/restriction-1-redacted.png"
                 alt="Meta Ads Manager showing an account error: we can't calculate a score when your account is restricted."
                 width={1368}
                 height={918}
@@ -217,12 +224,19 @@ export default function PromotionPage() {
           </div>
         </section>
 
-        {/* How it works: a real sequence, so it's numbered. */}
-        <section className="border-b border-border py-20 md:py-28">
+        {/* How it works: demo first, then the steps (a real sequence, so it's numbered). */}
+        <section id="demo" className="scroll-mt-6 border-b border-border py-20 md:py-28">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <h2 className="max-w-2xl font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.03em] text-balance sm:text-4xl">
               Check the creative before you put budget behind it
             </h2>
+            <div className="mt-10 max-w-4xl">
+              <DemoVideo />
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                The demo also shows paid features: batch scans, deep analysis and scan history. The free plan covers
+                single scans.
+              </p>
+            </div>
             <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
               {STEPS.map((step, i) => (
                 <li key={step.title} className="border-t-2 border-primary pt-5">
