@@ -37,7 +37,7 @@ export function StickyCta() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center border-t border-border bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
-      <SignupCta position="sticky" label="Scan your first ad free" />
+      <SignupCta position="sticky" label="Scan your first ad free" className="w-full max-w-md" />
     </div>
   )
 }
