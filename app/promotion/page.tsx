@@ -139,7 +139,7 @@ export default function PromotionPage() {
 
             <div className="lg:col-span-6">
               <Shot
-                src="/restriction_images/bulk-restriction-redacted.png"
+                src="public/restriction_images/bulk-restriction-redacted.png"
                 alt="Meta Business Manager list of five ad accounts, each with the status Disabled"
                 width={1900}
                 height={1082}
@@ -183,7 +183,7 @@ export default function PromotionPage() {
                 caption="The notice on one of my accounts. That was the whole explanation."
               />
               <Shot
-                src="/restriction_images/restriction-1-redacted.png"
+                src="public/restriction_images/restriction-1-redacted.png"
                 alt="Meta Ads Manager showing an account error: we can't calculate a score when your account is restricted."
                 width={1368}
                 height={918}
