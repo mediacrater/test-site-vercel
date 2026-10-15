@@ -5,26 +5,45 @@
 // - Every claim must stay true. No approval guarantees, no "ban-proof".
 // - Don't imply the bans in the screenshots were caused by creatives that
 //   Mediacrater would have caught. One says "unusual activity", which is an
-//   account-level flag, not a creative issue.
+//   account-level flag, not a creative issue. This also applies to the page
+//   title and the "Why I built Mediacrater" section.
 // - Free plan = 3 regular scans/month. Audio analysis, deep scans and scan
 //   history are paid (components/pricing.tsx). Keep those in sync.
+// - The hero must say what the product does without scrolling.
 //
 // Layout rules for paid traffic:
 // - No site navigation. One goal on the page: create an account.
 // - noindex: this page is for ad traffic only. Don't add it to app/sitemap.ts.
+// - The ids "hero-cta" and "final-cta" are read by StickyCta (mobile). Keep them.
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import { SignupCta } from "@/components/promotion/signup-cta"
 import { DemoVideo } from "@/components/promotion/demo-video"
+import { StickyCta } from "@/components/promotion/sticky-cta"
 
 export const metadata: Metadata = {
-  title: "I lost five ad accounts. So I built Mediacrater.",
+  title: "I lost five ad accounts without knowing why. So I built Mediacrater.",
   description:
     "A former media buyer's tool for checking video and image ads for likely Meta, TikTok, YouTube, X and Pinterest policy issues before you upload.",
   robots: { index: false, follow: true },
 }
 
 const PLATFORMS = ["Meta", "TikTok", "YouTube", "X", "Pinterest"]
+
+type ShotData = {
+  src: string
+  alt: string
+  width: number
+  height: number
+  caption: string
+}
+
+// Real screenshot of the results page (timeline markers + evidence frames).
+// Put the file in /public/images/ and fill this in to show it under the demo,
+// e.g. { src: "/images/results-screenshot.png", alt: "...", width: 1900,
+// height: 1100, caption: "..." }. While it is null, nothing renders.
+const RESULTS_SHOT = null as ShotData | null
 
 const STEPS = [
   {
@@ -68,26 +87,23 @@ function Shot({
   height,
   caption,
   priority = false,
-}: {
-  src: string
-  alt: string
-  width: number
-  height: number
-  caption: string
+  sizes = "(min-width: 1024px) 50vw, 100vw",
+}: ShotData & {
   priority?: boolean
+  sizes?: string
 }) {
   return (
     <figure>
       {/* Screenshots are light-mode Meta UI: keep a white frame in dark mode too. */}
       <div className="overflow-hidden rounded-xl border border-border bg-white shadow-xl shadow-foreground/5">
-        <img
+        {/* next/image serves resized WebP/AVIF instead of the full-size PNG. */}
+        <Image
           src={src}
           alt={alt}
           width={width}
           height={height}
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
-          decoding="async"
+          sizes={sizes}
+          priority={priority}
           className="h-auto w-full"
         />
       </div>
@@ -126,12 +142,20 @@ export default function PromotionPage() {
               <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-[1.05] tracking-[-0.03em] text-balance sm:text-5xl">
                 Five ad accounts. All disabled. No clear reason why.
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-                I&apos;m Edward. Before I built Mediacrater, I was a dropshipper and media buyer, and that&apos;s my
-                Business Manager. Every ban stopped my campaigns, and none of them told me what I&apos;d done wrong.
+              {/* Says what the product is, above the fold. */}
+              <p className="mt-6 max-w-xl text-xl font-medium leading-snug text-foreground text-pretty">
+                Mediacrater checks your video and image ads against {PLATFORMS.slice(0, -1).join(", ")} and{" "}
+                {PLATFORMS[PLATFORMS.length - 1]} ad policies before you upload, and shows you what&apos;s likely to
+                get flagged.
+              </p>
+              <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
+                I&apos;m Edward. Before I built it, I was a dropshipper and media buyer, and that&apos;s my Business
+                Manager. Every ban stopped my campaigns, and none of them told me what I&apos;d done wrong.
               </p>
               <div className="mt-8">
-                <SignupCta position="hero" />
+                <div id="hero-cta">
+                  <SignupCta position="hero" />
+                </div>
                 <p className="mt-3 text-sm text-muted-foreground">
                   3 free scans a month. No credit card. Sign up with email or Google.
                 </p>
@@ -153,6 +177,39 @@ export default function PromotionPage() {
                 caption="My own ad accounts in Meta Business Manager. Account IDs blurred."
                 priority
               />
+            </div>
+          </div>
+        </section>
+
+        {/* How it works: product first, right after the hero. Demo, then the steps (a real sequence, so it's numbered). */}
+        <section id="demo" className="scroll-mt-6 border-b border-border py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <h2 className="max-w-2xl font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.03em] text-balance sm:text-4xl">
+              Check the creative before you put budget behind it
+            </h2>
+            <div className="mt-10 max-w-4xl">
+              <DemoVideo />
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                The demo also shows paid features: batch scans, deep analysis and scan history. The free plan covers
+                single scans.
+              </p>
+            </div>
+            {RESULTS_SHOT && (
+              <div className="mt-12 max-w-4xl">
+                <Shot {...RESULTS_SHOT} sizes="(min-width: 896px) 896px, 100vw" />
+              </div>
+            )}
+            <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+              {STEPS.map((step, i) => (
+                <li key={step.title} className="border-t-2 border-primary pt-5">
+                  <p className="font-[family-name:var(--font-display)] text-sm font-bold text-primary">Step {i + 1}</p>
+                  <h3 className="mt-2 text-xl font-bold">{step.title}</h3>
+                  <p className="mt-2 leading-relaxed text-muted-foreground">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-12">
+              <SignupCta position="mid" label="Scan your first ad free" />
             </div>
           </div>
         </section>
@@ -208,8 +265,9 @@ export default function PromotionPage() {
             </h2>
             <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
               <p>
-                I learned which words, images and claims were red flags the expensive way: by losing accounts and the
-                money I&apos;d put into them.
+                I lost five ad accounts and the money I&apos;d put into them, and I never got a clear answer about
+                why. Some of those bans may have had nothing to do with my creatives. But creative mistakes were a
+                risk I could control, and I had no way to check for them before publishing.
               </p>
               <p>
                 What I wanted was simple. Before I hit publish, something that checks my creative against the
@@ -221,34 +279,6 @@ export default function PromotionPage() {
               </p>
             </div>
             <p className="mt-8 font-[family-name:var(--font-display)] text-lg font-semibold">Edward, founder</p>
-          </div>
-        </section>
-
-        {/* How it works: demo first, then the steps (a real sequence, so it's numbered). */}
-        <section id="demo" className="scroll-mt-6 border-b border-border py-20 md:py-28">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <h2 className="max-w-2xl font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.03em] text-balance sm:text-4xl">
-              Check the creative before you put budget behind it
-            </h2>
-            <div className="mt-10 max-w-4xl">
-              <DemoVideo />
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                The demo also shows paid features: batch scans, deep analysis and scan history. The free plan covers
-                single scans.
-              </p>
-            </div>
-            <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
-              {STEPS.map((step, i) => (
-                <li key={step.title} className="border-t-2 border-primary pt-5">
-                  <p className="font-[family-name:var(--font-display)] text-sm font-bold text-primary">Step {i + 1}</p>
-                  <h3 className="mt-2 text-xl font-bold">{step.title}</h3>
-                  <p className="mt-2 leading-relaxed text-muted-foreground">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-12">
-              <SignupCta position="mid" label="Scan your first ad free" />
-            </div>
           </div>
         </section>
 
@@ -324,18 +354,20 @@ export default function PromotionPage() {
               Check your next ad before you spend on it
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              One upload shows you what's likely to get flagged, and why.
+              One upload shows you what&apos;s likely to get flagged, and why.
             </p>
             <div className="mt-8">
-              <SignupCta position="final" />
+              <div id="final-cta">
+                <SignupCta position="final" />
+              </div>
               <p className="mt-3 text-sm text-muted-foreground">3 free scans a month. No credit card.</p>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Minimal footer: legal links ad platforms expect, no other exits. */}
-      <footer className="border-t border-border py-10">
+      {/* Minimal footer: legal links ad platforms expect, no other exits. Extra bottom padding on mobile so the sticky CTA never covers it. */}
+      <footer className="border-t border-border pb-28 pt-10 md:pb-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <nav aria-label="Legal" className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link href="/privacy" className="hover:text-foreground">Privacy policy</Link>
@@ -351,6 +383,9 @@ export default function PromotionPage() {
           <p className="mt-4 text-xs text-muted-foreground">© {year} Mediacrater. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Mobile only: appears once the hero CTA scrolls away, hides again at the final CTA. */}
+      <StickyCta />
     </div>
   )
 }
