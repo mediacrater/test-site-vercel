@@ -372,7 +372,7 @@ export default function ScanHistoryPage() {
 
           const scanRows =
             (scans ||
-              []) as unknown as ScanRecord[];
+              []) as ScanRecord[];
 
           setHistory(
             scanRows

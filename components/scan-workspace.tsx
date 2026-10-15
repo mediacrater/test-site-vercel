@@ -42,7 +42,6 @@ import {
 } from '@/lib/mediacrater/evidenceFrames';
 import { loadEvidence, saveEvidence } from '@/lib/mediacrater/evidenceStore';
 import { VideoTimeline, violationDomId } from '@/components/video-timeline';
-import { markAccountLocked, useAccountLocked } from '@/lib/mediacrater/useAccountLocked';
 
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
@@ -66,7 +65,6 @@ export interface WorkspaceProfile {
   audio_analysis?: boolean;
   scan_history?: boolean;
   last_notified_at?: string | null;
-  account_status?: string;
 }
 
 type CreativeKind =
@@ -421,7 +419,6 @@ export function ScanWorkspace({
 
   const [results, setResults] = useState<PlatformResult[] | null>(null);
   const [banner, setBanner] = useState<Banner | null>(null);
-  const [sharedQuotaBlocked, setSharedQuotaBlocked] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentJobIdRef = useRef<string | null>(null);
@@ -472,8 +469,6 @@ export function ScanWorkspace({
 
   const scansRemaining =
     profile?.scans_remaining ?? 0;
-
-  const accountBlocked = useAccountLocked();
 
   const videoCreatives =
     creatives.filter(
@@ -693,15 +688,19 @@ export function ScanWorkspace({
       setCanCancel(false);
       setResults(null);
 
-      setBanner((current) =>
-        current ?? {
-          tone: 'error',
-          title: backgroundScan.error?.title || 'Analysis failed',
-          message:
-            backgroundScan.error?.message ||
-            'Something went wrong. Please try again.',
-        }
-      );
+      setBanner({
+        tone: 'error',
+
+        title:
+          backgroundScan.error
+            ?.title ||
+          'Analysis failed',
+
+        message:
+          backgroundScan.error
+            ?.message ||
+          'Something went wrong. Please try again.',
+      });
 
       onResultsChange?.(
         null
@@ -1208,7 +1207,7 @@ export function ScanWorkspace({
           'Upgrade plan',
         onAction: () =>
           window.location.assign(
-            '/buy-scans'
+            '/buy-tokens'
           ),
       });
 
@@ -1363,7 +1362,7 @@ export function ScanWorkspace({
           'Upgrade plan',
         onAction: () =>
           window.location.assign(
-            '/buy-scans'
+            '/buy-tokens'
           ),
       });
 
@@ -2487,7 +2486,7 @@ for (
           'Upgrade plan',
         onAction: () =>
           window.location.assign(
-            '/buy-scans'
+            '/buy-tokens'
           ),
       });
 
@@ -2524,7 +2523,7 @@ for (
           'Upgrade plan',
         onAction: () =>
           window.location.assign(
-            '/buy-scans'
+            '/buy-tokens'
           ),
       });
 
@@ -2642,7 +2641,6 @@ for (
       const isDuplicateScanError =
         message.includes('Scan already in progress') || message.includes('already have a scan in progress');
       const isRateLimitError = message.includes('Rate limit exceeded') || message.includes('Free tier limit');
-      const isSharedQuotaError = message.includes('free scans for this device or network');
       const isAccountFlaggedError =
         message.includes('ACCOUNT_FLAGGED') || message.includes('locked pending resolution');
       const isAudioLockedError =
@@ -2678,25 +2676,15 @@ for (
           title: 'One scan at a time',
           message: 'You already have a scan in progress. Please wait for it to finish before starting another.',
         });
-      } else if (isSharedQuotaError) {
-        setSharedQuotaBlocked(true);
-        recordFailure({
-          tone: 'warning',
-          title: 'Free scans already used on this device or network',
-          message: 'The free scans for this device or network have been used up. Upgrade to keep scanning.',
-          actionLabel: 'Upgrade plan',
-          onAction: () => window.location.assign('/buy-scans'),
-        });
       } else if (isRateLimitError) {
         recordFailure({
           tone: 'warning',
           title: 'Scan limit reached',
           message,
           actionLabel: 'Buy tokens',
-          onAction: () => window.location.assign('/buy-scans'),
+          onAction: () => window.location.assign('/buy-tokens'),
         });
       } else if (isAccountFlaggedError) {
-        markAccountLocked();
         const notifiedDate = profile?.last_notified_at
           ? new Date(profile.last_notified_at).toLocaleDateString(undefined, {
               month: 'long',
@@ -2713,7 +2701,7 @@ for (
               : 'Check your email for details.'
           }`,
           actionLabel: 'Upgrade plan',
-          onAction: () => window.location.assign('/buy-scans'),
+          onAction: () => window.location.assign('/buy-tokens'),
         });
       } else if (isAuthError) {
         recordFailure({
@@ -2727,7 +2715,7 @@ for (
           title: 'Out of tokens',
           message: 'You have no tokens remaining. Purchase more to continue scanning.',
           actionLabel: 'Buy tokens',
-          onAction: () => window.location.assign('/buy-scans'),
+          onAction: () => window.location.assign('/buy-tokens'),
         });
       } else if (isCorruptionError) {
         recordFailure({
@@ -2749,7 +2737,7 @@ for (
           title: 'Paid plan required',
           message: 'Audio analysis is available on paid plans only. Upgrade to analyze spoken claims in your ads.',
           actionLabel: 'Upgrade plan',
-          onAction: () => window.location.assign('/buy-scans'),
+          onAction: () => window.location.assign('/buy-tokens'),
         });
       } else if (
         isBatchLockedError
@@ -2764,7 +2752,7 @@ for (
             'Upgrade plan',
           onAction: () =>
             window.location.assign(
-              '/buy-scans'
+              '/buy-tokens'
             ),
         });
       } else if (
@@ -2810,8 +2798,7 @@ for (
   const analyzeDisabled =
   creatives.length === 0 ||
   !allCreativesConfigured ||
-  isAnalyzing ||
-  sharedQuotaBlocked;
+  isAnalyzing;
 
 const isBatchResult =
   (backgroundScan.batchItems?.length ?? 0) > 1;
@@ -3468,20 +3455,10 @@ const activeResultOption =
                     </strong>
                   </span>
 
-                  {accountBlocked ? (
-                    <span className="font-semibold text-red-700 dark:text-red-400">
-                      Action required
-                    </span>
-                  ) : sharedQuotaBlocked ? (
-                    <span className="font-semibold text-red-700 dark:text-red-400">
-                      0 remaining (shared on this device or network)
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      {scansRemaining}{' '}
-                      remaining
-                    </span>
-                  )}
+                  <span className="text-muted-foreground">
+                    {scansRemaining}{' '}
+                    remaining
+                  </span>
                 </div>
 
                 <button
