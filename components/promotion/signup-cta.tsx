@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react"
 import { ArrowRight } from "lucide-react"
 
-type Position = "hero" | "mid" | "final"
+type Position = "hero" | "mid" | "final" | "sticky"
 
 const SIGNUP_PATH = "/signup"
 
