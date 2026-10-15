@@ -72,7 +72,7 @@ function Shot({
   src: string
   alt: string
   width: number
-  height:number
+  height: number
   caption: string
   priority?: boolean
 }) {
@@ -149,7 +149,7 @@ export default function PromotionPage() {
                 src="/restriction_images/bulk-restriction-redacted.png"
                 alt="Meta Business Manager list of five ad accounts, each with the status Disabled"
                 width={1900}
-                height="auto"
+                height={1082}
                 caption="My own ad accounts in Meta Business Manager. Account IDs blurred."
                 priority
               />
@@ -193,7 +193,7 @@ export default function PromotionPage() {
                 src="/restriction_images/restriction-1-redacted.png"
                 alt="Meta Ads Manager showing an account error: we can't calculate a score when your account is restricted."
                 width={1368}
-                height="auto"
+                height={918}
                 caption="Even Meta's own Opportunity score goes blank once an account is restricted."
               />
             </div>
