@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) || (await checkEmailDomain(email)) === 'no_mail') {
+  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
     return jsonWithDevice(
       { error: "That email address can't receive mail. Please check it for typos." },
       400,
