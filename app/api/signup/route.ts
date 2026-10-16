@@ -105,8 +105,6 @@ export async function POST(req: NextRequest) {
   const ip = clientIpFrom(req);
 
   // Per-IP signup rate limit: 10 attempts per rolling 24 hours.
-  const rateLimit = await checkAndLogRateLimit(
-    "signup",
   const rateKey = ip || `device:${deviceId}`;
   const rateLimit = await checkAndLogRateLimit(
     "signup",
