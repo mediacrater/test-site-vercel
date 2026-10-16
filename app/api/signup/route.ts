@@ -107,7 +107,8 @@ export async function POST(req: NextRequest) {
   // Per-IP signup rate limit: 10 attempts per rolling 24 hours.
   const rateLimit = await checkAndLogRateLimit(
     "signup",
-    ip || 'unknown',
+    const rateKey = ip || `device:${deviceId}`;
+    const rateLimit = await checkAndLogRateLimit("signup", rateKey, MAX_SIGNUPS_PER_WINDOW, SIGNUP_RATE_LIMIT_MS / 1000);
     MAX_SIGNUPS_PER_WINDOW,
     SIGNUP_RATE_LIMIT_MS / 1000
   );
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (typeof email !== 'string' || (await checkEmailDomain(email)) === 'no_mail') {
+  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) || (await checkEmailDomain(email)) === 'no_mail') {
     return jsonWithDevice(
       { error: "That email address can't receive mail. Please check it for typos." },
       400,
