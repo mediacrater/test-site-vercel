@@ -249,7 +249,13 @@ export default function PrivacyPolicy() {
             enforcement. We do not receive a street address.
           </li>
           <li>
-            <strong>Google</strong> — optional sign-in with your Google account.
+            <strong>Google tag</strong> — tracks user events site wide coming from displayed ads on Google.
+          </li>
+          <li>
+            <strong>Cloudflare</strong> — anonymous data collected for analytics.
+          </li>
+          <li>
+            <strong>Google authentication</strong> — optional sign-in with your Google account.
           </li>
         </ul>
         <p className="mt-4">
