@@ -61,7 +61,7 @@ function buildCsp() {
     'default-src': ["'self'"],
     // 'unsafe-inline' is required for Next.js's inline scripts on static pages.
     // Replacing it with per-page hashes is the possible future upgrade.
-   'script-src': ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", TURNSTILE, CF_INSIGHTS_SCRIPT],
+   'script-src': ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", TURNSTILE, CF_INSIGHTS_SCRIPT, GOOGLE_TAG_SCRIPT],
     // React style={} attributes and the chart component's <style> need this.
     'style-src': ["'self'", "'unsafe-inline'"],
     // data:/blob: = canvas and video thumbnails; Supabase = signed thumbnail URLs;
@@ -69,9 +69,9 @@ function buildCsp() {
     // on any host (e.g. fbcdn.net). Images can't run code.
     'img-src': ["'self'", 'data:', 'blob:', supabaseOrigin, 'https:'],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", supabaseOrigin, vpsOrigin, TURNSTILE, CF_INSIGHTS_CONNECT],
+    'connect-src': ["'self'", supabaseOrigin, vpsOrigin, TURNSTILE, CF_INSIGHTS_CONNECT, GOOGLE_TAG_CONNECT],
     // Turnstile widget + the VPS cf-ok clearance iframe (ApiHostClearance.tsx).
-    'frame-src': [TURNSTILE, vpsOrigin],
+    'frame-src': [TURNSTILE, vpsOrigin, GOOGLE_TAG_FRAME],
     // Audio extraction worker; blob: covers bundlers that start workers from blob URLs.
     'worker-src': ["'self'", 'blob:'],
     // https: = createVideoUrlThumbnail() loads pasted video URLs to grab a frame.
