@@ -60,7 +60,7 @@ export default function TermsOfService() {
           <li>Submit content that is illegal, harmful, or violates third-party rights</li>
           <li>Attempt to manipulate, scrape, or abuse the scanning infrastructure</li>
           <li>Resell or redistribute scan results without permission</li>
-          <li>Create multiple free accounts to get around the free-plan allowance</li>
+          <li>Attempts to bypass the free-plan allowance</li>
         </ul>
       </section>
 
