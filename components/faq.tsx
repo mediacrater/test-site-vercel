@@ -2,11 +2,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const faqs = [
   ["What is ad creative compliance?","Ad creative compliance is the process of reviewing an advertisement for potential violations of an advertising platform's policies before the ad is submitted or launched."],
+  ["Why can't I run more scans on a second free account?", "The free tier is meant for one account per person. Under clause 6 of our Terms of Service, using multiple free accounts to get extra scans is treated as abuse of the free tier, and our automated checks lock the accounts involved. Locked accounts are unlocked once all linked accounts are on a paid plan. If you think your accounts were locked by mistake, for example because you share a device or network with someone else, contact us and we'll review it."]
   ["What does Mediacrater analyze?","Mediacrater analyzes your creative for potential policy risks, including relevant visual content, language, claims, and other signals depending on the scan type and platform selected."],
   ["Which advertising platforms are supported?","Mediacrater supports analysis for major advertising platforms including Meta, TikTok, Google and others. Available platform coverage can evolve as policies and the product develop."],
   ["Can Mediacrater guarantee that my ad will be approved?","No. Mediacrater identifies potential policy risks; it does not control a platform's final review or approval decision."],
   ["Does Mediacrater analyze video ads?","Yes. Video analysis can identify potential issues at specific points in the creative, making it easier to review the exact language or visual that triggered a finding."],
   ["Is my video data secure?", "Absolutely. Mediacrater uses a privacy-first architecture. Your original video files are temporarily passed to us, analysed and then immediately deleted from our memory and storage."],
+  ["Why do you retain thumbnails?", "We retain deliberately low resolution thumbnails of your image and video creatives as a visual reference for the Scan History feature. These thumbnails are collected and stored for scans made by clients on any paid plan."],
   ["Do unused tokens expire?", "Tokens expire and renew at the end of your billing cycle, they do not carry over to the next month."],
   ["Is Mediacrater affiliated with Meta, TikTok, or Google?", "No. Mediacrater is an independent tool and is not affiliated with, endorsed by, or sponsored by any of the platforms we analyze including Meta. Platform logos are displayed solely for user experience to indicate which policies are being checked."],
 ]
