@@ -43,8 +43,18 @@ const TURNSTILE = 'https://challenges.cloudflare.com';
 // data to cloudflareinsights.com.
 const CF_INSIGHTS_SCRIPT = 'https://static.cloudflareinsights.com';
 const CF_INSIGHTS_CONNECT = 'https://cloudflareinsights.com';
-// Whop Pixel: loads s.js from this origin and sends events back to it.
-const WHOP_PIXEL = 'https://t.whop.tw';
+
+// Google tag (Google Ads, AW-16650524214): origins from Google's CSP guidance
+// for gtag.js and Ads. Narrow these once CSP reports show what is really used.
+const GOOGLE_TAG_SCRIPT = 'https://www.googletagmanager.com';
+const GOOGLE_TAG_CONNECT = [
+  'https://www.googletagmanager.com',
+  'https://*.google-analytics.com',
+  'https://*.analytics.google.com',
+  'https://*.g.doubleclick.net',
+  'https://*.google.com',
+];
+const GOOGLE_TAG_FRAME = 'https://td.doubleclick.net';
 
 function buildCsp() {
   const directives = {
