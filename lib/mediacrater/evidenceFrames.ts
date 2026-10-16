@@ -1,6 +1,11 @@
 // lib/mediacrater/evidenceFrames.ts
+//
+// VIDEO UPLOAD: upload-based scans have no pre-extracted frames, so
+// collectEvidenceFrames() captures a frame at each timestamp the model cited,
+// straight from the local file (sharper than the old 0.30-quality frames).
+// pickEvidenceFrames() is still used by the frame path (files over 95 MB).
 
-import type { ExtractedFrame } from '@/lib/mediacrater/dissector';
+import { captureFramesAt, type ExtractedFrame } from '@/lib/mediacrater/dissector';
 import type { Violation } from '@/lib/mediacrater/scoreCalculator';
 
 // Frames are taken roughly every 0.5 s, so the nearest frame is never more
@@ -39,6 +44,57 @@ export function violationTimestamps(violation: Violation): string[] {
 // The first few, for thumbnails.
 export function evidenceTimestamps(violation: Violation): string[] {
   return violationTimestamps(violation).slice(0, MAX_FRAMES_PER_VIOLATION);
+}
+
+// Evidence frames use the same lightbox as before; 900px at 0.6 keeps each
+// frame small enough for evidenceStore.ts's sessionStorage budget.
+const EVIDENCE_LONG_EDGE = 900;
+const EVIDENCE_QUALITY = 0.6;
+
+/**
+ * timestamp string -> frame data URL, captured from the local video file at
+ * each distinct timestamp the violations cite (first few per violation).
+ * Never throws: evidence frames are a nice-to-have, not worth failing a scan.
+ */
+export async function collectEvidenceFrames(
+  videoFile: File,
+  violations: Violation[],
+  signal?: AbortSignal | null
+): Promise<EvidenceFrames> {
+  const evidence: EvidenceFrames = {};
+  const wanted = new Map<string, number>();
+
+  for (const violation of violations) {
+    for (const timestamp of evidenceTimestamps(violation)) {
+      if (wanted.has(timestamp)) continue;
+      const seconds = parseTimestampSeconds(timestamp);
+      if (seconds !== null) wanted.set(timestamp, seconds);
+    }
+  }
+
+  if (wanted.size === 0) return evidence;
+
+  try {
+    const labels = Array.from(wanted.keys());
+    const frames = await captureFramesAt(
+      videoFile,
+      labels.map((label) => wanted.get(label) as number),
+      signal,
+      { maxLongEdge: EVIDENCE_LONG_EDGE, quality: EVIDENCE_QUALITY }
+    );
+
+    // captureFramesAt keeps input order but skips failed seeks, so match by
+    // the requested time rather than by position.
+    for (const label of labels) {
+      const seconds = wanted.get(label) as number;
+      const frame = frames.find((item) => item.timestampSeconds === seconds);
+      if (frame) evidence[label] = frame.data;
+    }
+  } catch (error) {
+    console.warn('[EVIDENCE] Could not capture frames:', error);
+  }
+
+  return evidence;
 }
 
 // timestamp string -> frame data URL, only for timestamps with a close frame.

@@ -16,6 +16,9 @@ export interface Violation {
   suggestedFix?: string;
   editingWorkaround?: string;
   eventId?: string | null;
+  // AUDIO BOX: set by the VPS (helpers.js normalizeViolationSources).
+  // Missing on older saved results and image scans: treated as visual.
+  source?: 'audio' | 'visual' | string;
   [key: string]: unknown;
 }
 
@@ -123,6 +126,9 @@ function deduplicateViolations(violations: Violation[]): Violation[] {
 }
 
 function generateViolationKey(violation: Violation): string {
+  // AUDIO BOX: never merge an audio finding into a visual one (they render
+  // in separate boxes).
+  const source = isAudioViolation(violation) ? 'audio' : 'visual';
   const type = (violation.type || 'Unknown').toLowerCase().trim();
   const reason = (violation.reason || '')
     .toLowerCase()
@@ -130,7 +136,15 @@ function generateViolationKey(violation: Violation): string {
     .replace(/frame\s*\d+/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
-  return `${type}::${reason}`;
+  return `${source}::${type}::${reason}`;
+}
+
+/**
+ * AUDIO BOX: true for violations found only in the spoken words. Anything
+ * else (including results saved before this field existed) is visual.
+ */
+export function isAudioViolation(violation: Violation): boolean {
+  return violation.source === 'audio';
 }
 
 /**

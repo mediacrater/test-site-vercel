@@ -1,10 +1,12 @@
 // lib/mediacrater/dissector.ts
 //
-// Direct port of the Chrome extension's utils/dissector.js.
-// This file has zero chrome.* dependencies in the original — it's pure
-// DOM/Canvas/Web Audio APIs — so behavior here is intentionally identical
-// to the extension, frame-for-frame, so scan results don't drift between
-// the two clients.
+// Originally a direct port of the Chrome extension's utils/dissector.js
+// (pure DOM/Canvas/Web Audio, no chrome.* APIs).
+//
+// VIDEO UPLOAD: videos up to 95 MB are now uploaded and analyzed as a video,
+// so extractFrames() only runs for larger files (the fallback frame path).
+// captureFramesAt() grabs single frames at exact times after a scan: the
+// evidence frames under each violation and the Scan History thumbnail.
 
 export interface ExtractedFrame {
   frameNumber: number;
@@ -20,7 +22,7 @@ export interface ExtractedAudio {
 
 export type ScanType = 'regular' | 'deep';
 
-// Deep scans use the same frames as Regular scans (a frame every 0.5 s).
+// Frame path only. Deep scans use the same frames as Regular scans (a frame every 0.5 s).
 // What makes them "deep" is the server turning on the model's thinking mode.
 // The old deep interval (0.125 s) produced ~968 frames for a 2-minute video,
 // over QwenCloud's limit of 250 images per request.
@@ -37,10 +39,9 @@ const TARGET_LONG_EDGE = 900;
 // speech-focused model input and keeps a full 121s clip's base64 payload
 // under ~5MB regardless of the source video's original audio format,
 // instead of the 25-30MB+ a stereo 44.1kHz WAV would produce at that
-// length. This does not change Gemini's token cost (audio tokens are
-// billed by duration, not file size) — it exists purely to keep the
-// request payload within the same size budget the frame payload already
-// respects.
+// length. The audio is transcribed on the VPS (Qwen ASR) and only the
+// transcript reaches the analysis model; downsampling exists purely to keep
+// the request payload small (the scan request carries it as base64).
 const TARGET_AUDIO_SAMPLE_RATE = 16000;
 
 export async function extractFrames(
@@ -161,6 +162,123 @@ function extractFramesCanvas(
       const errorMessage = getVideoErrorMessage(video.error);
       reject(new Error(`Failed to load video: ${errorMessage}`));
     });
+  });
+}
+
+export interface CaptureOptions {
+  maxLongEdge?: number;
+  quality?: number;
+}
+
+/**
+ * Captures one JPEG frame at each requested time (in seconds) from a local
+ * video file. Times past the end are clamped to the last moment of the video;
+ * frames that fail to seek are skipped. Output keeps the input order.
+ */
+export function captureFramesAt(
+  videoFile: File,
+  timesSeconds: number[],
+  signal?: AbortSignal | null,
+  options: CaptureOptions = {}
+): Promise<ExtractedFrame[]> {
+  const maxLongEdge = options.maxLongEdge ?? TARGET_LONG_EDGE;
+  const quality = options.quality ?? 0.7;
+
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Canvas 2D context unavailable in this browser'));
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(videoFile);
+    let settled = false;
+
+    const cleanup = () => {
+      clearTimeout(metadataTimeout);
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    const metadataTimeout = setTimeout(
+      () => fail(new Error('Timed out loading video for frame capture')),
+      15000
+    );
+
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+
+    video.addEventListener(
+      'loadedmetadata',
+      async () => {
+        clearTimeout(metadataTimeout);
+        try {
+          const duration = video.duration;
+          if (!Number.isFinite(duration) || duration <= 0 || !video.videoWidth || !video.videoHeight) {
+            fail(new Error('Invalid video duration'));
+            return;
+          }
+
+          const longestEdge = Math.max(video.videoWidth, video.videoHeight);
+          const scale = longestEdge > maxLongEdge ? maxLongEdge / longestEdge : 1;
+          canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+          canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+
+          const frames: ExtractedFrame[] = [];
+          let frameNumber = 1;
+
+          for (const requested of timesSeconds) {
+            if (signal?.aborted) {
+              fail(new Error('Operation cancelled'));
+              return;
+            }
+            if (!Number.isFinite(requested) || requested < 0) continue;
+
+            const time = Math.min(requested, Math.max(0, duration - 0.05));
+            try {
+              await seekToTime(video, time);
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              frames.push({
+                frameNumber,
+                timestamp: formatTimestamp(time),
+                timestampSeconds: requested,
+                data: canvas.toDataURL('image/jpeg', quality),
+              });
+              frameNumber++;
+            } catch (error) {
+              console.warn(`Failed to capture frame at ${time.toFixed(2)}s:`, error);
+            }
+          }
+
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve(frames);
+        } catch (err) {
+          fail(err instanceof Error ? err : new Error(String(err)));
+        }
+      },
+      { once: true }
+    );
+
+    video.addEventListener(
+      'error',
+      () => fail(new Error(`Failed to load video: ${getVideoErrorMessage(video.error)}`)),
+      { once: true }
+    );
+
+    video.src = objectUrl;
   });
 }
 

@@ -3,10 +3,17 @@
 // components/scan-workspace.tsx
 
 import { useEffect, useRef, useState } from 'react';
-import { extractFrames, extractAudio, type ExtractedFrame, type ScanType } from '@/lib/mediacrater/dissector';
+import {
+  captureFramesAt,
+  extractFrames,
+  extractAudio,
+  type ExtractedFrame,
+  type ScanType,
+} from '@/lib/mediacrater/dissector';
 import {
   calculateConfidenceScore,
   groupViolationsByType,
+  isAudioViolation,
   severityBorderClass,
   type Violation,
 } from '@/lib/mediacrater/scoreCalculator';
@@ -16,6 +23,10 @@ import {
   cancelQueuedScan,
   reportQueueTiming,
   waitForQueueTurn,
+  uploadVideo,
+  deleteUploadedVideo,
+  MAX_VIDEO_UPLOAD_BYTES,
+  type VideoScanInput,
 } from '@/lib/mediacrater/scanApi';
 import {
   resolveCreativeUrl,
@@ -37,6 +48,7 @@ import { uploadScanThumbnail } from '@/lib/mediacrater/thumbnails';
 
 import { ViolationFrames } from '@/components/violation-frames';
 import {
+  collectEvidenceFrames,
   pickEvidenceFrames,
   type EvidenceFrames,
 } from '@/lib/mediacrater/evidenceFrames';
@@ -141,6 +153,10 @@ interface PlatformResult {
   // CONTENT FILTER: note from the VPS when a deep scan fell back to a
   // standard analysis (result.scanNote), shown above the result.
   scanNote?: string;
+  // AUDIO BOX: whether audio analysis was requested for this scan, and the
+  // VPS's note when the audio couldn't be used (result.audioNote).
+  audioRequested?: boolean;
+  audioNote?: string;
 }
 
 interface Banner {
@@ -1884,21 +1900,28 @@ export function ScanWorkspace({
         } |
         null = null;
 
+      // VIDEO UPLOAD: set when the video was uploaded for an upload-based
+      // scan; uploadConsumed once the VPS has finished with it (the VPS
+      // deletes it then). Anything else gets cleaned up in the finally below.
+      let uploadId:
+        string | null = null;
+
+      let uploadConsumed = false;
+
+      // Image (or frame) used for the Scan History thumbnail.
+      let thumbnailSource:
+        string | null = null;
+
+      const audioRequested =
+        creative.kind === 'video' &&
+        creative.analyzeAudio &&
+        canAnalyzeAudio;
+
       try {
         if (
           creative.kind ===
           'video'
         ) {
-          frames =
-            await extractFrames(
-              creative.file,
-              signal,
-              creative.scanType
-            );
-
-          framesExtractedTime =
-            Date.now();
-
           if (
             creative.analyzeAudio &&
             canAnalyzeAudio
@@ -1914,6 +1937,76 @@ export function ScanWorkspace({
                 signal
               );
           }
+
+          if (
+            creative.file.size <=
+            MAX_VIDEO_UPLOAD_BYTES
+          ) {
+            // VIDEO UPLOAD: the file itself goes to the VPS; the AI watches
+            // the video instead of browser-extracted frames.
+            let lastPublishedPercent = -1;
+
+            publishScanProgress(
+              `${label}: uploading video...`,
+              'preparing'
+            );
+
+            const uploaded =
+              await uploadVideo(
+                creative.file,
+                signal,
+                (percent) => {
+                  if (
+                    percent - lastPublishedPercent >= 5 ||
+                    percent === 100
+                  ) {
+                    lastPublishedPercent = percent;
+                    publishScanProgress(
+                      `${label}: uploading video (${percent}%)...`,
+                      'preparing'
+                    );
+                  }
+                }
+              );
+
+            uploadId =
+              uploaded.uploadId;
+
+            if (profile?.scan_history) {
+              try {
+                const [firstFrame] =
+                  await captureFramesAt(
+                    creative.file,
+                    [0],
+                    signal,
+                    { maxLongEdge: 400, quality: 0.8 }
+                  );
+
+                thumbnailSource =
+                  firstFrame?.data ?? null;
+              } catch (thumbnailError) {
+                console.warn(
+                  'Thumbnail frame capture failed (non-fatal):',
+                  thumbnailError
+                );
+              }
+            }
+          } else {
+            // Over the 95 MB upload limit (Cloudflare caps request bodies at
+            // 100 MB): the original frame path.
+            frames =
+              await extractFrames(
+                creative.file,
+                signal,
+                creative.scanType
+              );
+
+            thumbnailSource =
+              frames[0]?.data ?? null;
+          }
+
+          framesExtractedTime =
+            Date.now();
         } else if (
           creative.kind ===
           'image'
@@ -1932,6 +2025,9 @@ export function ScanWorkspace({
             data: imageData,
           }];
 
+          thumbnailSource =
+            imageData;
+
           framesExtractedTime =
             Date.now();
         } else {
@@ -1944,7 +2040,7 @@ export function ScanWorkspace({
 
         if (
           profile?.scan_history &&
-          frames[0]
+          thumbnailSource
         ) {
           const thumbnailScanId =
             crypto.randomUUID();
@@ -1953,9 +2049,14 @@ export function ScanWorkspace({
             await uploadScanThumbnail(
               userId,
               thumbnailScanId,
-              frames[0].data
+              thumbnailSource
             );
         }
+
+        const videoInput: VideoScanInput =
+          uploadId
+            ? { uploadId }
+            : { frames };
 
         const framesWaitMs =
           framesExtractedTime
@@ -2029,7 +2130,7 @@ for (
               creative.kind ===
               'video'
                 ? await scanVideo(
-                    frames,
+                    videoInput,
                     audio,
                     platform,
                     creative.scanType,
@@ -2153,7 +2254,7 @@ for (
                 creative.kind ===
                 'video'
                   ? await scanVideo(
-                      frames,
+                      videoInput,
                       audio,
                       platform,
                       creative.scanType,
@@ -2210,6 +2311,9 @@ for (
                 }
               >;
 
+            // VIDEO UPLOAD: the VPS deletes the upload once a scan finishes.
+            uploadConsumed = true;
+
             if (jobId) {
               reportQueueTiming(
                 jobId,
@@ -2234,7 +2338,35 @@ for (
               );
             
             if (creative.kind === 'video') {
-              const evidence = pickEvidenceFrames(frames, processedViolations);
+              // Evidence frames are for what's on screen; audio findings
+              // render in their own box without frames.
+              const visualViolations =
+                processedViolations.filter(
+                  (violation) => !isAudioViolation(violation)
+                );
+
+              let evidence: EvidenceFrames;
+
+              if (uploadId) {
+                publishScanProgress(
+                  `${label}: preparing results...`,
+                  'running'
+                );
+
+                evidence =
+                  await collectEvidenceFrames(
+                    creative.file,
+                    visualViolations,
+                    signal
+                  );
+              } else {
+                evidence =
+                  pickEvidenceFrames(
+                    frames,
+                    visualViolations
+                  );
+              }
+
               if (Object.keys(evidence).length > 0) {
                 evidenceRef.current.set(scanId, evidence);
               }
@@ -2258,6 +2390,11 @@ for (
               scanNote:
                 typeof (completed.result as { scanNote?: unknown }).scanNote === 'string'
                   ? ((completed.result as { scanNote?: string }).scanNote)
+                  : undefined,
+              audioRequested,
+              audioNote:
+                typeof (completed.result as { audioNote?: unknown }).audioNote === 'string'
+                  ? ((completed.result as { audioNote?: string }).audioNote)
                   : undefined,
             });
 
@@ -2373,6 +2510,19 @@ for (
               error:
                 'This creative could not be prepared or completed.',
             }
+          );
+        }
+      } finally {
+        // VIDEO UPLOAD: an upload the VPS never finished with (cancelled while
+        // queued, failed before the scan ran) is deleted right away instead
+        // of waiting for the server's 30-minute expiry. The VPS refuses this
+        // while a scan is using the file, so it can't break a running scan.
+        if (
+          uploadId &&
+          !uploadConsumed
+        ) {
+          void deleteUploadedVideo(
+            uploadId
           );
         }
       }
@@ -2882,6 +3032,57 @@ const activeVideoCreative =
 
 const activePlaybackSrc = playbackSrcFor(activeVideoCreative);
   
+// One violation card, shared by the visual results and the audio box so both
+// look the same. The id is the violation's index in the full
+// processedViolations list, which is what the video timeline jumps to.
+function renderViolationCard(
+  result: PlatformResult,
+  v: Violation,
+  idx: number,
+  showFrames: boolean
+) {
+  const violationIndex = result.processedViolations.indexOf(v);
+  const location = v.timestamps?.length
+    ? `⏱ ${v.timestamps.join(', ')}`
+    : v.frames?.length
+    ? `Frames: ${v.frames.join(', ')}`
+    : null;
+
+  return (
+    <div
+      key={idx}
+      id={violationDomId(result.scanId, violationIndex)}
+      className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm transition-shadow ${
+        highlightedViolation === `${result.scanId}:${violationIndex}`
+          ? 'ring-2 ring-primary'
+          : ''
+      }`}
+    >
+      {location && <div className="text-xs text-muted-foreground mb-1">{location}</div>}
+      {showFrames && (
+        <ViolationFrames violation={v} evidence={evidenceRef.current.get(result.scanId)} />
+      )}
+      <div className="mb-2">{v.reason}</div>
+      {v.suggestedFix && (
+        <div className="text-xs bg-primary/5 border border-primary/20 rounded-md p-2">
+          💡 {v.suggestedFix}
+          {v.editingWorkaround && (
+            <details className="mt-1.5">
+              <summary className="cursor-pointer text-primary font-medium">
+                Can't reshoot? Try these editing fixes instead
+              </summary>
+              <div className="mt-1 text-muted-foreground">└─ {v.editingWorkaround}</div>
+            </details>
+          )}
+        </div>
+      )}
+      <div className="text-xs text-muted-foreground mt-1.5 capitalize">
+        Severity: {v.severity || 'medium'}
+      </div>
+    </div>
+  );
+}
+
 const activeResultOption =
   resultCreativeOptions.find(
     (item) =>
@@ -3625,7 +3826,15 @@ const activeResultOption =
               />
             )}
             {visibleResults.map((r) => {
-              const grouped = groupViolationsByType(r.processedViolations);
+              // AUDIO BOX: spoken-word findings get their own box; everything
+              // else (including results saved before this change) is visual.
+              const visualViolations = r.processedViolations.filter(
+                (violation) => !isAudioViolation(violation)
+              );
+              const audioViolations = r.processedViolations.filter(isAudioViolation);
+              const grouped = groupViolationsByType(visualViolations);
+              const groupedAudio = groupViolationsByType(audioViolations);
+              const showAudioBox = Boolean(r.audioRequested) || audioViolations.length > 0;
               const riskColorClass =
                 r.riskClass === 'confidence-low'
                   ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
@@ -3656,54 +3865,60 @@ const activeResultOption =
                       <span>✓</span>
                       <span>No violations detected for this platform!</span>
                     </div>
+                  ) : visualViolations.length === 0 ? (
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm font-medium">
+                      <span>✓</span>
+                      <span>No visual violations detected.</span>
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {Object.entries(grouped).map(([type, violations]) => (
                         <div key={type}>
                           <p className="text-sm font-semibold mb-2">{type}</p>
                           <div className="space-y-2">
-                            {violations.map((v, idx) => {
-                              const location = v.timestamps?.length
-                                ? `⏱ ${v.timestamps.join(', ')}`
-                                : v.frames?.length
-                                ? `Frames: ${v.frames.join(', ')}`
-                                : null;
-                              return (
-                                  <div
-                                    key={idx}
-                                     id={violationDomId(r.scanId, r.processedViolations.indexOf(v))}
-                                      className={`bg-muted/30 border border-border ${severityBorderClass(v.severity)} rounded-lg p-3 text-sm transition-shadow ${
-                                         highlightedViolation === `${r.scanId}:${r.processedViolations.indexOf(v)}`
-                                         ? 'ring-2 ring-primary'
-                                         : ''
-                                     }`}
-                                  >                               
-                                  {location && <div className="text-xs text-muted-foreground mb-1">{location}</div>}
-                                  <ViolationFrames violation={v} evidence={evidenceRef.current.get(r.scanId)} />
-                                  <div className="mb-2">{v.reason}</div>
-                                  {v.suggestedFix && (
-                                    <div className="text-xs bg-primary/5 border border-primary/20 rounded-md p-2">
-                                      💡 {v.suggestedFix}
-                                      {v.editingWorkaround && (
-                                        <details className="mt-1.5">
-                                          <summary className="cursor-pointer text-primary font-medium">
-                                            Can't reshoot? Try these editing fixes instead
-                                          </summary>
-                                          <div className="mt-1 text-muted-foreground">└─ {v.editingWorkaround}</div>
-                                        </details>
-                                      )}
-                                    </div>
-                                  )}
-                                  <div className="text-xs text-muted-foreground mt-1.5 capitalize">
-                                    Severity: {v.severity || 'medium'}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                            {violations.map((v, idx) => renderViolationCard(r, v, idx, true))}
                           </div>
                         </div>
                       ))}
                     </div>
+                  )}
+
+                  {showAudioBox && (
+                    <section
+                      aria-label="Audio analysis"
+                      className="mt-4 border border-border rounded-lg p-4"
+                    >
+                      <p className="text-sm font-semibold">Audio</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+                        What&apos;s said in your ad, checked against the same policies.
+                      </p>
+
+                      {r.audioNote && (
+                        <div className="mb-3 p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-sm text-amber-800 dark:text-amber-400">
+                          {r.audioNote}
+                        </div>
+                      )}
+
+                      {audioViolations.length === 0 ? (
+                        !r.audioNote && (
+                          <div className="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm font-medium">
+                            <span>✓</span>
+                            <span>No audio violations detected.</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="space-y-4">
+                          {Object.entries(groupedAudio).map(([type, violations]) => (
+                            <div key={type}>
+                              <p className="text-sm font-semibold mb-2">{type}</p>
+                              <div className="space-y-2">
+                                {violations.map((v, idx) => renderViolationCard(r, v, idx, false))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
                   )}
                 </div>
               );

@@ -12,6 +12,12 @@
 // NOTE: the extension's scanVideo() took a `policy` argument positionally
 // that was never actually used (server loads the policy itself from
 // `platform`). Dropped here rather than ported as dead weight.
+//
+// VIDEO UPLOAD: videos up to MAX_VIDEO_UPLOAD_BYTES are uploaded once with
+// uploadVideo() and scanned by reference ({ uploadId }); the server hands the
+// AI a signed URL to the file instead of browser-extracted frames. Bigger
+// files still go through the frame path ({ frames }), since Cloudflare's free
+// plan rejects request bodies over 100 MB.
 
 import type { ExtractedFrame, ScanType } from './dissector';
 import { supabase } from './supabaseClient';
@@ -39,6 +45,18 @@ export interface ScanCompletedResponse {
 
 export type ScanResponse = ScanQueuedResponse | ScanCompletedResponse;
 
+// Must match MAX_UPLOAD_BYTES in the VPS routes/uploadVideo.js.
+export const MAX_VIDEO_UPLOAD_BYTES = 95 * 1024 * 1024;
+
+export type VideoScanInput =
+  | { uploadId: string }
+  | { frames: ExtractedFrame[] };
+
+export interface UploadedVideo {
+  uploadId: string;
+  durationSeconds: number | null;
+}
+
 export interface ClientBatchMeta {
   batchedByClient: boolean;
   batchId: string | null;
@@ -60,27 +78,139 @@ async function requireAccessToken(): Promise<string> {
  * way the extension's error taxonomy in popup.js expects to match against
  * (e.g. "Insufficient tokens", "ACCOUNT_FLAGGED", "Rate limit exceeded").
  */
+function errorMessageFromBody(status: number, data: any, fallback: string): string {
+  if (!data || typeof data !== 'object') return fallback;
+  if (status === 403 && data.error === 'ACCOUNT_FLAGGED') {
+    return data.message || 'ACCOUNT_FLAGGED';
+  }
+  if (status === 402) {
+    return `Insufficient tokens. You need ${data.tokensNeeded ?? 1} token(s).`;
+  }
+  if (status === 429) {
+    return data.message || 'Rate limit exceeded';
+  }
+  return data.message || data.error || fallback;
+}
+
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
     const data = await response.json();
-    if (response.status === 403 && data.error === 'ACCOUNT_FLAGGED') {
-      return data.message || 'ACCOUNT_FLAGGED';
-    }
-    if (response.status === 402) {
-      return `Insufficient tokens. You need ${data.tokensNeeded ?? 1} token(s).`;
-    }
-    if (response.status === 429) {
-      return data.message || 'Rate limit exceeded';
-    }
-    return data.message || data.error || fallback;
+    return errorMessageFromBody(response.status, data, fallback);
   } catch {
     return fallback;
   }
 }
 
+const UPLOAD_ID_PATTERN = /^[a-f0-9]{48}$/;
+
+/**
+ * Uploads a video file to the VPS for an upload-based scan. Uses
+ * XMLHttpRequest because fetch() has no upload progress events. The body is
+ * the raw file (no base64), so a 95 MB file is sent as 95 MB.
+ */
+export async function uploadVideo(
+  file: File,
+  signal?: AbortSignal,
+  onProgress?: (percent: number) => void
+): Promise<UploadedVideo> {
+  if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
+    throw new Error('This video is over 95 MB. Please compress it and try again.');
+  }
+
+  const token = await requireAccessToken();
+
+  return new Promise<UploadedVideo>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+
+    const xhr = new XMLHttpRequest();
+    const onAbort = () => xhr.abort();
+
+    const finish = () => signal?.removeEventListener('abort', onAbort);
+
+    xhr.open('POST', `${VPS_URL}/upload-video`);
+    xhr.withCredentials = true;
+    xhr.responseType = 'text';
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.setRequestHeader('x-scan-origin', 'webapp');
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      }
+    };
+
+    xhr.onload = () => {
+      finish();
+      let data: any = null;
+      try {
+        data = JSON.parse(xhr.responseText || 'null');
+      } catch {
+        data = null;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (data && typeof data.uploadId === 'string' && UPLOAD_ID_PATTERN.test(data.uploadId)) {
+          resolve({
+            uploadId: data.uploadId,
+            durationSeconds: typeof data.durationSeconds === 'number' ? data.durationSeconds : null,
+          });
+        } else {
+          reject(new Error('Upload failed. Please try again.'));
+        }
+        return;
+      }
+
+      if (xhr.status === 413) {
+        reject(new Error('This video is over 95 MB. Please compress it and try again.'));
+        return;
+      }
+
+      reject(new Error(errorMessageFromBody(xhr.status, data, `Upload failed (${xhr.status})`)));
+    };
+
+    xhr.onerror = () => {
+      finish();
+      reject(new Error('Upload failed. Please check your connection and try again.'));
+    };
+
+    xhr.onabort = () => {
+      finish();
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+
+    signal?.addEventListener('abort', onAbort, { once: true });
+    xhr.send(file);
+  });
+}
+
+/**
+ * Best-effort cleanup for an upload that was never scanned (cancelled while
+ * queued, or the scan request failed before reaching the server). The server
+ * refuses to delete a file a scan is using, and deletes every upload when
+ * its scan finishes, so this is never required for correctness.
+ */
+export async function deleteUploadedVideo(uploadId: string): Promise<void> {
+  if (!UPLOAD_ID_PATTERN.test(uploadId)) return;
+  try {
+    const token = await requireAccessToken();
+    await fetch(`${VPS_URL}/upload-video/${encodeURIComponent(uploadId)}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { Authorization: `Bearer ${token}` },
+      keepalive: true,
+    });
+  } catch (err) {
+    console.warn('Failed to delete uploaded video:', err);
+  }
+}
+
 export async function scanVideo(
-  frames: ExtractedFrame[],
-  audio: { data: string; mimeType: string } | null,  // new parameter
+  video: VideoScanInput,
+  audio: { data: string; mimeType: string } | null,
   platform: string,
   scanType: ScanType,
   jobId: string | null,
@@ -112,7 +242,7 @@ export async function scanVideo(
       'x-scan-origin': 'webapp',
     },
     body: JSON.stringify({
-      frames,
+      ...('uploadId' in video ? { uploadId: video.uploadId } : { frames: video.frames }),
       audio: audio || null,
       transcript: null,
       platform,
