@@ -3,8 +3,9 @@
 // Originally a direct port of the Chrome extension's utils/dissector.js
 // (pure DOM/Canvas/Web Audio, no chrome.* APIs).
 //
-// VIDEO UPLOAD: videos up to 95 MB are now uploaded and analyzed as a video,
-// so extractFrames() only runs for larger files (the fallback frame path).
+// VIDEO UPLOAD: MP4/MOV videos up to 500 MB are uploaded to R2 and analyzed as
+// a video, so extractFrames() only runs for the fallback frame path (WebM,
+// bigger files, or storage unavailable).
 // captureFramesAt() grabs single frames at exact times after a scan: the
 // evidence frames under each violation and the Scan History thumbnail.
 

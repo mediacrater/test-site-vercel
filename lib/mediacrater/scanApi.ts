@@ -13,11 +13,11 @@
 // that was never actually used (server loads the policy itself from
 // `platform`). Dropped here rather than ported as dead weight.
 //
-// VIDEO UPLOAD: videos up to MAX_VIDEO_UPLOAD_BYTES are uploaded once with
-// uploadVideo() and scanned by reference ({ uploadId }); the server hands the
-// AI a signed URL to the file instead of browser-extracted frames. Bigger
-// files still go through the frame path ({ frames }), since Cloudflare's free
-// plan rejects request bodies over 100 MB.
+// VIDEO UPLOAD: MP4/MOV videos up to MAX_VIDEO_UPLOAD_BYTES are uploaded once
+// with uploadVideo(), straight to Cloudflare R2 through a presigned URL the
+// VPS issues, and scanned by reference ({ uploadId }). The AI downloads the
+// file from R2. WebM, bigger files, and any storage failure use the frame
+// path ({ frames }) instead.
 
 import type { ExtractedFrame, ScanType } from './dissector';
 import { supabase } from './supabaseClient';
@@ -46,11 +46,30 @@ export interface ScanCompletedResponse {
 export type ScanResponse = ScanQueuedResponse | ScanCompletedResponse;
 
 // Must match MAX_UPLOAD_BYTES in the VPS routes/uploadVideo.js.
-export const MAX_VIDEO_UPLOAD_BYTES = 95 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 500 * 1024 * 1024;
+
+// What the browser removed (lib/mediacrater/metadataStrip.ts). The VPS checks
+// the file itself; this only names what was cleared in its logs.
+export interface MetadataReport {
+  stripped: boolean;
+  removed: string[];
+}
 
 export type VideoScanInput =
-  | { uploadId: string }
+  | { uploadId: string; metadata?: MetadataReport }
   | { frames: ExtractedFrame[] };
+
+/**
+ * Thrown when temporary storage can't be used (not configured on the VPS,
+ * R2 unreachable, upload rejected). The caller falls back to the frame path
+ * instead of failing the scan.
+ */
+export class StorageUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StorageUnavailableError';
+  }
+}
 
 export interface UploadedVideo {
   uploadId: string;
@@ -104,87 +123,110 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 const UPLOAD_ID_PATTERN = /^[a-f0-9]{48}$/;
 
 /**
- * Uploads a video file to the VPS for an upload-based scan. Uses
- * XMLHttpRequest because fetch() has no upload progress events. The body is
- * the raw file (no base64), so a 95 MB file is sent as 95 MB.
+ * Uploads a video for an upload-based scan, in two steps:
+ *   1. The VPS checks the account (auth, lock, scans left, pending scan) and
+ *      returns a presigned R2 URL valid 5 minutes for this exact size and type.
+ *   2. The browser PUTs the file straight to R2 (XMLHttpRequest, for upload
+ *      progress). The VPS never receives the video.
+ * Account problems (limit reached, locked, scan in progress) throw a normal
+ * Error with the server's message. Storage problems throw
+ * StorageUnavailableError so the caller can use the frame path instead.
  */
 export async function uploadVideo(
-  file: File,
+  file: Blob,
+  contentType: string,
   signal?: AbortSignal,
   onProgress?: (percent: number) => void
 ): Promise<UploadedVideo> {
   if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
-    throw new Error('This video is over 95 MB. Please compress it and try again.');
+    throw new StorageUnavailableError('Video is over the upload limit');
   }
 
   const token = await requireAccessToken();
 
-  return new Promise<UploadedVideo>((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new DOMException('Aborted', 'AbortError'));
-      return;
-    }
-
-    const xhr = new XMLHttpRequest();
-    const onAbort = () => xhr.abort();
-
-    const finish = () => signal?.removeEventListener('abort', onAbort);
-
-    xhr.open('POST', `${VPS_URL}/upload-video`);
-    xhr.withCredentials = true;
-    xhr.responseType = 'text';
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.setRequestHeader('x-scan-origin', 'webapp');
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
-      }
-    };
-
-    xhr.onload = () => {
-      finish();
-      let data: any = null;
-      try {
-        data = JSON.parse(xhr.responseText || 'null');
-      } catch {
-        data = null;
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        if (data && typeof data.uploadId === 'string' && UPLOAD_ID_PATTERN.test(data.uploadId)) {
-          resolve({
-            uploadId: data.uploadId,
-            durationSeconds: typeof data.durationSeconds === 'number' ? data.durationSeconds : null,
-          });
-        } else {
-          reject(new Error('Upload failed. Please try again.'));
-        }
-        return;
-      }
-
-      if (xhr.status === 413) {
-        reject(new Error('This video is over 95 MB. Please compress it and try again.'));
-        return;
-      }
-
-      reject(new Error(errorMessageFromBody(xhr.status, data, `Upload failed (${xhr.status})`)));
-    };
-
-    xhr.onerror = () => {
-      finish();
-      reject(new Error('Upload failed. Please check your connection and try again.'));
-    };
-
-    xhr.onabort = () => {
-      finish();
-      reject(new DOMException('Aborted', 'AbortError'));
-    };
-
-    signal?.addEventListener('abort', onAbort, { once: true });
-    xhr.send(file);
+  const presign = await fetch(`${VPS_URL}/upload-video`, {
+    method: 'POST',
+    signal,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'x-scan-origin': 'webapp',
+    },
+    body: JSON.stringify({ size: file.size, contentType }),
   });
+
+  if (!presign.ok) {
+    let data: any = null;
+    try {
+      data = await presign.json();
+    } catch {
+      data = null;
+    }
+    if (presign.status === 503 || presign.status === 413 || presign.status === 415) {
+      throw new StorageUnavailableError(data?.message || 'Video uploads are unavailable');
+    }
+    throw new Error(errorMessageFromBody(presign.status, data, `Upload failed (${presign.status})`));
+  }
+
+  const ticket = await presign.json();
+  if (
+    !ticket ||
+    typeof ticket.uploadId !== 'string' ||
+    !UPLOAD_ID_PATTERN.test(ticket.uploadId) ||
+    typeof ticket.uploadUrl !== 'string' ||
+    !/^https:\/\/[a-z0-9.-]+\.r2\.cloudflarestorage\.com\//i.test(ticket.uploadUrl)
+  ) {
+    throw new StorageUnavailableError('Unexpected upload ticket');
+  }
+
+  const uploadId: string = ticket.uploadId;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
+
+      const xhr = new XMLHttpRequest();
+      const onAbort = () => xhr.abort();
+      const finish = () => signal?.removeEventListener('abort', onAbort);
+
+      xhr.open('PUT', ticket.uploadUrl);
+      // Must match the signed Content-Type exactly. No credentials and no
+      // Authorization header: the URL itself is the permission.
+      xhr.setRequestHeader('Content-Type', contentType);
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+        }
+      };
+      xhr.onload = () => {
+        finish();
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new StorageUnavailableError(`Storage rejected the upload (${xhr.status})`));
+      };
+      xhr.onerror = () => {
+        finish();
+        reject(new StorageUnavailableError('Could not reach storage'));
+      };
+      xhr.onabort = () => {
+        finish();
+        reject(new DOMException('Aborted', 'AbortError'));
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+      xhr.send(file);
+    });
+  } catch (error) {
+    // Nothing usable was stored: release the server's record right away.
+    void deleteUploadedVideo(uploadId);
+    throw error;
+  }
+
+  return { uploadId, durationSeconds: null };
 }
 
 /**
@@ -242,7 +284,9 @@ export async function scanVideo(
       'x-scan-origin': 'webapp',
     },
     body: JSON.stringify({
-      ...('uploadId' in video ? { uploadId: video.uploadId } : { frames: video.frames }),
+      ...('uploadId' in video
+        ? { uploadId: video.uploadId, metadata: video.metadata ?? null }
+        : { frames: video.frames }),
       audio: audio || null,
       transcript: null,
       platform,
@@ -293,7 +337,8 @@ export async function scanImage(
   scanId?: string | null,
   thumbnailUrl?: string | null,
   fileName?: string | null,
-  batchMeta?: ClientBatchMeta
+  batchMeta?: ClientBatchMeta,
+  metadata?: MetadataReport
 ): Promise<ScanResponse> {
   const token = await requireAccessToken();
 
@@ -317,6 +362,7 @@ export async function scanImage(
     },
     body: JSON.stringify({
       imageData,
+      metadata: metadata ?? null,
       platform,
       jobId: jobId || null,
       scanId: scanId || null,

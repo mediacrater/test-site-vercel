@@ -11,6 +11,10 @@ import {
   type ScanType,
 } from '@/lib/mediacrater/dissector';
 import {
+  stripImageMetadata,
+  stripVideoMetadata,
+} from '@/lib/mediacrater/metadataStrip';
+import {
   calculateConfidenceScore,
   groupViolationsByType,
   isAudioViolation,
@@ -26,6 +30,8 @@ import {
   uploadVideo,
   deleteUploadedVideo,
   MAX_VIDEO_UPLOAD_BYTES,
+  StorageUnavailableError,
+  type MetadataReport,
   type VideoScanInput,
 } from '@/lib/mediacrater/scanApi';
 import {
@@ -66,6 +72,9 @@ const PLATFORMS = [
 
 const VALID_TYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'image/png', 'image/jpeg', 'image/gif'];
 const MAX_FILE_BYTES = 1100 * 1024 * 1024;
+// Images are sent as base64 inside the scan request, so they must stay well
+// under Cloudflare's 100 MB request limit. Matches MAX_IMAGE_MB on the VPS.
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const MAX_VIDEO_SECONDS = 121;
 const MAX_BATCH_FILES = 5;
 const BATCH_COOLDOWN_SECONDS = 5;
@@ -806,7 +815,7 @@ export function ScanWorkspace({
     }
   }
 
-  async function fileToBase64(file: File): Promise<string> {
+  async function fileToBase64(file: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
@@ -1000,6 +1009,15 @@ export function ScanWorkspace({
         )
           ? 'video'
           : 'image';
+
+    if (
+      kind === 'image' &&
+      file.size > MAX_IMAGE_BYTES
+    ) {
+      throw new Error(
+        'IMAGE_TOO_LARGE'
+      );
+    }
 
     const objectUrl =
       URL.createObjectURL(
@@ -1458,6 +1476,17 @@ export function ScanWorkspace({
         });
       } else if (
         error?.message ===
+        'IMAGE_TOO_LARGE'
+      ) {
+        setBanner({
+          tone: 'error',
+          title:
+            'Image too large',
+          message:
+            'Images must be 20 MB or smaller. Please compress the image and try again.',
+        });
+      } else if (
+        error?.message ===
         'INVALID_FILE_TYPE'
       ) {
         setBanner({
@@ -1912,6 +1941,11 @@ export function ScanWorkspace({
       let thumbnailSource:
         string | null = null;
 
+      // METADATA: what the browser removed before sending (images, and
+      // uploaded videos). The VPS checks the file itself and logs the result.
+      let metadataReport:
+        MetadataReport | undefined;
+
       const audioRequested =
         creative.kind === 'video' &&
         creative.analyzeAudio &&
@@ -1938,40 +1972,80 @@ export function ScanWorkspace({
               );
           }
 
-          if (
+          const uploadable =
             creative.file.size <=
-            MAX_VIDEO_UPLOAD_BYTES
-          ) {
-            // VIDEO UPLOAD: the file itself goes to the VPS; the AI watches
-            // the video instead of browser-extracted frames.
-            let lastPublishedPercent = -1;
+              MAX_VIDEO_UPLOAD_BYTES &&
+            (creative.file.type === 'video/mp4' ||
+              creative.file.type === 'video/quicktime');
 
+          if (uploadable) {
+            // METADATA: blank GPS, device, dates, XMP and data tracks in the
+            // file before it leaves the browser (lossless, frames untouched).
             publishScanProgress(
-              `${label}: uploading video...`,
+              `${label}: removing metadata...`,
               'preparing'
             );
 
-            const uploaded =
-              await uploadVideo(
-                creative.file,
-                signal,
-                (percent) => {
-                  if (
-                    percent - lastPublishedPercent >= 5 ||
-                    percent === 100
-                  ) {
-                    lastPublishedPercent = percent;
-                    publishScanProgress(
-                      `${label}: uploading video (${percent}%)...`,
-                      'preparing'
-                    );
-                  }
-                }
+            const stripped =
+              await stripVideoMetadata(
+                creative.file
               );
 
-            uploadId =
-              uploaded.uploadId;
+            if (stripped.fallback === null) {
+              // VIDEO UPLOAD: straight to Cloudflare R2; the AI watches the
+              // video instead of browser-extracted frames.
+              let lastPublishedPercent = -1;
 
+              publishScanProgress(
+                `${label}: uploading video...`,
+                'preparing'
+              );
+
+              try {
+                const uploaded =
+                  await uploadVideo(
+                    stripped.blob,
+                    creative.file.type,
+                    signal,
+                    (percent) => {
+                      if (
+                        percent - lastPublishedPercent >= 5 ||
+                        percent === 100
+                      ) {
+                        lastPublishedPercent = percent;
+                        publishScanProgress(
+                          `${label}: uploading video (${percent}%)...`,
+                          'preparing'
+                        );
+                      }
+                    }
+                  );
+
+                uploadId =
+                  uploaded.uploadId;
+
+                metadataReport =
+                  stripped.report;
+              } catch (uploadError) {
+                // Storage unavailable: use the frame path below. Account
+                // errors (limit reached, locked, scan in progress) still stop
+                // the scan with their own message.
+                if (!(uploadError instanceof StorageUnavailableError)) {
+                  throw uploadError;
+                }
+                console.warn(
+                  'Video upload unavailable, using frames instead:',
+                  uploadError.message
+                );
+              }
+            } else {
+              console.info(
+                `Video metadata could not be removed in place (${stripped.fallback}), using frames instead.`
+              );
+            }
+          }
+
+          if (uploadId) {
             if (profile?.scan_history) {
               try {
                 const [firstFrame] =
@@ -1992,8 +2066,9 @@ export function ScanWorkspace({
               }
             }
           } else {
-            // Over the 95 MB upload limit (Cloudflare caps request bodies at
-            // 100 MB): the original frame path.
+            // Frame path: WebM, over 500 MB, metadata that can't be removed
+            // in place, or storage unavailable. Canvas frames carry no
+            // metadata.
             frames =
               await extractFrames(
                 creative.file,
@@ -2011,9 +2086,19 @@ export function ScanWorkspace({
           creative.kind ===
           'image'
         ) {
+          // METADATA: remove EXIF/GPS/XMP/IPTC/comments before the image
+          // leaves the browser (lossless; rotated photos are redrawn upright).
+          const strippedImage =
+            await stripImageMetadata(
+              creative.file
+            );
+
+          metadataReport =
+            strippedImage.report;
+
           const imageData =
             await fileToBase64(
-              creative.file
+              strippedImage.blob
             );
 
           frames = [{
@@ -2055,7 +2140,7 @@ export function ScanWorkspace({
 
         const videoInput: VideoScanInput =
           uploadId
-            ? { uploadId }
+            ? { uploadId, metadata: metadataReport }
             : { frames };
 
         const framesWaitMs =
@@ -2175,7 +2260,8 @@ for (
                     scanId,
                     thumbnailPath,
                     fileName,
-                    batchMeta
+                    batchMeta,
+                    metadataReport
                   );
 
             let queueEnteredAt:
@@ -2299,7 +2385,8 @@ for (
                       scanId,
                       thumbnailPath,
                       fileName,
-                      batchMeta
+                      batchMeta,
+                      metadataReport
                     );
             }
 
@@ -3889,14 +3976,14 @@ const activeResultOption =
                       className="mt-4 border border-border rounded-lg p-4"
                     >
                       <div className="flex items-center gap-1.5 text-sm font-semibold">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           className="w-4 h-4 text-primary"
                         >
                           <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />

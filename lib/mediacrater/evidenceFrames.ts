@@ -3,7 +3,8 @@
 // VIDEO UPLOAD: upload-based scans have no pre-extracted frames, so
 // collectEvidenceFrames() captures a frame at each timestamp the model cited,
 // straight from the local file (sharper than the old 0.30-quality frames).
-// pickEvidenceFrames() is still used by the frame path (files over 95 MB).
+// pickEvidenceFrames() is still used by the frame path (WebM, files over
+// 500 MB, or storage unavailable).
 
 import { captureFramesAt, type ExtractedFrame } from '@/lib/mediacrater/dissector';
 import type { Violation } from '@/lib/mediacrater/scoreCalculator';
