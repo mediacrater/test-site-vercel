@@ -33,18 +33,6 @@ const START_DELAY_MS = 500
 
 const FINDINGS: Finding[] = [
   {
-    id: "attributes",
-    t: 2,
-    lane: "video",
-    severity: "high",
-    title: "Personal attributes",
-    source: "On-screen text",
-    quote: "Struggling with acne?",
-    why: "Asks the viewer about a personal health condition.",
-    fix: "Talk about the product instead: \u201cA daily serum for blemish-prone skin.\u201d",
-    region: "top",
-  },
-  {
     id: "results",
     t: 7,
     lane: "video",
