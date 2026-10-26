@@ -35,89 +35,62 @@ export default function ExtensionPrivacyPolicy() {
     <section>
       <h2>What Data the Extension Handles</h2>
       <p>
-        The extension handles only the information needed to provide its user-facing features.
-        Some information is stored locally in your browser, while account, billing, and
-        user-requested scan information is transmitted to Mediacrater service providers.
+        The extension handles downloaded video data and created libraries. We at mediacrater do not see what you're doing on the extension.
       </p>
 
       <h3>Account and authentication data</h3>
       <ul>
         <li>
-          <strong>Email address and user ID</strong>: used to authenticate you, associate the
-          extension with your Mediacrater account, and retrieve your plan and feature access.
-          Stored and processed through Supabase.
-        </li>
-        <li>
-          <strong>Password</strong>: transmitted directly to Supabase when you sign in. Supabase
-          processes and protects your password through its authentication system. Mediacrater
-          cannot view your password in plain text.
-        </li>
-        <li>
-          <strong>Authentication tokens</strong>: session and refresh tokens are stored in
-          Chrome extension local storage to keep you signed in. They are transmitted to
-          Supabase and Mediacrater services only when required to authenticate an account
-          request. They are removed from extension storage when you sign out.
-        </li>
-        <li>
-          <strong>Plan and account information</strong>: your plan name, remaining scan balance,
-          audio-analysis availability, batch-download access, local-library access, and Stripe
-          customer status may be retrieved to display and enforce the features included with
-          your account.
-        </li>
-        <li>
-          <strong>Extension version</strong>: the installed extension version is associated with
-          your user ID in Supabase so we can manage compatibility, entitlement changes, and
-          support issues. The last reported version is also stored locally to prevent redundant
-          reports.
+          <strong>The extension does not collect account or authentication data</strong>: It is a free to use, standalone extension that runs in your browser.
         </li>
       </ul>
 
       <h3>Facebook Ads Library content</h3>
       <ul>
-        <li>
-          <strong>Visible creative information</strong>: when you activate selection mode on a
-          Facebook Ads Library page, the extension examines visible image and video elements so
-          you can select a specific advertisement. It may access an image source URL, video
-          source URL, video poster URL, the visible numeric Facebook Library ID, and the
-          corresponding public Ads Library details URL made available to your browser by Facebook.
-        </li>
-        <li>
-          <strong>Selected-creative records</strong>: the creative type, source URL, optional
-          poster URL, Facebook Library ID and details URL when available, creative position,
-          selection time, URL refresh time, and a randomly generated local record ID are stored in Chrome extension
-          local storage so your selections remain available in the side panel until you remove
-          or clear them.
-        </li>
-        <li>
-          <strong>Page access limitations</strong>: the selector operates only on Facebook Ads
-          Library pages. The extension does not read Facebook messages, account credentials,
-          private posts, or general browsing history.
-        </li>
-      </ul>
+          <li>
+            <strong>Visible creative information</strong> — when you activate selection mode on a
+            Facebook Ads Library page, the extension examines visible image and video elements so
+            you can select a specific advertisement. It may access an image source URL, video
+            source URL, video poster URL, the visible numeric Facebook Library ID, and the
+            corresponding public Ads Library details URL made available to your browser by Facebook.
+          </li>
+          <li>
+            <strong>Selected-creative records</strong> — the creative type, source URL, optional
+            poster URL, Facebook Library ID and details URL when available, creative position,
+            selection time, URL refresh time, and a randomly generated local record ID are stored in Chrome extension
+            local storage so your selections remain available in the side panel until you remove
+            or clear them.
+          </li>
+          <li>
+            <strong>Page access limitations</strong> — the selector operates only on Facebook Ads
+            Library pages. The extension does not read Facebook messages, account credentials,
+            private posts, or general browsing history.
+          </li>
+        </ul>
 
       <h3>Downloads and previews</h3>
       <ul>
-        <li>
-          <strong>Image and video downloads</strong>: when you click Download, the selected
-          source URL is passed to Chrome's download manager and the file is saved to your device.
-          For a paid batch download, the extension fetches the selected files in your browser and
-          creates a local ZIP containing separate Images and Videos folders. Mediacrater does not
-          receive or retain an ordinary download merely because you downloaded it.
-        </li>
-        <li>
-          <strong>Creative previews</strong>: previews load the selected image or video from its
-          source URL directly into the extension interface. Previewing does not upload the file
-          to Mediacrater.
-        </li>
-        <li>
-          <strong>Ad details and URL refresh</strong>: when you choose Ad details or Refresh URL,
-          the extension opens the public Facebook Ads Library page identified by the saved
-          Facebook Library ID. A refresh examines the matching ad card after it loads and updates
-          the locally stored temporary image or video source URL and poster URL. This operation
-          communicates directly with Facebook in your browser and does not upload the creative
-          to Mediacrater.
-        </li>
-      </ul>
+          <li>
+            <strong>Image and video downloads</strong> — when you click Download, the selected
+            source URL is passed to Chrome's download manager and the file is saved to your device.
+            For a paid batch download, the extension fetches the selected files in your browser and
+            creates a local ZIP containing separate Images and Videos folders. Mediacrater does not
+            receive or retain an ordinary download merely because you downloaded it.
+          </li>
+          <li>
+            <strong>Creative previews</strong> — previews load the selected image or video from its
+            source URL directly into the extension interface. Previewing does not upload the file
+            to Mediacrater.
+          </li>
+          <li>
+            <strong>Ad details and URL refresh</strong> — when you choose Ad details or Refresh URL,
+            the extension opens the public Facebook Ads Library page identified by the saved
+            Facebook Library ID. A refresh examines the matching ad card after it loads and updates
+            the locally stored temporary image or video source URL and poster URL. This operation
+            communicates directly with Facebook in your browser and does not upload the creative
+            to Mediacrater.
+          </li>
+        </ul>
 
       <h3>Local creative library</h3>
       <p>
@@ -156,72 +129,10 @@ export default function ExtensionPrivacyPolicy() {
         </li>
       </ul>
 
-      <h3>Optional policy scans</h3>
-      <ul>
-        <li>
-          <strong>Scan content</strong>: an image or video is submitted for analysis only when
-          you click Scan. For an image scan, the selected image data is transmitted securely to
-          Mediacrater for analysis. For a video scan, the extension loads the selected video in
-          your browser, extracts representative video frames, and may extract its audio track if
-          audio analysis is enabled for your account. The extracted frames and optional audio are
-          transmitted securely to Mediacrater. The extension does not transmit the complete
-          original video file as part of this video scan workflow.
-        </li>
-        <li>
-          <strong>Scan metadata</strong>: we may process and store your user ID, plan, selected
-          platform, scan type, generated scan and queue identifiers, file name, timestamps,
-          processing duration, payload size, scan status, token usage, and returned results.
-          This information is used to provide scan results, manage queues and balances, display
-          scan history where available, diagnose technical problems, and evaluate support or
-          refund requests.
-        </li>
-        <li>
-          <strong>AI processing</strong>: selected image data or extracted video frames,
-          optional audio, and related text instructions are sent to third-party AI model
-          providers solely to perform the scan.
-          These providers may process data in countries other than your own and may retain it
-          according to their own terms and legal obligations. They do not receive ordinary
-          downloaded or locally organized creatives unless you explicitly submit the creative
-          for a scan.
-        </li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Payment Data</h2>
-      <ul>
-        <li>
-          <strong>Checkout and billing portal</strong>: when you choose to purchase or manage a
-          plan, the extension requests a secure Stripe checkout or billing-portal session and
-          opens the Stripe-hosted page in your browser.
-        </li>
-        <li>
-          <strong>Credit card and billing information</strong>: payment details are collected
-          and processed exclusively by Stripe. Mediacrater does not receive or store your full
-          card number or security code.
-        </li>
-        <li>
-          <strong>Purchase and subscription records</strong>: we store information needed to
-          identify your subscription, apply your plan and scan balance, provide billing support,
-          and comply with tax and accounting obligations. Records required for Canadian tax and
-          accounting compliance may be retained for six years from the end of the applicable tax
-          year, including after account deletion.
-        </li>
-      </ul>
-    </section>
-
     <section>
       <h2>How We Use Extension Data</h2>
       <ul>
-        <li>To authenticate you and maintain your extension session</li>
-        <li>To display your plan, scan balance, and available extension features</li>
-        <li>To let you select, preview, copy, refresh, and download Ads Library image and video URLs</li>
-        <li>To let you reopen the public Ads Library entry associated with a saved creative</li>
-        <li>To provide the on-device creative library and organization tools</li>
-        <li>To process policy scans that you explicitly request</li>
-        <li>To manage scan queues, token usage, subscriptions, and billing</li>
-        <li>To maintain compatibility and diagnose technical or support issues</li>
-        <li>To prevent fraud, abuse, and unauthorized access to the service</li>
+        <li>We don't, zero data is collected from the extension.</li>
       </ul>
     </section>
 
