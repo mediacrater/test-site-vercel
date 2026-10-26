@@ -1,19 +1,68 @@
-import { ArrowDown, Check, FileVideo, ScanLine, SlidersHorizontal } from "lucide-react"
+//components/how-it-works.tsx
+"use client"
+
+import { ArrowUpRight } from "lucide-react"
+import { useInView } from "@/hooks/use-in-view"
+import { YOUTUBE_DEMO_URL } from "@/lib/site-links"
 
 const steps = [
-  {n:"01",icon:FileVideo,title:"Choose your creative",text:"Upload the video or image you are preparing to run."},
-  {n:"02",icon:SlidersHorizontal,title:"Select the platforms",text:"Tell Mediacrater where the creative is going. Policy context matters."},
-  {n:"03",icon:ScanLine,title:"Run the analysis",text:"The creative is evaluated for potential policy risks across the selected requirements."},
-  {n:"04",icon:Check,title:"Review the findings",text:"Get risk levels, timestamps, confidence, policy context, and suggested revisions."},
+  { title: "Choose your creative", text: "Upload the video or image you are preparing to run, or paste a link to it." },
+  { title: "Select the platforms", text: "Tell Mediacrater where the creative is going. Policy context matters." },
+  { title: "Run the analysis", text: "The creative is checked for likely policy risks against the platforms you selected." },
+  { title: "Review the findings", text: "Get risk levels, timestamps, policy context and suggested revisions." },
 ]
 
 export function HowItWorks() {
-  return <section id="how-it-works" className="border-b border-border py-24 md:py-32">
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div id="1 Corinthians 10:31" className="flex flex-col justify-between gap-8 md:flex-row md:items-end"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-primary">How it works</p><h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold tracking-[-.035em] sm:text-5xl">From creative to clarity.</h2></div><p className="max-w-md text-base leading-relaxed text-muted-foreground">A compliance review should not require a compliance department.</p></div>
-      <div className="mt-16 grid border border-border md:grid-cols-4">
-        {steps.map(({n,icon:Icon,title,text},i)=><div key={n} className="relative border-b border-border p-7 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0"><div className="flex items-center justify-between"><span className="font-mono text-[10px] text-muted-foreground">{n}</span><Icon className="h-5 w-5 text-primary"/></div><h3 className="mt-12 text-lg font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{text}</p>{i<3&&<ArrowDown className="absolute bottom-[-10px] left-1/2 z-10 hidden h-5 w-5 translate-x-[-50%] bg-background p-0.5 text-border md:block"/>}</div>)}
+  const { ref, inView } = useInView<HTMLOListElement>({ threshold: 0.4 })
+
+  return (
+    <section id="how-it-works" aria-labelledby="how-title" className="py-24 md:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div data-verse="1 Corinthians 10:31" className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <h2 id="how-title" className="display-lg text-[clamp(2.1rem,4.4vw,3.4rem)]">
+              From creative to clarity.
+            </h2>
+            <p className="mt-5 max-w-[44ch] text-lg leading-relaxed text-muted-foreground">
+              A compliance review should not require a compliance department.
+            </p>
+          </div>
+          <a
+            href={YOUTUBE_DEMO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 self-start text-[1rem] font-semibold text-link underline underline-offset-4 hover:decoration-2 md:self-auto"
+          >
+            Watch the demo on YouTube
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+
+        <ol ref={ref} className="relative mt-16 grid gap-10 md:grid-cols-4 md:gap-8">
+          {/* Track: horizontal on desktop, vertical on mobile. Fills once when it scrolls into view. */}
+          <span aria-hidden="true" className="absolute left-[1.3rem] top-2 bottom-2 w-[2px] bg-border md:left-0 md:right-0 md:top-[1.3rem] md:bottom-auto md:h-[2px] md:w-auto" />
+          <span
+            aria-hidden="true"
+            className={`absolute left-[1.3rem] top-2 bottom-2 w-[2px] origin-top bg-primary transition-transform duration-[1600ms] ease-[cubic-bezier(.22,1,.36,1)] md:left-0 md:right-0 md:top-[1.3rem] md:bottom-auto md:h-[2px] md:w-auto md:origin-left ${
+              inView ? "scale-x-100 scale-y-100" : "scale-y-0 md:scale-x-0 md:scale-y-100"
+            }`}
+          />
+          {steps.map((step, i) => (
+            <li key={step.title} className="relative pl-16 md:pl-0">
+              <span
+                className={`absolute left-0 top-0 flex h-[2.6rem] w-[2.6rem] items-center justify-center rounded-full border-2 font-display text-base font-extrabold transition-colors duration-500 md:static ${
+                  inView ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"
+                }`}
+                style={{ transitionDelay: inView ? `${200 + i * 320}ms` : "0ms" }}
+              >
+                {i + 1}
+              </span>
+              <h3 className="text-xl font-bold md:mt-7">{step.title}</h3>
+              <p className="mt-2 max-w-[34ch] text-[1rem] leading-relaxed text-muted-foreground">{step.text}</p>
+            </li>
+          ))}
+        </ol>
       </div>
-    </div>
-  </section>
+    </section>
+  )
 }

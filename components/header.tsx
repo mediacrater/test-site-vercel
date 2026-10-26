@@ -1,53 +1,77 @@
+//components/header.tsx
 "use client"
-import Image from "next/image"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useEffect, useRef } from "react"
-import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/button"
+import { useEffect, useId, useRef, useState } from "react"
+import { ArrowUpRight, ChevronDown, LayoutDashboard, LogOut, Menu, Puzzle, X } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Menu, X, ChevronDown } from "lucide-react"
+import { BrandMark } from "@/components/brand-mark"
 import { supabase } from "@/lib/mediacrater/supabaseClient"
-const EXTENSION_LINK = "https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=website_header"
+import { EXTENSION_URL, YOUTUBE_DEMO_URL } from "@/lib/site-links"
+
+const EXTENSION_LINK = EXTENSION_URL("website_header")
+
+type NavLink = { href: string; label: string; external?: boolean }
+
+const NAV_LINKS: NavLink[] = [
+  { href: "/#features", label: "Features" },
+  { href: YOUTUBE_DEMO_URL, label: "How it works", external: true },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
+]
+
 export function Header() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const { resolvedTheme } = useTheme()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [authLoaded, setAuthLoaded] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+  const accountMenuId = useId()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Auth state — same shared client the rest of the app uses, so this
-  // reflects whatever session already exists (dashboard, settings, etc.)
-  // without a second Supabase client instance.
+  // Auth state: same shared Supabase client as the rest of the app, so this
+  // reflects any session that already exists (dashboard, settings, etc.).
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUserEmail(session?.user?.email ?? null)
       setAuthLoaded(true)
     })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user?.email ?? null)
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
-  // Close the dropdown on outside click
+  // Solid background and border once the page is scrolled.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  // Outside click closes the account menu; Escape closes any open menu.
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
         setDropdownOpen(false)
+        setMobileMenuOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("keydown", handleKey)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleKey)
+    }
   }, [])
 
   async function handleSignOut() {
@@ -57,182 +81,217 @@ export function Header() {
     router.push("/signin")
   }
 
-  const logoSrc = mounted && resolvedTheme === "dark" 
-    ? "/images/header-logo-dark.png" 
-    : "/images/header-logo.png"
-  const navLinks = [
-    { href: "/#features", label: "Features" },
-    { 
-      href: "https://www.youtube.com/watch?v=t8k6-XgiBig&utm_medium=website_how-it-works", 
-      target: "_blank", 
-      rel: "noopener noreferrer", 
-      label: "How It Works" 
-    },
-    { href: "/#pricing", label: "Pricing" },
-    { href: "/#faq", label: "FAQ" },
-  ]
+  const initial = userEmail?.trim().charAt(0).toUpperCase() || "?"
+  const solid = scrolled || mobileMenuOpen
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src={logoSrc || "/placeholder.svg"}
-              alt="Mediacrater Logo"
-              width={40}
-              height={40}
-              className="h-10 w-10"
-            />
-            <span className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
-              Mediacrater
-            </span>
-          </Link>
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                target={link.target}
-                rel={link.rel}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </Link>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-300 ${
+        solid ? "border-border bg-background/90 backdrop-blur-md" : "border-transparent bg-background/0"
+      }`}
+    >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
+      >
+        Skip to content
+      </a>
+
+      <nav aria-label="Main" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-[var(--header-h)] items-center justify-between gap-6">
+          <BrandMark onClick={() => setMobileMenuOpen(false)} />
+
+          <ul className="hidden items-center gap-1 md:flex">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-[0.95rem] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  {link.label}
+                  {link.external && (
+                    <>
+                      <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="sr-only"> (opens YouTube in a new tab)</span>
+                    </>
+                  )}
+                </Link>
+              </li>
             ))}
-          </div>
-          {/* Desktop CTA */}
-          <div className="hidden md:flex md:items-center md:gap-4">
+          </ul>
+
+          <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
             {authLoaded && userEmail ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors max-w-[220px]"
+                  onClick={() => setDropdownOpen((v) => !v)}
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="menu"
+                  aria-controls={accountMenuId}
+                  className="flex max-w-[260px] items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-sm font-medium text-foreground transition-colors hover:border-foreground/30"
                 >
+                  <span
+                    aria-hidden="true"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[0.8rem] font-bold text-primary-foreground"
+                  >
+                    {initial}
+                  </span>
                   <span className="truncate">{userEmail}</span>
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                    aria-hidden="true"
+                  />
                 </button>
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-card shadow-lg py-1.5 z-50">
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
-                    >
-                      Go to dashboard
-                    </Link>
-                    <div className="my-1 border-t border-border" />
-                    <a
-                      href={EXTENSION_LINK}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
-                    >
-                      Get the Chrome extension ↗
-                    </a>
-                    <div className="my-1 border-t border-border" />
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-secondary transition-colors"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
+                <div
+                  id={accountMenuId}
+                  role="menu"
+                  hidden={!dropdownOpen}
+                  className="absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-border bg-popover p-1.5 shadow-[0_16px_40px_-16px_rgba(11,22,40,0.45)] animate-in fade-in-0 zoom-in-95"
+                >
+                  <p className="truncate px-3 pb-2 pt-1.5 text-xs text-muted-foreground">Signed in as {userEmail}</p>
+                  <Link
+                    role="menuitem"
+                    href="/dashboard"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    Go to dashboard
+                  </Link>
+                  <a
+                    role="menuitem"
+                    href={EXTENSION_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                  >
+                    <Puzzle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    Get the Chrome extension
+                    <ArrowUpRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                  </a>
+                  <div className="my-1.5 border-t border-border" />
+                  <button
+                    role="menuitem"
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    Sign out
+                  </button>
+                </div>
               </div>
             ) : authLoaded ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Link
                   href="/signin"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                  className="rounded-full px-3.5 py-2 text-[0.95rem] font-medium text-foreground transition-colors hover:bg-accent"
                 >
                   Log in
                 </Link>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Link href="/signup">Sign up</Link>
-                </Button>
+                <Link
+                  href="/signup"
+                  className="inline-flex h-10 items-center rounded-full bg-primary px-5 text-[0.95rem] font-semibold text-primary-foreground transition-[filter,transform] hover:brightness-110 active:scale-[0.98]"
+                >
+                  Sign up
+                </Link>
               </div>
             ) : (
-              // Avoids a flash of either state before the session check resolves
-              <div className="w-[140px] h-9" />
+              // Holds the space while the session check resolves, so nothing jumps.
+              <div className="h-10 w-[168px]" aria-hidden="true" />
             )}
           </div>
-          {/* Mobile Controls */}
-          <div className="flex md:hidden items-center gap-2">
+
+          <div className="flex items-center gap-1 md:hidden">
             <ThemeToggle />
             <button
               type="button"
-              className="p-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-accent"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls={menuId}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  target={link.target}
-                  rel={link.rel}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
+
+        <div id={menuId} hidden={!mobileMenuOpen} className="md:hidden">
+          <div className="border-t border-border pb-6 pt-3 animate-in fade-in-0 slide-in-from-top-2">
+            <ul className="flex flex-col">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    target={link.external ? "_blank" : undefined}
+                    rel={link.external ? "noopener noreferrer" : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-3 text-lg font-medium text-foreground"
+                  >
+                    {link.label}
+                    {link.external && <ArrowUpRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
+                  </Link>
+                </li>
               ))}
-              {userEmail ? (
-                <>
-                  <div className="text-sm font-medium text-foreground truncate pt-2 border-t border-border">
-                    {userEmail}
-                  </div>
+            </ul>
+
+            {userEmail ? (
+              <div className="mt-3 border-t border-border pt-4">
+                <p className="truncate text-sm text-muted-foreground">Signed in as {userEmail}</p>
+                <div className="mt-3 flex flex-col gap-1">
                   <Link
                     href="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2.5 py-2.5 text-base font-medium text-foreground"
                   >
+                    <LayoutDashboard className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     Go to dashboard
                   </Link>
                   <a
                     href={EXTENSION_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2.5 py-2.5 text-base font-medium text-foreground"
                   >
-                    Get the Chrome extension ↗
+                    <Puzzle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    Get the Chrome extension
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   </a>
-                  <Button onClick={handleSignOut} variant="outline" className="mt-1">
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                  <Button asChild variant="outline">
-                    <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
-                      Log in
-                    </Link>
-                  </Button>
-                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                      Sign up
-                    </Link>
-                  </Button>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="mt-2 inline-flex h-11 items-center justify-center rounded-full border border-border text-base font-semibold text-destructive"
+                  >
+                    Sign out
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-5">
+                <Link
+                  href="/signin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-border text-base font-semibold text-foreground"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </nav>
     </header>
   )

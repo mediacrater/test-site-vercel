@@ -25,7 +25,7 @@ export function ToolPageShell({ tool, intro, children, method, limits, faqs }: T
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 pb-16 pt-[calc(var(--header-h)+2.5rem)] sm:px-6">
         <JsonLd
           data={{
             "@context": "https://schema.org",

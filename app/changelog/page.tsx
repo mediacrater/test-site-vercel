@@ -1,14 +1,22 @@
-export const metadata = {
-  title: 'Changelog – Mediacrater',
+//app/changelog/page.tsx
+import type { Metadata } from 'next';
+import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
+
+export const metadata: Metadata = {
+  title: 'Changelog | Mediacrater',
   description: 'See what is new in each version of Mediacrater.',
+  alternates: { canonical: '/changelog' },
 };
 
 export default function ChangelogPage() {
   return (
-    <main className="max-w-2xl mx-auto px-6 py-16">
+    <>
+    <Header />
+    <main id="main-content" className="mx-auto max-w-3xl px-4 pb-24 pt-[calc(var(--header-h)+3rem)] sm:px-6 md:pt-[calc(var(--header-h)+4.5rem)]">
       {}
-      <h1 className="text-3xl font-bold mb-2">Changelog</h1>
-      <p className="text-muted-foreground mb-12">
+      <h1 className="display-lg mb-4 text-[2.5rem] sm:text-5xl">Changelog</h1>
+      <p className="mb-14 text-lg text-muted-foreground">
         Everything we&apos;ve added to Mediacrater so far.
       </p>
       
@@ -18,15 +26,15 @@ export default function ChangelogPage() {
         {/* V2 Section */}
         <section>
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-semibold">Alpha 2.0 to 2.1</h2>
-            <span className="text-xs text-muted-foreground">October 2026</span>
+            <h2 className="display-md text-[1.6rem]">Alpha 2.0 to 2.1</h2>
+            <span className="text-sm text-muted-foreground">October 2026</span>
           </div>
           
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 2.1</h3>
+                <h3 className="text-lg font-bold">Alpha 2.1</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>No more account login required: All extension features unlocked at no cost to the client</li>
 
               </ul>
@@ -34,9 +42,9 @@ export default function ChangelogPage() {
           
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 2.0</h3>
+                <h3 className="text-lg font-bold">Alpha 2.0</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Pivot to a more local and useful extension. Checking ads now happens on the webapp.</li>
                 <li>NEW: Download videos from Meta Ads Library</li>
                 <li>NEW: Batch ZIP exports organized into dedicated Images and Videos subdirectories</li>
@@ -52,15 +60,15 @@ export default function ChangelogPage() {
         {/* Alpha Section */}
         <section>
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-semibold">Alpha 1.6.3 to 1.6.3.1</h2>
-            <span className="text-xs text-muted-foreground">September 2026</span>
+            <h2 className="display-md text-[1.6rem]">Alpha 1.6.3 to 1.6.3.1</h2>
+            <span className="text-sm text-muted-foreground">September 2026</span>
           </div>
           
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.6.3.1</h3>
+                <h3 className="text-lg font-bold">Alpha 1.6.3.1</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Configuration enhancements</li>
 
               </ul>
@@ -68,9 +76,9 @@ export default function ChangelogPage() {
           
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.6.3</h3>
+                <h3 className="text-lg font-bold">Alpha 1.6.3</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Security enhancements</li>
 
               </ul>
@@ -80,17 +88,17 @@ export default function ChangelogPage() {
         {/* Alpha Section */}
         <section>
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-semibold">Alpha 1.5.7 to 1.6.2</h2>
-            <span className="text-xs text-muted-foreground">August 2026</span>
+            <h2 className="display-md text-[1.6rem]">Alpha 1.5.7 to 1.6.2</h2>
+            <span className="text-sm text-muted-foreground">August 2026</span>
           </div>
 
           <div className="space-y-4">
             {/* Version 1.6.2 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.6.2</h3>
+                <h3 className="text-lg font-bold">Alpha 1.6.2</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Extension logs version that the user is on</li>
                 <li>Audio analysis now available for paid users</li>
 
@@ -100,9 +108,9 @@ export default function ChangelogPage() {
             {/* Version 1.6.1.1 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.6.1.1</h3>
+                <h3 className="text-lg font-bold">Alpha 1.6.1.1</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Updated extension manifest</li>
                 <li>Updated extension configuration</li>
               </ul>
@@ -111,9 +119,9 @@ export default function ChangelogPage() {
             {/* Version 1.6 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.6</h3>
+                <h3 className="text-lg font-bold">Alpha 1.6</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Web application available</li>
                 <li>Collection of uploaded images and a snapshot of the beginning of videos for a centralized history system to paid users across the web app and the extension</li>
               </ul>
@@ -123,9 +131,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.8 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.8</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.8</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Frontend and backend improvements for the abuse prevention measures</li>
               </ul>
             </section>
@@ -133,9 +141,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.7 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.7</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.7</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Changed Read and write access to Mediacrater domains instead of Supabase</li>
               </ul>
             </section>
@@ -146,17 +154,17 @@ export default function ChangelogPage() {
         {/* Alpha Section */}
         <section>
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-semibold">Alpha 1.5 to 1.5.6</h2>
-            <span className="text-xs text-muted-foreground">July 2026</span>
+            <h2 className="display-md text-[1.6rem]">Alpha 1.5 to 1.5.6</h2>
+            <span className="text-sm text-muted-foreground">July 2026</span>
           </div>
 
           <div className="space-y-4">
             {/* Version 1.5.6 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.6</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.6</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Security enhancements (automated abuse prevention)</li>
               </ul>
             </section>
@@ -164,9 +172,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.5 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.5</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.5</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Fixed issue with token display reaching zero</li>
               </ul>
             </section>
@@ -174,9 +182,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.4 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.4</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.4</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>
                   Token checks reduced to what is only necessary: down to a strategic 3 poll burst after each scan instead of every 2 seconds
                 </li>
@@ -187,9 +195,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.3 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.3</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.3</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Allowing bigger file sizes up to 1GB from our previous 700MB limit.</li>
               </ul>
             </section>
@@ -197,9 +205,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.2 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.2</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.2</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Fixed error with resend verification email</li>
                 <li>Fixed issue where the A keybind reveals scan history for free users</li>
                 <li>Fixed UI issue with Deep Scan</li>
@@ -210,9 +218,9 @@ export default function ChangelogPage() {
             {/* Version 1.5.1 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5.1</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5.1</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Added advanced error logging for debugging</li>
                 <li>Security enhancements</li>
                 <li>Fixed issue with audio analysis answers</li>
@@ -226,9 +234,9 @@ export default function ChangelogPage() {
             {/* Version 1.5 */}
             <section>
               <div className="mb-1">
-                <h3 className="text-lg font-semibold">Alpha 1.5</h3>
+                <h3 className="text-lg font-bold">Alpha 1.5</h3>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
                 <li>Added keyboard shortcuts (W / A / S / D) for panel navigation</li>
                 <li>Fixed header disappearing when switching from History to Settings</li>
                 <li>Scan history no longer opens a new tab</li>
@@ -243,10 +251,10 @@ export default function ChangelogPage() {
         {/* Beta Section */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-semibold">Beta 1.1.0</h2>
-            <span className="text-xs text-muted-foreground">May 2026</span>
+            <h2 className="display-md text-[1.6rem]">Beta 1.1.0</h2>
+            <span className="text-sm text-muted-foreground">May 2026</span>
           </div>
-          <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-[1rem] leading-relaxed text-muted-foreground">
             <li>Added Scan History page</li>
             <li>Subscription plans instead of one time purchases</li>
             <li>UI improvements</li>
@@ -257,5 +265,7 @@ export default function ChangelogPage() {
         </section>
       </div>
     </main>
+    <Footer />
+    </>
   );
 }

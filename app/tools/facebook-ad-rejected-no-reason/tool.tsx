@@ -226,7 +226,7 @@ export function RejectionTriage() {
                       rel="noopener noreferrer"
                       className="mt-3 inline-block text-xs font-medium text-primary hover:underline"
                     >
-                      Read Meta's policy →
+                      Read Meta's policy
                     </a>
                   </li>
                 )

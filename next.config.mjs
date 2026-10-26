@@ -85,7 +85,7 @@ function buildCsp() {
   };
 
   const parts = Object.entries(directives).map(
-    ([name, values]) => `${name} ${values.filter(Boolean).join(' ')}`
+    ([name, values]) => `${name} ${values.flat().filter(Boolean).join(' ')}`
   );
 
   // Browsers ignore (and warn about) this directive in report-only mode.

@@ -388,7 +388,7 @@ function DashboardContent() {
               {profile
                 ?.scan_history
                 ? 'Every scan you run is saved automatically.'
-                : 'Available on paid plans — automatically saves every scan you run.'}
+                : 'Available on paid plans. Automatically saves every scan you run.'}
             </p>
           </div>
 

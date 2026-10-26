@@ -2,31 +2,20 @@
 
 // components/auth-showcase-panel.tsx
 //
-// The non-form side of the split-screen sign-in/sign-up layout. Fixed
-// dark navy background regardless of site theme (light/dark toggle) —
-// a deliberate branded moment, same idea as a lot of the split-auth
-// examples researched (Headspace, Squarespace, etc.) where one side
-// stays on-brand color while the form side follows the user's theme.
+// The non-form side of the split-screen sign-in/sign-up layout. Fixed dark
+// ink background regardless of site theme, while the form side follows it.
 //
-// Reuses the same testimonial screenshots already live on the buy-tokens
-// pricing page (public/images/testimonials/fb-comment-*.png) rather than
-// sourcing new content.
+// The quotes are real replies to Edward's direct messages from July 2025,
+// when the product was still an idea. Quote only what each person wrote,
+// and keep the "feedback on the idea" label so they don't read as reviews.
 
 const TESTIMONIALS = [
   {
-    src: '/images/testimonials/fb-comment-1.png',
-    name: 'Maham Khan',
-    role: 'Facebook Ads Expert',
-    quote: 'Thumbs up if this sounds useful. Thumbs down if not. Brutal honesty helps.',
-  },
-  {
-    src: '/images/testimonials/fb-comment-2.png',
     name: 'Roy Mark Olino Conde',
     role: 'Media Buyer',
     quote: "The idea is great and I didn't see any software yet with this function.",
   },
   {
-    src: '/images/testimonials/fb-comment-3.png',
     name: 'S Tania Akther',
     role: 'Ad Specialist',
     quote: 'A tool that checks creatives before uploading would save time and stress for marketers.',
@@ -35,54 +24,40 @@ const TESTIMONIALS = [
 
 export function AuthShowcasePanel({ variant }: { variant: 'signin' | 'signup' }) {
   const heading =
-    variant === 'signup'
-      ? 'Stop guessing whether your ad will get banned.'
-      : 'Welcome back.';
+    variant === 'signup' ? 'Stop guessing whether your ad will get banned.' : 'Welcome back.';
 
   const subheading =
     variant === 'signup'
       ? 'Scan your creative against Meta, TikTok, YouTube, Pinterest, and X policies before you spend a dollar on media.'
       : 'Your scans, history, and plan are exactly where you left them.';
 
+  const quotes = variant === 'signup' ? TESTIMONIALS : TESTIMONIALS.slice(0, 1);
+
   return (
-    <div className="hidden lg:flex flex-col justify-between w-1/2 min-h-screen px-12 py-16 bg-gradient-to-br from-[#0d1b2a] to-[#1a2e44] text-white">
+    <div className="hidden min-h-screen w-1/2 flex-col justify-between bg-[#0b1628] px-12 py-14 text-[#e7edf5] lg:flex">
       <div>
-        <a href="/" className="inline-flex items-center gap-2">
-          <img src="/images/header-logo-dark.png" alt="Mediacrater" className="h-9 w-9" />
-          <span className="text-lg font-bold">Mediacrater</span>
+        <a href="/" className="inline-flex items-center gap-2.5">
+          <img src="/images/logo-mark-dark-96.png" alt="" width={36} height={36} className="h-9 w-9" />
+          <span className="font-display text-lg font-extrabold">Mediacrater</span>
         </a>
 
-        <h1 className="text-3xl font-bold mt-16 leading-tight max-w-md">{heading}</h1>
-        <p className="text-white/60 mt-3 max-w-sm text-sm leading-relaxed">{subheading}</p>
+        <h1 className="display-lg mt-20 max-w-[16ch] text-[2.6rem]">{heading}</h1>
+        <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-relaxed text-[#93a3ba]">{subheading}</p>
       </div>
 
-      {variant === 'signup' && (
-        <div className="space-y-4">
-          {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
-              <img src={t.src} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-              <div>
-                <p className="text-sm text-white/80 italic leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
-                <p className="text-xs text-white/50 mt-1.5">
-                  {t.name} · {t.role}
-                </p>
-              </div>
-            </div>
+      <div>
+        <p className="mb-4 text-sm text-[#93a3ba]">Feedback from media buyers on the idea, July 2025</p>
+        <ul className="space-y-4">
+          {quotes.map((t) => (
+            <li key={t.name} className="max-w-md border-l-2 border-[#b8f23f] pl-5">
+              <p className="text-[1.0625rem] leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+              <p className="mt-2 text-sm text-[#93a3ba]">
+                {t.name}, {t.role}
+              </p>
+            </li>
           ))}
-        </div>
-      )}
-
-      {variant === 'signin' && (
-        <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4 max-w-sm">
-          <img src={TESTIMONIALS[0].src} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-          <div>
-            <p className="text-sm text-white/80 italic leading-relaxed">&ldquo;{TESTIMONIALS[0].quote}&rdquo;</p>
-            <p className="text-xs text-white/50 mt-1.5">
-              {TESTIMONIALS[0].name} · {TESTIMONIALS[0].role}
-            </p>
-          </div>
-        </div>
-      )}
+        </ul>
+      </div>
     </div>
   );
 }

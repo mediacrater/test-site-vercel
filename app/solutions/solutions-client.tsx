@@ -134,7 +134,7 @@ export function SolutionsClient() {
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
               Mediacrater’s core analysis engine can be adapted for deeper integrations,
-              higher throughput, and custom workflows — including API access and
+              higher throughput, and custom workflows, including API access and
               specialized processing pipelines.
             </p>
           </div>

@@ -1,350 +1,145 @@
-'use client'
-
-import { Check, Minus } from 'lucide-react'
-
-const SITE_SIGNUP = process.env.NEXT_PUBLIC_SITE_SIGNUP ?? '#'
+//components/pricing.tsx
+import { Check, Minus } from "lucide-react"
+import { PRICING_SIGNUP_URL } from "@/lib/site-links"
 
 const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/mo',
-    scans: '3 scans / mo',
-    campaigns: '1 campaign / mo',
-    description: 'Get started with no commitment',
-    cta: 'Get started',
-    popular: false,
-  },
-  {
-    name: 'Startup',
-    price: '$10',
-    period: '/mo',
-    scans: '20 scans / mo',
-    campaigns: '3–6 campaigns / mo',
-    description: 'For solo dropshippers testing creatives',
-    cta: 'Get Startup',
-    popular: false,
-  },
-  {
-    name: 'Established',
-    price: '$40',
-    period: '/mo',
-    scans: '100 scans / mo',
-    campaigns: '20 to 30+ campaigns / mo',
-    description: 'For brands running consistent paid campaigns',
-    cta: 'Get Established',
-    popular: false,
-  },
-  {
-    name: 'Scaler',
-    price: '$80',
-    period: '/mo',
-    scans: '250 scans / mo',
-    campaigns: '50 to 80+ campaigns / mo',
-    description: 'For media buyers scaling across multiple offers',
-    cta: 'Get Scaler',
-    popular: false,
-  },
-  {
-    name: 'Agency',
-    price: '$200',
-    period: '/mo',
-    scans: '1000 scans / mo',
-    campaigns: '200 to 300+ campaigns / mo',
-    description: 'For agencies managing multiple client accounts',
-    cta: 'Get Agency',
-    popular: false,
-  },
+  { name: "Free", price: "$0", period: "/mo", description: "Get started with no commitment", cta: "Get started", popular: false },
+  { name: "Startup", price: "$10", period: "/mo", description: "For solo dropshippers testing creatives", cta: "Get Startup", popular: false },
+  { name: "Established", price: "$40", period: "/mo", description: "For brands running consistent paid campaigns", cta: "Get Established", popular: false },
+  { name: "Scaler", price: "$80", period: "/mo", description: "For media buyers scaling across multiple offers", cta: "Get Scaler", popular: false },
+  { name: "Agency", price: "$200", period: "/mo", description: "For agencies managing multiple client accounts", cta: "Get Agency", popular: false },
 ]
 
 type CellValue = boolean | string
 
 const scanFeatureRows: { label: string; sub?: string; values: CellValue[] }[] = [
-  {
-    label: 'Video & image scanning',
-    values: [true, true, true, true, true],
-  },
-  {
-    label: 'All platforms supported',
-    values: [true, true, true, true, true],
-  },
-  {
-    label: 'Violation timestamps & fixes',
-    values: [true, true, true, true, true],
-  },
-  {
-    label: 'Scan type',
-    values: ['Regular', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep'],
-  },
-  {
-    label: 'Monthly scans',
-    values: ['3', '20', '100', '250', '1000'],
-  },
-  {
-    label: 'Campaigns / month',
-    values: ['1', '3–6', '20–33', '50–83', '200-300+'],
-  },
-  {
-    label: 'Priority processing',
-    values: [false, true, true, true, true],
-  },
-  {
-    label: 'Scan history',
-    values: [false, true, true, true, true],
-  },
-  {
-    label: 'Audio analysis',
-    values: [false, true, true, true, true],
-  },
+  { label: "Video & image scanning", values: [true, true, true, true, true] },
+  { label: "All platforms supported", values: [true, true, true, true, true] },
+  { label: "Violation timestamps & fixes", values: [true, true, true, true, true] },
+  { label: "Scan type", values: ["Regular", "Regular + Deep", "Regular + Deep", "Regular + Deep", "Regular + Deep"] },
+  { label: "Monthly scans", values: ["3", "20", "100", "250", "1000"] },
+  { label: "Campaigns / month", values: ["1", "3–6", "20–33", "50–83", "200–300+"] },
+  { label: "Priority processing", values: [false, true, true, true, true] },
+  { label: "Scan history", values: [false, true, true, true, true] },
+  { label: "Audio analysis", values: [false, true, true, true, true] },
 ]
 
 const extensionFeatureRows: { label: string; sub?: string; values: CellValue[] }[] = [
-  {
-    label: 'Unlimited individual downloads',
-    values: [true, true, true, true, true],
-  },
-  {
-    label: 'Batch ZIP downloads',
-    values: [true, true, true, true, true],
-  },
-  {
-    label: 'Local creative library storage',
-    values: [true, true, true, true, true],
-  },
+  { label: "Unlimited individual downloads", values: [true, true, true, true, true] },
+  { label: "Batch ZIP downloads", values: [true, true, true, true, true] },
+  { label: "Local creative library storage", values: [true, true, true, true, true] },
 ]
 
 function Cell({ value }: { value: CellValue }) {
-  if (typeof value === 'boolean') {
+  if (typeof value === "boolean") {
     return value ? (
-      <Check className="w-4 h-4 mx-auto text-emerald-500" strokeWidth={2.5} />
+      <>
+        <Check className="mx-auto h-[1.15rem] w-[1.15rem] text-sev-low" strokeWidth={2.5} aria-hidden="true" />
+        <span className="sr-only">Included</span>
+      </>
     ) : (
-      <Minus className="w-4 h-4 mx-auto text-muted-foreground/30" strokeWidth={2} />
+      <>
+        <Minus className="mx-auto h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
+        <span className="sr-only">Not included</span>
+      </>
     )
   }
-  return (
-    <span className="text-sm font-medium text-foreground">
-      {value}
-    </span>
-  )
+  return <span className="text-[0.95rem] font-semibold text-foreground">{value}</span>
 }
 
-function FeatureSectionRow({
-  title,
-  description,
-  colSpan,
-}: {
-  title: string
-  description: string
-  colSpan: number
-}) {
+function Rows({ rows }: { rows: { label: string; sub?: string; values: CellValue[] }[] }) {
   return (
-    <tr className="border-y border-primary/20 bg-primary/[0.04]">
-      <th colSpan={colSpan} scope="colgroup" className="px-6 py-4 text-left">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            {title}
-          </span>
-          <span className="text-xs font-normal normal-case tracking-normal text-muted-foreground">
-            {description}
-          </span>
-        </div>
-      </th>
-    </tr>
+    <>
+      {rows.map((row) => (
+        <tr key={row.label} className="border-t border-border">
+          <th scope="row" className="sticky left-0 z-10 bg-card px-5 py-4 text-left text-[0.975rem] font-medium text-foreground">
+            {row.label}
+            {row.sub && <span className="mt-0.5 block text-sm font-normal text-muted-foreground">{row.sub}</span>}
+          </th>
+          {plans.map((plan, i) => (
+            <td key={plan.name} className={`px-4 py-4 text-center ${plan.popular ? "bg-primary/[0.06]" : ""}`}>
+              <Cell value={row.values[i]} />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
   )
 }
-
-// How many plan columns come before the popular one (0-indexed)
-const popularIndex = plans.findIndex((p) => p.popular)
 
 export function Pricing() {
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-secondary/30">
+    <section id="pricing" aria-labelledby="pricing-title" className="py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 id="Matthew 6:33" className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground text-pretty">
-            Pick a plan based on how many campaigns you run per month.
-            Cancel or change anytime.
-          </p>
+        <div data-verse="Matthew 6:33" className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <h2 id="pricing-title" className="display-lg text-[clamp(2.1rem,4.4vw,3.4rem)]">
+              Simple, transparent pricing
+            </h2>
+            <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-muted-foreground">
+              Pick a plan based on how many campaigns you run per month. Cancel or change anytime.
+            </p>
+          </div>
+          <p className="text-[0.95rem] text-muted-foreground">Prices are listed in USD.</p>
         </div>
 
-        <div className="relative pt-5">
-
-          {/* Most popular badge — positioned above the popular column header */}
-          <div
-            className="absolute top-0 left-0 right-0 pointer-events-none"
-            aria-hidden="true"
-          >
-            {/* We use a flex row that mirrors the table column widths to place the badge */}
-            <div className="flex min-w-[700px]">
-              {/* Feature label column: w-[220px] */}
-              <div className="w-[220px] shrink-0" />
-              {plans.map((plan) => (
-                <div key={plan.name} className="flex-1 flex justify-center">
-                  {plan.popular && (
-                    <span className="bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap uppercase tracking-wider">
-                      Most popular
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pricing table */}
-          <div className="rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] border-collapse">
-
-                {/* Plan headers */}
-                <thead>
-                  <tr>
-                    {/* Feature label column */}
-                    <th className="w-[220px] bg-card px-6 pt-8 pb-5 text-left align-bottom border-r border-border">
-                      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Features
+        <div className="mt-14 overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="relative overflow-x-auto">
+            <table className="w-full min-w-[860px] border-collapse">
+              <caption className="sr-only">Mediacrater plans and what each includes</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="sticky left-0 z-10 w-[220px] bg-card px-5 pb-6 pt-7 text-left align-bottom">
+                    <span className="text-[0.95rem] font-semibold text-muted-foreground">Compare plans</span>
+                  </th>
+                  {plans.map((plan) => (
+                    <th
+                      key={plan.name}
+                      scope="col"
+                      className={`px-4 pb-6 pt-7 text-left align-bottom font-normal ${plan.popular ? "bg-primary/[0.06]" : ""}`}
+                    >
+                      {plan.popular && <span className="mb-2 block text-sm font-bold text-primary">Most popular</span>}
+                      <span className="block text-[1.0625rem] font-bold text-foreground">{plan.name}</span>
+                      <span className="mt-2 flex items-baseline gap-1">
+                        <span className="font-display text-[2rem] font-extrabold leading-none text-foreground">{plan.price}</span>
+                        <span className="text-sm text-muted-foreground">{plan.period}</span>
                       </span>
-                    </th>
-
-                    {plans.map((plan) => (
-                      <th
-                        key={plan.name}
-                        className={`px-4 pt-8 pb-5 text-center align-bottom border-r last:border-r-0 border-border ${
-                          plan.popular ? 'bg-primary' : 'bg-card'
+                      <span className="mt-3 block min-h-[3.2rem] text-sm leading-snug text-muted-foreground">{plan.description}</span>
+                      <a
+                        href={PRICING_SIGNUP_URL}
+                        className={`mt-4 inline-flex h-10 w-full items-center justify-center rounded-full text-sm font-semibold transition-[filter,background-color] ${
+                          plan.popular
+                            ? "bg-primary text-primary-foreground hover:brightness-110"
+                            : "border border-primary/40 text-primary hover:bg-primary/[0.08]"
                         }`}
                       >
-                        <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${
-                          plan.popular ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                        }`}>
-                          {plan.name}
-                        </div>
-                        <div className="flex items-baseline justify-center gap-0.5 mb-3">
-                          <span className={`text-2xl font-bold ${
-                            plan.popular ? 'text-primary-foreground' : 'text-foreground'
-                          }`}>
-                            {plan.price}
-                          </span>
-                          <span className={`text-xs ${
-                            plan.popular ? 'text-primary-foreground/60' : 'text-muted-foreground'
-                          }`}>
-                            {plan.period}
-                          </span>
-                        </div>
-                        <p className={`text-[11px] leading-relaxed mb-2.5 ${
-                          plan.popular ? 'text-primary-foreground/60' : 'text-muted-foreground'
-                        }`}>
-                          {plan.description}
-                        </p>
-                        <a
-                          href={SITE_SIGNUP}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`block w-full text-center py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90 ${
-                            plan.popular
-                              ? 'bg-accent text-accent-foreground'
-                              : 'bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20'
-                          }`}
-                        >
-                          {plan.cta}
-                        </a>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                {/* Feature rows */}
-                <tbody>
-                  {scanFeatureRows.map((row, rowIdx) => (
-                    <tr
-                      key={row.label}
-                      className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}
-                    >
-                      {/* Feature label */}
-                      <td className="px-6 py-4 border-r border-border">
-                        <span className="text-sm text-foreground/80 font-medium">{row.label}</span>
-                        {row.sub && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{row.sub}</p>
-                        )}
-                      </td>
-
-                      {plans.map((plan, planIdx) => (
-                        <td
-                          key={plan.name}
-                          className={`px-4 py-4 text-center border-r last:border-r-0 border-border ${
-                            plan.popular ? 'bg-primary/5' : ''
-                          }`}
-                        >
-                          <Cell value={row.values[planIdx]} />
-                        </td>
-                      ))}
-                    </tr>
+                        {plan.cta}
+                      </a>
+                    </th>
                   ))}
-
-                  <FeatureSectionRow
-                    title="Extension Features"
-                    description="Unlimited individual downloads on every plan; batch tools and local storage on paid plans"
-                    colSpan={plans.length + 1}
-                  />
-
-                  {extensionFeatureRows.map((row, rowIdx) => (
-                    <tr
-                      key={row.label}
-                      className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}
-                    >
-                      <td className="px-6 py-4 border-r border-border">
-                        <span className="text-sm text-foreground/80 font-medium">{row.label}</span>
-                        {row.sub && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{row.sub}</p>
-                        )}
-                      </td>
-
-                      {plans.map((plan, planIdx) => (
-                        <td
-                          key={plan.name}
-                          className={`px-4 py-4 text-center border-r last:border-r-0 border-border ${
-                            plan.popular ? 'bg-primary/5' : ''
-                          }`}
-                        >
-                          <Cell value={row.values[planIdx]} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                <Rows rows={scanFeatureRows} />
+                <tr className="border-t border-border bg-muted/60">
+                  <th colSpan={plans.length + 1} scope="colgroup" className="px-5 py-4 text-left">
+                    <span className="block text-[1rem] font-bold text-foreground">Chrome extension</span>
+                    <span className="mt-0.5 block text-sm font-normal text-muted-foreground">
+                      Included with the free Chrome extension on every plan.
+                    </span>
+                  </th>
+                </tr>
+                <Rows rows={extensionFeatureRows} />
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Trust line */}
-        <p className="text-center text-sm text-muted-foreground mt-10 flex items-center justify-center gap-2 flex-wrap">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4"
-          >
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          Secure checkout via Stripe
-          <span className="text-border">·</span>
-          Prices are listed in USD
-          <span className="text-border">·</span>
-          Cancel anytime
-          <span className="text-border">·</span>
-          No hidden fees
-        </p>
-
+        <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-[0.95rem] text-muted-foreground">
+          <li>Secure checkout with Stripe</li>
+          <li>Cancel anytime</li>
+          <li>No hidden fees</li>
+        </ul>
       </div>
     </section>
   )

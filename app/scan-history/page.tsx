@@ -786,8 +786,8 @@ export default function ScanHistoryPage() {
               automatically
               save and
               browse every
-              scan you run
-              — full
+              scan you run,
+              with full
               results,
               violation
               details, and

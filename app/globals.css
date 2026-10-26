@@ -1,83 +1,132 @@
+/* app/globals.css
+ *
+ * Mediacrater design tokens.
+ * Brand colors come from the logo: navy #12408A + lime #9AD12A (light logo),
+ * cyan #3AB8F5 + lime #B8F23F (dark logo). Severity colors are data, not decoration:
+ * green = low, orange = medium, red = high, same as the results page.
+ * Every text/background pair below passes WCAG AA (most pass AAA).
+ */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.20 0.05 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.05 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.05 250);
-  --primary: oklch(0.40 0.15 250);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 250);
-  --secondary-foreground: oklch(0.20 0.05 250);
-  --muted: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.50 0.02 250);
-  --accent: oklch(0.70 0.20 135);
-  --accent-foreground: oklch(0.20 0.05 250);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.90 0.01 250);
-  --input: oklch(0.92 0.01 250);
-  --ring: oklch(0.40 0.15 250);
-  --chart-1: oklch(0.40 0.15 250);
-  --chart-2: oklch(0.70 0.20 135);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* Font stacks. next/font sets --font-archivo, --font-hyper, --font-hyper-mono on <html>. */
+  --font-display: var(--font-archivo), var(--font-hyper), ui-sans-serif, system-ui, sans-serif;
+
+  --background: #f4f6fa;
+  --foreground: #0b1628;
+  --card: #ffffff;
+  --card-foreground: #0b1628;
+  --popover: #ffffff;
+  --popover-foreground: #0b1628;
+  --primary: #12408a;
+  --primary-foreground: #ffffff;
+  --secondary: #e7ecf4;
+  --secondary-foreground: #0b1628;
+  --muted: #e9edf3;
+  --muted-foreground: #4a5970;
+  --accent: #e3eaf6;
+  --accent-foreground: #0b1628;
+  --destructive: #c4321f;
+  --destructive-foreground: #ffffff;
+  --border: #d3dae5;
+  --input: #c9d2df;
+  --ring: #12408a;
+
+  /* Brand extras */
+  --ink: #0b1628;
+  --ink-2: #101d31;
+  --ink-line: #1f3049;
+  --ink-text: #e7edf5;
+  --ink-muted: #93a3ba;
+  --lime: #9ad12a;
+  --lime-bright: #b8f23f;
+  --link: #12408a;
+
+  /* Severity (text-safe on light surfaces) */
+  --sev-high: #b42318;
+  --sev-medium: #a35200;
+  --sev-low: #1f7a45;
+  --sev-high-soft: #fdecea;
+  --sev-medium-soft: #fdf1e3;
+  --sev-low-soft: #e6f4ec;
+
+  --chart-1: #12408a;
+  --chart-2: #9ad12a;
+  --chart-3: #3ab8f5;
+  --chart-4: #e07b12;
+  --chart-5: #b42318;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.20 0.05 250);
-  --sidebar-primary: oklch(0.40 0.15 250);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0.01 250);
-  --sidebar-accent-foreground: oklch(0.20 0.05 250);
-  --sidebar-border: oklch(0.90 0.01 250);
-  --sidebar-ring: oklch(0.40 0.15 250);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b1628;
+  --sidebar-primary: #12408a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7ecf4;
+  --sidebar-accent-foreground: #0b1628;
+  --sidebar-border: #d3dae5;
+  --sidebar-ring: #12408a;
+
+  --header-h: 4rem;
 }
 
 .dark {
-  --background: oklch(0.13 0.01 250);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.17 0.01 250);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.17 0.01 250);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.60 0.15 220);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.22 0.01 250);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0.01 250);
-  --muted-foreground: oklch(0.65 0.02 250);
-  --accent: oklch(0.75 0.20 135);
-  --accent-foreground: oklch(0.13 0.01 250);
-  --destructive: oklch(0.50 0.20 25);
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.28 0.01 250);
-  --input: oklch(0.22 0.01 250);
-  --ring: oklch(0.60 0.15 220);
-  --chart-1: oklch(0.60 0.15 220);
-  --chart-2: oklch(0.75 0.20 135);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.17 0.01 250);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.60 0.15 220);
-  --sidebar-primary-foreground: oklch(0.95 0 0);
-  --sidebar-accent: oklch(0.22 0.01 250);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.01 250);
-  --sidebar-ring: oklch(0.60 0.15 220);
+  --background: #0a1424;
+  --foreground: #e7edf5;
+  --card: #101d31;
+  --card-foreground: #e7edf5;
+  --popover: #101d31;
+  --popover-foreground: #e7edf5;
+  --primary: #3ab8f5;
+  --primary-foreground: #06111f;
+  --secondary: #16263d;
+  --secondary-foreground: #e7edf5;
+  --muted: #15243a;
+  --muted-foreground: #9dacc2;
+  --accent: #1a2c46;
+  --accent-foreground: #e7edf5;
+  --destructive: #e5533f;
+  --destructive-foreground: #ffffff;
+  --border: #22344f;
+  --input: #2a3f5e;
+  --ring: #3ab8f5;
+
+  --ink: #070f1c;
+  --ink-2: #0e1a2d;
+  --ink-line: #1c2c44;
+  --ink-text: #e7edf5;
+  --ink-muted: #93a3ba;
+  --lime: #b8f23f;
+  --lime-bright: #b8f23f;
+  --link: #6cc9f7;
+
+  --sev-high: #ff7a66;
+  --sev-medium: #ffb054;
+  --sev-low: #5bd28e;
+  --sev-high-soft: #3a1a1a;
+  --sev-medium-soft: #3a2a14;
+  --sev-low-soft: #12301f;
+
+  --chart-1: #3ab8f5;
+  --chart-2: #b8f23f;
+  --chart-3: #6cc9f7;
+  --chart-4: #ffb054;
+  --chart-5: #ff7a66;
+  --sidebar: #0e1a2d;
+  --sidebar-foreground: #e7edf5;
+  --sidebar-primary: #3ab8f5;
+  --sidebar-primary-foreground: #06111f;
+  --sidebar-accent: #16263d;
+  --sidebar-accent-foreground: #e7edf5;
+  --sidebar-border: #22344f;
+  --sidebar-ring: #3ab8f5;
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-display: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-hyper), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-hyper), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-hyper-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -102,6 +151,19 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-line: var(--ink-line);
+  --color-ink-text: var(--ink-text);
+  --color-ink-muted: var(--ink-muted);
+  --color-lime: var(--lime);
+  --color-link: var(--link);
+  --color-sev-high: var(--sev-high);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-low: var(--sev-low);
+  --color-sev-high-soft: var(--sev-high-soft);
+  --color-sev-medium-soft: var(--sev-medium-soft);
+  --color-sev-low-soft: var(--sev-low-soft);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -120,7 +182,228 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-padding-top: calc(var(--header-h) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--lime) 55%, transparent);
+    color: var(--foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Archivo is loaded with its width axis. Expanded width gives headlines their
+   broadcast-graphics feel while keeping thick, easy-to-read strokes.
+   The attribute selector also covers older pages that use the arbitrary class. */
+.font-display,
+[class*='font-[family-name:var(--font-display)]'] {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-variation-settings: 'wdth' 112;
+}
+
+@utility display-xl {
+  font-family: var(--font-display);
+  font-stretch: 114%;
+  font-variation-settings: 'wdth' 114;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+
+@utility display-lg {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-variation-settings: 'wdth' 112;
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+@utility display-md {
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-variation-settings: 'wdth' 108;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+@utility timecode {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+@utility measure {
+  max-width: 68ch;
+}
+
+/* ---------- Legal / policy prose ---------- */
+.legal {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+.legal > section + section,
+.legal > section + p,
+.legal > p + section {
+  margin-top: 3rem;
+}
+.legal h2 {
+  font-family: var(--font-display);
+  font-stretch: 106%;
+  font-variation-settings: 'wdth' 106;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+  scroll-margin-top: calc(var(--header-h) + 2rem);
+}
+.legal h3 {
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  margin: 2rem 0 0.75rem;
+}
+.legal p {
+  margin: 0 0 1rem;
+}
+.legal p:last-child {
+  margin-bottom: 0;
+}
+.legal ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0 0 1.5rem;
+}
+.legal ul:last-child {
+  margin-bottom: 0;
+}
+.legal li {
+  padding-left: 0.25rem;
+}
+.legal li + li {
+  margin-top: 0.6rem;
+}
+.legal li::marker {
+  color: var(--muted-foreground);
+}
+.legal a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.legal a:hover {
+  text-decoration-thickness: 2px;
+}
+.legal strong {
+  font-weight: 700;
+}
+.legal code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+}
+.legal .table-wrap {
+  position: relative; /* keeps screen-reader-only text inside the scroller */
+  overflow-x: auto;
+  margin: 0 0 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.legal table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.975rem;
+  line-height: 1.55;
+  min-width: 520px;
+}
+.legal th {
+  text-align: left;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+.legal td {
+  padding: 0.85rem 1rem;
+  vertical-align: top;
+  border-top: 1px solid var(--border);
+}
+.legal tbody:first-of-type tr:first-child td {
+  border-top: 0;
+}
+.legal .callout {
+  border-left: 3px solid var(--primary);
+  background: var(--card);
+  border-radius: 0 12px 12px 0;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0 0;
+}
+
+/* ---------- Motion ---------- */
+@keyframes mc-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes mc-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mc-ping {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--lime-bright) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

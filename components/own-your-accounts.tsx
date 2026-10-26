@@ -48,31 +48,31 @@ export function OwnYourAccounts() {
   const showPostLink = post.status === "live"
 
   return (
-    <section id="own-your-accounts" className="scroll-mt-16 border-b border-border py-24 md:py-32">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
-          <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold tracking-[-.035em] text-foreground text-balance sm:text-5xl">
+    <section id="own-your-accounts" aria-labelledby="own-title" className="border-t border-border bg-card py-24 md:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <h2 id="own-title" className="display-lg text-[clamp(2.1rem,4.4vw,3.4rem)] text-foreground">
             Own your ad accounts. Keep your history.
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground text-pretty">
+          <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-muted-foreground text-pretty">
             Renting an agency ad account can get you spending fast, but the account usually stays with the provider.
             Building your own takes longer, and what you build on it is yours. Mediacrater helps with one part of
             that: checking each creative before you upload it.
           </p>
         </div>
 
-        <div className="mt-12 overflow-x-auto rounded-2xl border border-border bg-card">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+        <div className="relative mt-14 overflow-x-auto rounded-2xl border border-border bg-background">
+          <table className="w-full min-w-[680px] border-collapse text-left text-[0.975rem]">
             <caption className="sr-only">Renting an agency ad account compared with owning your ad account</caption>
             <thead>
               <tr className="border-b border-border">
-                <th scope="col" className="w-[24%] p-4 font-semibold text-muted-foreground">
+                <th scope="col" className="w-[24%] px-5 py-4 font-semibold text-muted-foreground">
                   <span className="sr-only">Topic</span>
                 </th>
-                <th scope="col" className="w-[38%] p-4 font-semibold text-muted-foreground">
+                <th scope="col" className="w-[38%] px-5 py-4 font-semibold text-muted-foreground">
                   Rented agency account
                 </th>
-                <th scope="col" className="w-[38%] bg-primary/5 p-4 font-bold text-foreground">
+                <th scope="col" className="w-[38%] border-l-2 border-l-primary bg-primary/[0.06] px-5 py-4 font-bold text-foreground">
                   Your own account
                 </th>
               </tr>
@@ -80,30 +80,30 @@ export function OwnYourAccounts() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.topic} className="border-b border-border last:border-b-0 align-top">
-                  <th scope="row" className="p-4 font-semibold text-foreground">
+                  <th scope="row" className="px-5 py-4 font-semibold text-foreground">
                     {row.topic}
                   </th>
-                  <td className="p-4 leading-relaxed text-muted-foreground">{row.rented}</td>
-                  <td className="bg-primary/5 p-4 leading-relaxed text-foreground">{row.owned}</td>
+                  <td className="px-5 py-4 leading-relaxed text-muted-foreground">{row.rented}</td>
+                  <td className="border-l-2 border-l-primary bg-primary/[0.06] px-5 py-4 leading-relaxed text-foreground">{row.owned}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-border p-6">
-            <h3 className="font-bold text-foreground">When renting makes sense</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-12">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">When renting makes sense</h3>
+            <p className="mt-2 text-[1rem] leading-relaxed text-muted-foreground">
               If you need to spend at scale this week, run in a category that needs extra approval, or want a direct
               platform contact, a reputable agency account provider may suit you better. Vet them carefully and get the
               ownership terms in writing.
             </p>
           </div>
-          <div className="rounded-2xl border border-border p-6">
-            <h3 className="font-bold text-foreground">What Mediacrater does, and doesn&apos;t</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              It scans each video or image for likely Meta, TikTok and Google policy issues before you upload, with
+          <div>
+            <h3 className="text-lg font-bold text-foreground">What Mediacrater does, and doesn&apos;t</h3>
+            <p className="mt-2 text-[1rem] leading-relaxed text-muted-foreground">
+              It scans each video or image for likely Meta, TikTok, YouTube, Pinterest and X policy issues before you upload, with
               timestamps and suggested fixes. It doesn&apos;t guarantee approval, prevent bans, or fix account-level
               issues like billing, verification or landing pages.
             </p>
@@ -113,20 +113,20 @@ export function OwnYourAccounts() {
         <div className="mt-12 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <Link
             href={SIGNUP_URL}
-            className="inline-flex items-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+            className="inline-flex h-11 items-center rounded-full bg-primary px-6 text-[0.95rem] font-semibold text-primary-foreground transition-[filter] hover:brightness-110"
           >
             Try Mediacrater free
           </Link>
           {showPostLink && (
             <Link
               href={`/blog/${post.slug}`}
-              className="text-sm font-medium text-primary underline underline-offset-4 hover:opacity-80"
+              className="text-[0.95rem] font-semibold text-link underline underline-offset-4 hover:decoration-2"
             >
               Read: {post.headline}
             </Link>
           )}
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">No credit card required. 3 free scans every month.</p>
+        <p className="mt-3 text-sm text-muted-foreground">No credit card required. 3 free scans every month.</p>
       </div>
     </section>
   )

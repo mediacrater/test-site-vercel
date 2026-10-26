@@ -4,6 +4,7 @@
 import type { MetadataRoute } from "next"
 import { liveTools } from "@/lib/tools/registry"
 import { livePosts } from "@/lib/blog/registry"
+import { POLICIES } from "@/lib/legal/policies"
 
 const SITE = "https://mediacrater.com"
 
@@ -13,11 +14,7 @@ const STATIC_PATHS = [
   "/tools",
   "/solutions",
   "/changelog",
-  "/privacy",
-  "/chrome-extension-privacy",
-  "/terms",
-  "/refund",
-  "/cookies",
+  ...POLICIES.map((p) => p.href),
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

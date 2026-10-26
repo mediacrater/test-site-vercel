@@ -123,8 +123,8 @@ export function RoasCalculator() {
     () => new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }),
     [currency]
   )
-  const fmtMoney = (n: number | null) => (n === null ? "—" : money.format(n))
-  const fmtRoas = (n: number | null) => (n === null ? "—" : `${n.toFixed(2)}x`)
+  const fmtMoney = (n: number | null) => (n === null ? "n/a" : money.format(n))
+  const fmtRoas = (n: number | null) => (n === null ? "n/a" : `${n.toFixed(2)}x`)
 
   const result = useMemo(() => {
     const input = Object.fromEntries(
