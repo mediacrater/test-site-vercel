@@ -11,15 +11,47 @@ export const metadata: Metadata = {
 
 export default function CookiePolicy() {
   return (
-    <PolicyShell title="Cookie Policy" updated="Last updated: August 2026">
+    <PolicyShell title="Cookie Policy" updated="Last updated: October 2026">
     <section>
       <h2>The short version</h2>
       <p>
-        Mediacrater uses cookies to keep you signed in, to keep the free plan fair, and (if you
-        come from one of our affiliates and choose to accept) to credit that affiliate. We don't
-        use cookies for advertising, we don't sell data, and we don't track you across other
-        websites.
+        Mediacrater uses cookies to keep you signed in, to keep the free plan fair, to remember
+        which of our own short links (like <code>mediacrater.com/ig</code>) brought you here,
+        and (if you come from one of our affiliates and choose to accept) to credit that
+        affiliate. We don&apos;t sell data, and we don&apos;t track you across other websites.
       </p>
+    </section>
+    <section>
+      <h2>Campaign link cookie</h2>
+      <p>
+        Only set when you open one of our own short links. It tells us which post or channel
+        brought you to Mediacrater, nothing else.
+      </p>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cookie</th>
+              <th>Purpose</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>__Host-mc_attr</code>
+              </td>
+              <td>
+                Remembers the last of our short links you opened. If you create an account, that
+                link&apos;s campaign label (for example &quot;instagram&quot;) is saved on your
+                account and the cookie is deleted. It holds no personal information and is never
+                shared with ad networks. First-party only.
+              </td>
+              <td>30 days, or until you create an account</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
     <section>
       <h2>Cookies that are always on (required for the site to work)</h2>

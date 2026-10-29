@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <PolicyShell title="Privacy Policy" updated="Effective date: August 2026">
+    <PolicyShell title="Privacy Policy" updated="Effective date: October 2026">
     <section>
       <h2>Who We Are</h2>
       <p>
@@ -123,6 +123,34 @@ export default function PrivacyPolicy() {
           enforce the free plan across accounts.
         </li>
       </ul>
+      <h3>Campaign link data</h3>
+      <p>
+        We share short links to mediacrater.com in our own posts and videos (for example{' '}
+        <code>mediacrater.com/ig</code>). When you open one of these links:
+      </p>
+      <ul>
+        <li>
+          <strong>Click record</strong>: we record which link was opened, when, your country
+          (provided by Cloudflare), and whether you were on a phone, tablet or computer. We do
+          not store your IP address with clicks, and a click record is not linked to you or to
+          an account.
+        </li>
+        <li>
+          <strong>Campaign link cookie</strong>: a first-party cookie remembers the last of our
+          short links you opened, for 30 days. If you create an account during that time, we
+          save that link&apos;s campaign labels (for example &quot;instagram&quot;) on your
+          account and then delete the cookie. If you never create an account, the cookie simply
+          expires. See our{' '}
+          <a href="/cookies">
+            Cookie Policy
+          </a>.
+        </li>
+      </ul>
+      <p>
+        We use this only to learn which of our own posts and channels bring people to
+        Mediacrater. It is not used for advertising, not shared with ad networks, and not used
+        to track you on other websites.
+      </p>
       <h3>Payment Data</h3>
       <ul>
         <li>
@@ -213,6 +241,7 @@ export default function PrivacyPolicy() {
         <li>To respond to support requests sent to our email</li>
         <li>To display scan history accurately for paying users</li>
         <li>To prevent abuse of the free plan and keep it available for people who need it</li>
+        <li>To learn which of our own short links and channels bring new users</li>
       </ul>
     </section>
     <section>
@@ -293,6 +322,12 @@ export default function PrivacyPolicy() {
           <strong>Device and abuse-prevention data</strong>: retained for as long as your
           account is active, and deleted when you delete your account.
         </li>
+        <li>
+          <strong>Campaign link data</strong>: the campaign labels saved on your account are
+          kept while your account is active and deleted with it. Click records don&apos;t
+          identify anyone and are kept for campaign reporting. The campaign link cookie expires
+          after 30 days, or is deleted as soon as you create an account.
+        </li>
       </ul>
       <p>
         You may request deletion of your account and all associated data at any time by
@@ -331,7 +366,8 @@ export default function PrivacyPolicy() {
         <a href="/cookies">
           Cookie Policy
         </a>
-        , including a required device cookie used to enforce the free plan, and one optional
+        , including a required device cookie used to enforce the free plan, a campaign link
+        cookie that is only set when you open one of our short links, and one optional
         affiliate-tracking cookie that only activates if you accept it.
       </p>
     </section>
