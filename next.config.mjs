@@ -140,12 +140,25 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: "/db/:path*",
-        destination: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/:path*`,
-      },
-    ];
+    return {
+      // Same as before (an array of rewrites means "afterFiles").
+      afterFiles: [
+        {
+          source: "/db/:path*",
+          destination: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/:path*`,
+        },
+      ],
+      // UTM short links (mediacrater.com/ig). Fallback rewrites run only after
+      // every page, public file, redirect and rewrite above has been checked,
+      // so a real page always wins over a short link with the same name.
+      // app/l/[slug] serves the normal 404 page for unknown names.
+      fallback: [
+        {
+          source: "/:slug",
+          destination: "/l/:slug",
+        },
+      ],
+    };
   },
   async redirects() {
     return [

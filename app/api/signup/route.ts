@@ -24,11 +24,18 @@
 // Supabase inside signUp) and the per-IP rate limit, which keeps
 // email-enumeration through this route slow and expensive. No other account
 // details are returned, and the existing user's rows are never touched.
+//
+// CHANGES (UTM attribution): after the account is created and activated, the
+// signed __Host-mc_attr cookie (set when the person clicked a short link such
+// as mediacrater.com/ig) is copied onto the new profile via lib/attribution.ts
+// (write-once, enforced in the database), then the cookie is cleared. It can
+// never block or fail a sign-up, and existing accounts (409) are never touched.
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkAndLogRateLimit } from "@/lib/rate-limit";
 import { checkEmailDomain } from '@/lib/email-domain';
 import { isPasswordValid } from '@/lib/password-policy';
+import { applyAttribution, clearAttributionCookie } from '@/lib/attribution';
 import {
   attachDeviceCookie,
   clientIpFrom,
@@ -197,6 +204,7 @@ export async function POST(req: NextRequest) {
   }
 
   let deviceRecorded = false;
+  let attribution = { present: false, applied: false };
   if (userId && !isObfuscatedExisting) {
     const { error: upsertError } = await supabaseAdmin
       .from('profiles')
@@ -247,9 +255,12 @@ export async function POST(req: NextRequest) {
       intel,
     });
     deviceRecorded = recorded.ok;
+
+    // UTM attribution (last short link clicked within 30 days). Never throws.
+    attribution = await applyAttribution(supabaseAdmin, req, userId);
   }
 
-  return jsonWithDevice(
+  const res = jsonWithDevice(
     {
       success: true,
       hasSession: Boolean(data.session),
@@ -262,4 +273,7 @@ export async function POST(req: NextRequest) {
       'X-RateLimit-Limit': String(MAX_SIGNUPS_PER_WINDOW),
     }
   );
+  // One click credits one account: clear the cookie once it has been used.
+  if (attribution.present) clearAttributionCookie(res);
+  return res;
 }
