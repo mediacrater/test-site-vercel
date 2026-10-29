@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-   "build": "node scripts/check-utm-slugs.mjs && next build",
+    "prebuild": "node scripts/check-utm-slugs.mjs",
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
