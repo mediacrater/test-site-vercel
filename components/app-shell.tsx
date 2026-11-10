@@ -30,6 +30,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { ApiHostClearance } from './ApiHostClearance';
 import { useScanLeaveGuard } from '@/hooks/use-scan-leave-guard';
+import { TrialBanner } from '@/components/trial-banner';
+import { TrialEndedDialog } from '@/components/trial-ended-dialog';
 
 const EXTENSION_LINK =
   'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=app_mobile_nav';
@@ -69,9 +71,11 @@ export function AppShell({
       <CommandPalette />
       <KeyboardShortcuts />
       <ApiHostClearance />
+      <TrialEndedDialog />
 
       <div className="flex-1 min-w-0">
         <AppTopBar userEmail={userEmail} plan={plan} scansRemaining={scansRemaining} accountLocked={accountLocked} />
+        <TrialBanner scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
           <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900] tracking-[0.2px]">
