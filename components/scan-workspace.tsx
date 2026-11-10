@@ -61,6 +61,7 @@ import {
 import { loadEvidence, saveEvidence } from '@/lib/mediacrater/evidenceStore';
 import { VideoTimeline, violationDomId } from '@/components/video-timeline';
 import { markAccountLocked, useAccountLocked } from '@/lib/mediacrater/useAccountLocked';
+import { markTrialEnded, useTrialState } from '@/lib/mediacrater/useTrialState';
 
 const PLATFORMS = [
   { value: 'youtube', label: 'YouTube', icon: '/images/platform-icons/youtube.png' },
@@ -367,6 +368,9 @@ function shouldStopBatch(
     message.includes(
       'Scan limit reached'
     ) ||
+    message.toLowerCase().includes(
+      'free trial'
+    ) ||
     message.includes(
       'Rate limit exceeded'
     ) ||
@@ -499,6 +503,7 @@ export function ScanWorkspace({
     profile?.scans_remaining ?? 0;
 
   const accountBlocked = useAccountLocked();
+  const trial = useTrialState(scansRemaining);
   
   const videoCreatives =
     creatives.filter(
@@ -2710,6 +2715,25 @@ for (
       return;
     }
 
+    // Free trial over: tell the user now instead of after an upload. The
+    // server enforces this too, so this is only a faster message.
+    if (trial.phase === 'ended') {
+      setBanner({
+        tone: 'warning',
+        title:
+          trial.endReason === 'linked'
+            ? 'Free trial already used on this device or network'
+            : 'Your free trial has ended',
+        message:
+          trial.endReason === 'linked'
+            ? 'Free trials are limited to one per person. Our automated systems found that this device or network has already used one. Subscribe to continue, or contact support from Settings if you think this is a mistake.'
+            : 'Subscribe to keep scanning.',
+        actionLabel: 'See plans',
+        onAction: () => window.location.assign('/buy-scans'),
+      });
+      return;
+    }
+
      if (
       creatives.length > 1 &&
       !canBatchScan
@@ -2880,6 +2904,7 @@ for (
         message.includes('Scan already in progress') || message.includes('already have a scan in progress');
       const isRateLimitError = message.includes('Rate limit exceeded') || message.includes('Free tier limit');
       const isSharedQuotaError = message.includes('free scans for this device or network');
+      const isTrialError = message.toLowerCase().includes('free trial');
       const isAccountFlaggedError =
         message.includes('ACCOUNT_FLAGGED') || message.includes('locked pending resolution');
       const isAudioLockedError =
@@ -2914,6 +2939,17 @@ for (
           tone: 'error',
           title: 'One scan at a time',
           message: 'You already have a scan in progress. Please wait for it to finish before starting another.',
+        });
+      } else if (isTrialError) {
+        markTrialEnded();
+        recordFailure({
+          tone: 'warning',
+          title: message.includes('already used a free trial')
+            ? 'Free trial already used on this device or network'
+            : 'Your free trial has ended',
+          message,
+          actionLabel: 'See plans',
+          onAction: () => window.location.assign('/buy-scans'),
         });
       } else if (isSharedQuotaError) {
         setSharedQuotaBlocked(true);
