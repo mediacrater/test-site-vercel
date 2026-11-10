@@ -39,6 +39,9 @@ export function KeyboardShortcuts() {
       if (tag === 'input' || tag === 'textarea' || (document.activeElement as HTMLElement)?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+      // Ignore auto-repeat from holding a key down: one press = one action
+      if (e.repeat) return;
+
       const target = KEYBIND_MAP[e.key.toLowerCase()];
       if (!target) return;
 
