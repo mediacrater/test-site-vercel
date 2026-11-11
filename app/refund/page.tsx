@@ -4,20 +4,24 @@ import { PolicyShell } from '@/components/legal/policy-shell'
 
 export const metadata: Metadata = {
   title: 'Refund Policy | Mediacrater',
-  description: 'Mediacrater refund policy. Unused tokens are refundable within 3 days of purchase, minus a 10% processing fee. Used tokens are non-refundable.',
+  description: 'Mediacrater refund policy. Unused scans are refundable within 3 days of purchase, minus a 10% processing fee. Used scans are non-refundable.',
   alternates: { canonical: '/refund' },
   robots: { index: true, follow: true },
 }
 
 export default function RefundPolicy() {
   return (
-    <PolicyShell title="Refund Policy" updated="Effective date: April 2026">
+    <PolicyShell title="Refund Policy" updated="Effective date: November 30, 2026">
     <section>
       <h2>Our Policy, Simply Put</h2>
       <p>
-        Used tokens are non-refundable. If you have unused tokens and haven't gotten the value you
+        Used scans are non-refundable. If you have unused scans and haven't gotten the value you
         expected, we'll refund you, minus a flat 10% processing fee to cover unrecoverable
         payment transaction costs.
+      </p>
+      <p>
+        The free trial costs nothing and has nothing to refund. We do not ask for a card during the trial,
+        so you are never charged automatically when it ends.
       </p>
     </section>
 
@@ -26,8 +30,8 @@ export default function RefundPolicy() {
       <p>To qualify for a refund, all of the following must be true:</p>
       <ul>
         <li>Your refund request is submitted within <strong>3 days of your purchase date</strong></li>
-        <li>Your account has <strong>unused tokens remaining</strong></li>
-        <li>You are requesting a refund of <strong>all remaining unused tokens</strong>. We do not issue partial refunds on individual tokens</li>
+        <li>Your account has <strong>unused scans remaining</strong></li>
+        <li>You are requesting a refund of <strong>all remaining unused scans</strong>. We do not issue partial refunds on individual scans</li>
       </ul>
     </section>
 
@@ -36,7 +40,7 @@ export default function RefundPolicy() {
       <p>
         A flat <strong>10% processing fee</strong> is deducted from the refund amount to cover
         unrecoverable payment processing costs charged by our payment provider. This fee applies
-        regardless of how many tokens remain.
+        regardless of how many scans remain.
       </p>
       <div className="callout">
         <p><strong>Example</strong></p>
@@ -51,9 +55,10 @@ export default function RefundPolicy() {
     <section>
       <h2>Non-Refundable</h2>
       <ul>
-        <li>Tokens that have already been used for scans</li>
+        <li>Scans that have already been used</li>
+        <li>Time already credited to you when you upgraded (the credit for unused time on your old plan is applied automatically at the upgrade, so it is not refunded a second time)</li>
         <li>Purchases where the 3-day window has passed</li>
-        <li>Individual tokens (refunds apply to the full unused balance only)</li>
+        <li>Individual scans (refunds apply to the full unused balance only)</li>
       </ul>
     </section>
 
