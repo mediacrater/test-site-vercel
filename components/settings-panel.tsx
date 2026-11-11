@@ -34,6 +34,9 @@ export interface SettingsProfile {
   scans_remaining: number;
   subscription_cancel_at?: string | null;
   subscription_renews_at?: string | null;
+  billing_interval?: string | null;
+  next_scan_grant_at?: string | null;
+  scan_grants_left?: number | null;
 }
 
 interface SettingsPanelProps {
@@ -48,6 +51,7 @@ function formatPlanLabel(profile: SettingsProfile): string {
   const plan = profile.plan || 'free';
   const isPaid = plan !== 'free';
   let label = plan.charAt(0).toUpperCase() + plan.slice(1);
+  if (isPaid && profile.billing_interval === 'year') label += ' (yearly)';
 
   const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) =>
     new Date(iso).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
@@ -62,6 +66,10 @@ function formatPlanLabel(profile: SettingsProfile): string {
     label += ` · Renews ${fmt(profile.subscription_renews_at, { month: 'short', day: 'numeric', year: 'numeric' })}`;
   }
 
+  if (isPaid && profile.billing_interval === 'year' && (profile.scan_grants_left ?? 0) > 0 && profile.next_scan_grant_at) {
+    label += ` · Next scans ${fmt(profile.next_scan_grant_at, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  }  
+  
   return label;
 }
 
