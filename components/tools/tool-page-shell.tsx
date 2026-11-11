@@ -75,7 +75,7 @@ export function ToolPageShell({ tool, intro, children, method, limits, faqs }: T
           >
             Scan your creative with Mediacrater
           </Link>
-          <p className="mt-2 text-xs text-muted-foreground">3 free scans every month. No credit card.</p>
+          <p className="mt-2 text-xs text-muted-foreground">14-day free trial with 5 scans. No credit card.</p>
         </section>
 
         <section className="mt-12">
