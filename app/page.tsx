@@ -50,7 +50,7 @@ const structuredData = {
         "Scans video and image ads for likely Meta, TikTok, YouTube, Pinterest and X policy issues, with timestamped findings and suggested fixes.",
       publisher: { "@id": `${SITE}/#organization` },
       offers: [
-        { name: "Free", price: "0" },
+        { name: "Free trial", price: "0" },
         { name: "Startup", price: "10" },
         { name: "Established", price: "40" },
         { name: "Scaler", price: "80" },
