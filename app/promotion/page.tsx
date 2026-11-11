@@ -7,7 +7,7 @@
 //   Mediacrater would have caught. One says "unusual activity", which is an
 //   account-level flag, not a creative issue. This also applies to the page
 //   title and the "Why I built Mediacrater" section.
-// - Free plan = 3 regular scans/month. Audio analysis, deep scans and scan
+// - Free trial = 14 days, 5 regular scans, no card. Audio analysis, deep scans and scan
 //   history are paid (components/pricing.tsx). Keep those in sync.
 // - The hero must say what the product does without scrolling.
 //
