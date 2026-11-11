@@ -71,7 +71,7 @@ export function Hero() {
                 Log in
               </a>
             </div>
-            <p className="text-sm text-muted-foreground">3 free scans every month. No credit card required.</p>
+            <p className="text-sm text-muted-foreground">14-day free trial with 5 scans. No credit card required.</p>
           </div>
         </div>
 
