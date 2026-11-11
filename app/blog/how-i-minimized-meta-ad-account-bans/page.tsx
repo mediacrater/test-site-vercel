@@ -119,7 +119,7 @@ export default function Page() {
         Mediacrater scans video and image ads for likely Meta, TikTok and Google policy issues and shows findings with
         timestamps and suggested fixes. It can&apos;t guarantee approval and it doesn&apos;t check account-level
         problems like billing, verification or your landing page. What it does is flag creative risks before you put
-        money behind an ad. You get <A href={blogSignupUrl(post.slug)}>3 free scans a month</A>.
+        money behind an ad. You get <A href={blogSignupUrl(post.slug)}>a 14-day free trial with 5 scans</A>.
       </P>
 
       <H2 id="limits">The honest limits</H2>
