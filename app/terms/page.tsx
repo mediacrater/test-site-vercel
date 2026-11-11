@@ -21,8 +21,8 @@ export default function TermsOfService() {
       summary={
         <>
           The short version: you get a 14-day free trial with 5 scans and no credit card. After that you
-          need a paid plan to keep scanning. Plans renew monthly until you cancel. Results are guidance, not a
-          guarantee that a platform will approve your ad.
+          need a paid plan to keep scanning. Plans renew until you cancel, monthly or yearly (two months free). Results
+          are guidance, not a guarantee that a platform will approve your ad.
         </>
       }
     >
@@ -90,19 +90,20 @@ export default function TermsOfService() {
     <section>
       <h2>5. Plans, Scans and Billing</h2>
       <p>
-        Paid access is sold as monthly subscriptions. Each plan includes a number of scans per billing
-        period, shown on our pricing page, and prices are listed in USD. Payments are processed by
-        Stripe. Key rules:
+        Paid access is sold as monthly or yearly subscriptions. Each plan includes a number of scans per
+        month, shown on our pricing page, and prices are listed in USD. A yearly plan costs ten times the
+        monthly price (two months free) and is billed once a year. Payments are processed by Stripe. Key rules:
       </p>
       <ul>
-        <li><strong>Renewal:</strong> your subscription renews automatically each month until you cancel, and your card on file is charged the plan price plus any taxes that apply.</li>
+        <li><strong>Renewal:</strong> your subscription renews automatically each month (or each year, for a yearly plan) until you cancel, and your card on file is charged the plan price plus any taxes that apply.</li>
         <li><strong>Scans:</strong> a regular scan uses 1 scan and a deep scan uses 2. A scan is only counted when it finishes successfully.</li>
-        <li><strong>Reset:</strong> your scans reset to the full amount of your plan when a billing period renews. Unused scans do not carry over.</li>
+        <li><strong>Monthly plans:</strong> your scans reset to the full amount of your plan when a billing period renews. Unused scans do not carry over.</li>
+        <li><strong>Yearly plans:</strong> you receive the plan&apos;s monthly scans on the day you subscribe and the same amount on the same day of each following month. Unused scans carry over from month to month until your yearly term ends. When the yearly plan renews, a new term starts and scans left over from the previous term are not kept.</li>
         <li>Scans are non-transferable and tied to your account.</li>
-        <li><strong>Upgrading:</strong> moving to a larger plan takes effect immediately. You are charged the new plan&apos;s price minus a credit for the unused time on your current plan, a new billing period starts that day, and your scan balance is set to the new plan&apos;s full amount (it is replaced, not added to).</li>
-        <li><strong>Downgrading:</strong> moving to a smaller plan is completed at checkout. It starts a new billing period that day, your scan balance is set to the new plan&apos;s amount, and unused time on the old plan is not credited.</li>
-        <li><strong>Cancelling:</strong> you can cancel at any time from the billing page. You keep your plan and remaining scans until the end of the billing period you paid for. After that you have no scans until you subscribe again. The free trial is not offered again.</li>
-        <li><strong>Price changes:</strong> if we change the price or the scans in your plan, we will email you at least 30 days before the change reaches you, and you can cancel before it takes effect.</li>
+        <li><strong>Upgrading:</strong> moving to a larger plan, or from a monthly plan to a yearly plan, takes effect immediately. You are charged the new plan&apos;s price minus a credit for the unused time on your current plan, a new billing period starts that day, and your scan balance is set to what the new plan gives for its first month (it is replaced, not added to). A yearly plan can be upgraded to a larger yearly plan.</li>
+        <li><strong>Downgrading:</strong> moving from a monthly plan to a smaller plan is completed at checkout. It starts a new billing period that day, your scan balance is set to the new plan&apos;s amount, and unused time on the old plan is not credited. A yearly plan is prepaid, so during the term it cannot be moved to a smaller plan or to a monthly plan; such changes take effect when the term ends.</li>
+        <li><strong>Cancelling:</strong> you can cancel at any time from the billing page. You keep your plan and remaining scans until the end of the billing period you paid for. After that you have no scans until you subscribe again. The free trial is not offered again. If you cancel a yearly plan, it stays active until the end of the year you paid for and the monthly scans keep arriving, but the remaining months are not refunded.</li>
+        <li><strong>Price changes:</strong> if we change the price or the scans in your plan, we will email you at least 30 days before the change reaches you, and you can cancel before it takes effect. A change never alters a term you have already paid for; it applies from your next renewal.</li>
         <li><strong>Failed payments:</strong> if a renewal payment fails, we may pause your access until it is resolved.</li>
         <li>Used scans are non-refundable under any circumstances. Unused scans may be refundable, see our <a href="/refund">Refund Policy</a> for details.</li>
       </ul>
