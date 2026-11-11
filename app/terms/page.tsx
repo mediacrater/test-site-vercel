@@ -21,7 +21,7 @@ export default function TermsOfService() {
       summary={
         <>
           The short version: you get a 14-day free trial with 5 scans and no credit card. After that you
-          need a paid plan to keep scanning. Plans renew until you cancel, monthly or yearly (two months free). Results
+          need a paid plan to keep scanning. Plans renew until you cancel, monthly or yearly on selected plans (two months free). Results
           are guidance, not a guarantee that a platform will approve your ad.
         </>
       }
@@ -91,7 +91,7 @@ export default function TermsOfService() {
       <h2>5. Plans, Scans and Billing</h2>
       <p>
         Paid access is sold as monthly or yearly subscriptions. Each plan includes a number of scans per
-        month, shown on our pricing page, and prices are listed in USD. A yearly plan costs ten times the
+        month, shown on our pricing page, and prices are listed in USD. Yearly billing is available on the Startup, Established and Scaler plans (Agency is monthly only). A yearly plan costs ten times the
         monthly price (two months free) and is billed once a year. Payments are processed by Stripe. Key rules:
       </p>
       <ul>
