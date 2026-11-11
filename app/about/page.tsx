@@ -41,7 +41,7 @@ export default function AboutPage() {
                 href="/signup"
                 className="mt-7 inline-flex h-11 items-center rounded-full bg-lime px-6 text-[0.95rem] font-bold text-[#0b1628] transition-[filter] hover:brightness-105"
               >
-                Start free with 3 scans a month
+                Start your 14-day free trial today
               </Link>
             </div>
           </aside>
