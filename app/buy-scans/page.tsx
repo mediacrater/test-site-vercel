@@ -47,7 +47,7 @@ const DEEP_SCAN_COST = 2;
 
 // Most ad campaigns are tested in batches of 3 to 5 ads. Used for the
 // "about N campaigns" hint on each plan.
-const ADS_PER_CAMPAIGN = 5;
+const ADS_PER_CAMPAIGN = 3;
 
 // One plan gets a "Recommended" badge. Set to null to remove it. This is a
 // recommendation, not a claim about what other people buy.
