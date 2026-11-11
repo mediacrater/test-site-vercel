@@ -36,6 +36,25 @@ export default function RefundPolicy() {
     </section>
 
     <section>
+      <h2>Yearly Plans</h2>
+      <p>
+        The same rules apply to a yearly plan, with the unused value worked out over the whole year of scans
+        (the scans for each month are added monthly, but they are counted from the day you pay). A refund is
+        available within <strong>3 days of your purchase date</strong> only. After that, a yearly plan is not
+        refundable: you can cancel at any time to stop it renewing, and it stays active until the end of the year
+        you paid for.
+      </p>
+      <div className="callout">
+        <p><strong>Example</strong></p>
+        <p>
+          You buy the Startup yearly plan for $100, which covers 240 scans over the year (20 a month). In the first
+          3 days you use 5 scans. Your unused value is $100 × 235/240 = $97.92. The 10% fee ($9.79) is deducted, so
+          you receive $88.13. When a refund is issued, the plan ends and the remaining scans are removed.
+        </p>
+      </div>
+    </section>
+
+    <section>
       <h2>What Gets Deducted</h2>
       <p>
         A flat <strong>10% processing fee</strong> is deducted from the refund amount to cover
@@ -57,7 +76,7 @@ export default function RefundPolicy() {
       <ul>
         <li>Scans that have already been used</li>
         <li>Time already credited to you when you upgraded (the credit for unused time on your old plan is applied automatically at the upgrade, so it is not refunded a second time)</li>
-        <li>Purchases where the 3-day window has passed</li>
+        <li>Purchases where the 3-day window has passed, including the remaining months of a yearly plan you cancel</li>
         <li>Individual scans (refunds apply to the full unused balance only)</li>
       </ul>
     </section>
