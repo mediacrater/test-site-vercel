@@ -70,6 +70,7 @@ interface Plan {
   price: number; // per month
   scans: number; // per month
   description: string;
+  monthlyOnly?: boolean; // no yearly plan (Agency)
 }
 
 const PLANS: Plan[] = [
@@ -100,10 +101,15 @@ const PLANS: Plan[] = [
     price: 200,
     scans: 1000,
     description: 'For agencies managing multiple client accounts',
+    monthlyOnly: true,
   },
 ];
 
 type Interval = 'month' | 'year';
+
+// The interval a plan is actually sold at when the visitor has picked `wanted`.
+// Agency is monthly only, so it stays monthly even on the Yearly toggle.
+const intervalFor = (plan: Plan, wanted: Interval): Interval => (plan.monthlyOnly ? 'month' : wanted);
 
 // A yearly plan costs 10 monthly payments: two months free. Keep in sync with
 // the yearly prices in Stripe.
@@ -153,9 +159,9 @@ const EXTENSION_FEATURES = [
 
 const COMPARISON_ROWS: { label: string; value: (plan: Plan) => string }[] = [
   { label: 'Price per month', value: (p) => `$${p.price}` },
-  { label: 'Price per year (2 months free)', value: (p) => `$${yearlyPrice(p)}` },
+  { label: 'Price per year (2 months free)', value: (p) => (p.monthlyOnly ? 'Monthly only' : `$${yearlyPrice(p)}`) },
   { label: 'Scans per month', value: (p) => String(p.scans) },
-  { label: 'Scans per year (yearly plans)', value: (p) => String(p.scans * 12) },
+  { label: 'Scans per year (yearly plans)', value: (p) => (p.monthlyOnly ? 'n/a' : String(p.scans * 12)) },
   { label: `Deep scans (${DEEP_SCAN_COST} scans each)`, value: (p) => `up to ${deepScans(p)}` },
   { label: 'Price per scan', value: (p) => `$${perScan(p)}` },
   { label: `Campaigns of ${ADS_PER_CAMPAIGN} ads`, value: (p) => `about ${campaigns(p)}` },
@@ -197,7 +203,7 @@ function buildFaq(trialLive: boolean): { question: string; answer: string }[] {
     {
       question: 'How do yearly plans work?',
       answer:
-        'A yearly plan costs 10 monthly payments (two months free) and is billed once a year. You get the plan\'s monthly scans right away, then the same amount on the same day of each following month. ' +
+        'Startup, Established and Scaler can be paid yearly. A yearly plan costs 10 monthly payments (two months free) and is billed once a year. Agency is monthly only. You get the plan\'s monthly scans right away, then the same amount on the same day of each following month. ' +
         'Unused scans stay on your account until your year ends. If you cancel, the plan stays active until the end of the year you paid for and the monthly scans keep arriving, but the remaining months are not refunded. ' +
         'During the year you can upgrade to a larger yearly plan (the unused time is credited); other changes take effect when the year ends.',
     },
@@ -427,10 +433,10 @@ export default function BuyScansPage() {
     if (isSubscriber) {
       setError(null);
       setFallbackCheckoutUrl(null);
-      setPendingInterval(selectedInterval);
+      setPendingInterval(intervalFor(plan, selectedInterval));
       setPendingPlan(plan);
     } else {
-      handleSubscribe(plan.id, selectedInterval);
+      handleSubscribe(plan.id, intervalFor(plan, selectedInterval));
     }
   };
 
@@ -529,21 +535,22 @@ export default function BuyScansPage() {
             className="max-w-2xl mx-auto rounded-lg border border-border bg-primary/10 px-4 py-3 text-center text-sm text-primary"
           >
             You are on a yearly plan. You can upgrade to a larger yearly plan at any time and get a credit for the
-            unused time. Other changes take effect when your year ends: use Manage billing, or email {SUPPORT_EMAIL}.
+            unused time. Other changes, including Agency (monthly only), take effect when your year ends: use Manage billing, or email {SUPPORT_EMAIL}.
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {PLANS.map((plan, index) => {
-            const isCurrent = isSubscriber && plan.id === currentPlan && selectedInterval === currentInterval;
+            const planInterval = intervalFor(plan, selectedInterval);
+            const isCurrent = isSubscriber && plan.id === currentPlan && planInterval === currentInterval;
             const isRecommended = plan.id === RECOMMENDED_PLAN_ID && !isCurrent;
             const kind: ChangeKind =
               isSubscriber && currentIndex >= 0
-                ? changeKind(currentIndex, currentInterval, index, selectedInterval)
+                ? changeKind(currentIndex, currentInterval, index, planInterval)
                 : 'checkout';
             const isBlocked = isSubscriber && kind === 'blocked' && !isCurrent;
 
-            let label = `Get ${plan.name}${selectedInterval === 'year' ? ' yearly' : ''}`;
+            let label = `Get ${plan.name}${planInterval === 'year' ? ' yearly' : plan.monthlyOnly && selectedInterval === 'year' ? ' monthly' : ''}`;
             if (isSubscriber) {
               if (kind === 'inplace') {
                 label = index === currentIndex ? 'Switch to yearly' : `Upgrade to ${plan.name}`;
@@ -572,7 +579,7 @@ export default function BuyScansPage() {
                   </span>
                 )}
                 <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">{plan.name}</h2>
-                {selectedInterval === 'year' ? (
+                {planInterval === 'year' ? (
                   <>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">${yearlyPrice(plan)}</span>
@@ -592,9 +599,12 @@ export default function BuyScansPage() {
                     <p className="text-xs text-muted-foreground mt-1 mb-3">${perScan(plan)} per scan</p>
                   </>
                 )}
+                {plan.monthlyOnly && selectedInterval === 'year' && (
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Monthly billing only</p>
+                )}
                 <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
                 <ul className="space-y-1.5 mb-5 text-xs">
-                  {selectedInterval === 'year' ? (
+                  {planInterval === 'year' ? (
                     <>
                       <li className="font-semibold">{plan.scans} scans added every month</li>
                       <li className="text-muted-foreground">
