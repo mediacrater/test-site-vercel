@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <PolicyShell title="Privacy Policy" updated="Effective date: October 2026">
+    <PolicyShell title="Privacy Policy" updated="Effective date: November 2026">
     <section>
       <h2>Who We Are</h2>
       <p>
@@ -36,17 +36,17 @@ export default function PrivacyPolicy() {
           and communicate with you about your service. Stored securely via Supabase.
         </li>
         <li>
-          <strong>Token balance</strong>: the number of scan tokens available on your account.
-          Updated after each scan and each purchase. Deep scan costs 2 tokens. Stored via Supabase.
+          <strong>Scan balance</strong>: the number of scans available on your account.
+          Updated after each scan and each purchase. A deep scan uses 2 scans.
         </li>
         <li>
           <strong>Purchase records</strong>: when you make a purchase, we store the session ID,
-          number of tokens purchased, and purchase amount. This is used to credit your account
+          number of scans purchased, and purchase amount. This is used to credit your account
           correctly and to support refund requests. Stored via Supabase.
         </li>
         <li>
-          <strong>Scan metadata</strong>: when you run a scan, we log the timestamp, tokens
-          consumed, platform selected, content type (video or image), and analysis duration.
+          <strong>Scan metadata</strong>: when you run a scan, we log the timestamp, scans
+          used, platform selected, content type (video or image), and analysis duration.
           We store a low resolution first frame of video files and images for paying users' 
           Scan History interface. We deliberately compress this media so we cannot use it while
           the user can still identify their respective scan data. This data
@@ -100,14 +100,14 @@ export default function PrivacyPolicy() {
       <h3>Device and abuse-prevention data</h3>
       <p>
         We collect the following when you create an account on mediacrater.com, so we can keep
-        the free plan fair. We do not use this data for advertising, and we do not track you on
+        the free trial fair. We do not use this data for advertising, and we do not track you on
         other websites. The Chrome extension does not collect this data.
       </p>
       <ul>
         <li>
           <strong>IP address and approximate location</strong>: IP address, country, city, and
           network provider, collected at account creation. Used only to prevent abuse of the free
-          plan. Approximate location is derived from the IP address; it is not a street address.
+          trial. Approximate location is derived from the IP address; it is not a street address.
         </li>
         <li>
           <strong>Device cookie</strong>: a first-party identifier stored in your browser so we
@@ -120,7 +120,7 @@ export default function PrivacyPolicy() {
         <li>
           <strong>Browser and device information</strong>: browser name and version, operating
           system, timezone, and a technical identifier derived from those details. Used only to
-          enforce the free plan across accounts.
+          enforce the free trial across accounts.
         </li>
       </ul>
       <h3>Campaign link data</h3>
@@ -234,13 +234,13 @@ export default function PrivacyPolicy() {
         <li>To let you sign up and sign in with your Google account</li>
         <li>To authenticate you and maintain your account session</li>
         <li>To scan your ad content and return a policy compliance report</li>
-        <li>To manage your token balance accurately across purchases and scans</li>
+        <li>To manage your scan balance accurately across purchases and scans</li>
         <li>To process payments and evaluate refund requests</li>
         <li>To diagnose technical issues using anonymised scan metadata</li>
         <li>To improve Mediacrater's accuracy and features over time</li>
         <li>To respond to support requests sent to our email</li>
         <li>To display scan history accurately for paying users</li>
-        <li>To prevent abuse of the free plan and keep it available for people who need it</li>
+        <li>To prevent abuse of the free trial and keep it fair for everyone</li>
         <li>To learn which of our own short links and channels bring new users</li>
       </ul>
     </section>
@@ -278,7 +278,7 @@ export default function PrivacyPolicy() {
         <li>
           <strong>Network intelligence provider</strong>: we may send an IP address to a
           network intelligence service to derive approximate location (country and city) and
-          connection type (for example, residential or data center). Used only for free-plan
+          connection type (for example, residential or data center). Used only for free-trial
           enforcement. We do not receive a street address.
         </li>
         <li>
@@ -366,7 +366,7 @@ export default function PrivacyPolicy() {
         <a href="/cookies">
           Cookie Policy
         </a>
-        , including a required device cookie used to enforce the free plan, a campaign link
+        , including a required device cookie used to enforce the free trial, a campaign link
         cookie that is only set when you open one of our short links, and one optional
         affiliate-tracking cookie that only activates if you accept it.
       </p>
