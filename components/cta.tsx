@@ -19,7 +19,7 @@ export function CTA() {
             >
               Try Mediacrater free
             </a>
-            <p className="text-sm text-muted-foreground">3 free scans every month. No credit card required.</p>
+            <p className="text-sm text-muted-foreground">14-day free trial. No credit card required.</p>
           </div>
         </div>
       </div>
