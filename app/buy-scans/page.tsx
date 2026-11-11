@@ -103,6 +103,35 @@ const PLANS: Plan[] = [
   },
 ];
 
+type Interval = 'month' | 'year';
+
+// A yearly plan costs 10 monthly payments: two months free. Keep in sync with
+// the yearly prices in Stripe.
+const YEARLY_MONTHS_PAID = 10;
+const yearlyPrice = (plan: Plan) => plan.price * YEARLY_MONTHS_PAID;
+const yearlyPerMonth = (plan: Plan) => (yearlyPrice(plan) / 12).toFixed(2);
+const yearlyPerScan = (plan: Plan) => (yearlyPrice(plan) / (plan.scans * 12)).toFixed(2);
+
+// How a plan change is done. Must match decideUpgradePath in the
+// create-checkout-webapp function:
+//   inplace  = changed on the existing subscription, unused time credited
+//   checkout = the Stripe checkout page, new billing period, no credit
+//   blocked  = not offered (a yearly plan only goes up to a larger yearly plan)
+type ChangeKind = 'inplace' | 'checkout' | 'blocked';
+
+function changeKind(
+  currentIndex: number,
+  currentInterval: Interval,
+  targetIndex: number,
+  targetInterval: Interval
+): ChangeKind {
+  if (currentInterval === 'year') {
+    return targetInterval === 'year' && targetIndex > currentIndex ? 'inplace' : 'blocked';
+  }
+  if (targetInterval === 'month') return targetIndex > currentIndex ? 'inplace' : 'checkout';
+  return targetIndex >= currentIndex ? 'inplace' : 'checkout';
+}
+
 const perScan = (plan: Plan) => (plan.price / plan.scans).toFixed(2);
 const deepScans = (plan: Plan) => Math.floor(plan.scans / DEEP_SCAN_COST);
 const campaigns = (plan: Plan) => Math.floor(plan.scans / ADS_PER_CAMPAIGN);
@@ -124,7 +153,9 @@ const EXTENSION_FEATURES = [
 
 const COMPARISON_ROWS: { label: string; value: (plan: Plan) => string }[] = [
   { label: 'Price per month', value: (p) => `$${p.price}` },
+  { label: 'Price per year (2 months free)', value: (p) => `$${yearlyPrice(p)}` },
   { label: 'Scans per month', value: (p) => String(p.scans) },
+  { label: 'Scans per year (yearly plans)', value: (p) => String(p.scans * 12) },
   { label: `Deep scans (${DEEP_SCAN_COST} scans each)`, value: (p) => `up to ${deepScans(p)}` },
   { label: 'Price per scan', value: (p) => `$${perScan(p)}` },
   { label: `Campaigns of ${ADS_PER_CAMPAIGN} ads`, value: (p) => `about ${campaigns(p)}` },
@@ -160,13 +191,22 @@ function buildFaq(trialLive: boolean): { question: string; answer: string }[] {
     {
       question: 'Do unused scans roll over?',
       answer:
-        'No. Your scans are refreshed to the full amount of your plan each time your billing period renews. Unused scans do not carry over to the next period.',
+        'On monthly plans, no: your scans are refreshed to the full amount of your plan each time your billing period renews, and unused scans do not carry over. ' +
+        'On yearly plans, yes within your year: unused scans carry over from month to month until your year ends. When a yearly plan renews, it starts again and leftover scans are not kept.',
+    },
+    {
+      question: 'How do yearly plans work?',
+      answer:
+        'A yearly plan costs 10 monthly payments (two months free) and is billed once a year. You get the plan\'s monthly scans right away, then the same amount on the same day of each following month. ' +
+        'Unused scans stay on your account until your year ends. If you cancel, the plan stays active until the end of the year you paid for and the monthly scans keep arriving, but the remaining months are not refunded. ' +
+        'During the year you can upgrade to a larger yearly plan (the unused time is credited); other changes take effect when the year ends.',
     },
     {
       question: 'What happens if I switch plans?',
       answer:
         "Upgrading to a bigger plan takes effect immediately. Your card on file is charged the new plan's price minus a credit for the unused time on your current plan, " +
-        "a new billing period starts today, and you get the new plan's full scan allowance right away (your scan count is replaced, not added to). " +
+        "a new billing period starts today, and you get the new plan's scans right away (your scan count is replaced, not added to). " +
+        "Moving from a monthly plan to a yearly one works the same way: the unused monthly time is credited. " +
         "Moving to a smaller plan is done on our secure checkout page: it starts a new billing period today, and unused time on the old plan is not credited, " +
         "so switching close to your renewal date wastes the least. Either way you see a confirmation before anything is charged.",
     },
@@ -183,7 +223,7 @@ function buildFaq(trialLive: boolean): { question: string; answer: string }[] {
     },
     {
       question: 'Which currency is used, and are taxes included?',
-      answer: `Prices are in ${CURRENCY} per month. Any applicable taxes are calculated and shown at checkout, before you pay.`,
+      answer: `Prices are in ${CURRENCY}, per month on monthly plans and per year on yearly plans. Any applicable taxes are calculated and shown at checkout, before you pay.`,
     },
     {
       question: 'Is my payment secure?',
@@ -281,6 +321,10 @@ export default function BuyScansPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
+  const [pendingInterval, setPendingInterval] = useState<Interval>('month');
+  // What the visitor is looking at, and (for subscribers) what they are on now.
+  const [selectedInterval, setSelectedInterval] = useState<Interval>('month');
+  const [currentInterval, setCurrentInterval] = useState<Interval>('month');
   const [error, setError] = useState<string | null>(null);
   // Set when a bank needs 3D Secure and an in-place upgrade is not possible.
   const [fallbackCheckoutUrl, setFallbackCheckoutUrl] = useState<string | null>(null);
@@ -297,10 +341,14 @@ export default function BuyScansPage() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('plan, scans_remaining')
+        .select('plan, scans_remaining, billing_interval')
         .eq('id', session.user.id)
         .single();
       setCurrentPlan(profile?.plan || 'free');
+      if (profile?.billing_interval === 'year') {
+        setCurrentInterval('year');
+        setSelectedInterval('year');
+      }
       setScansRemaining(typeof profile?.scans_remaining === 'number' ? profile.scans_remaining : null);
       setLoading(false);
     };
@@ -317,9 +365,22 @@ export default function BuyScansPage() {
 
   // Bigger plan = upgraded in place (credit for unused time). Smaller plan = checkout page, no credit.
   const pendingIndex = pendingPlan ? PLANS.findIndex((p) => p.id === pendingPlan.id) : -1;
-  const pendingIsUpgrade = pendingPlan !== null && currentIndex >= 0 && pendingIndex > currentIndex;
+  const pendingKind: ChangeKind =
+    pendingPlan !== null && currentIndex >= 0
+      ? changeKind(currentIndex, currentInterval, pendingIndex, pendingInterval)
+      : 'checkout';
+  const pendingIsUpgrade = pendingKind === 'inplace';
+  const pendingYearly = pendingInterval === 'year';
+  let pendingTitle = 'Switch plan?';
+  if (pendingPlan) {
+    const suffix = pendingYearly ? ' (yearly)' : '';
+    pendingTitle =
+      pendingIsUpgrade && pendingIndex === currentIndex
+        ? `Switch ${pendingPlan.name} to yearly?`
+        : `${pendingIsUpgrade ? 'Upgrade' : 'Switch'} to ${pendingPlan.name}${suffix}?`;
+  }
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: string, planInterval: Interval) => {
     setError(null);
     setFallbackCheckoutUrl(null);
     setLoadingPlan(planId);
@@ -340,7 +401,7 @@ export default function BuyScansPage() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ plan: planId }),
+          body: JSON.stringify({ plan: planId, interval: planInterval }),
         }
       );
 
@@ -366,9 +427,10 @@ export default function BuyScansPage() {
     if (isSubscriber) {
       setError(null);
       setFallbackCheckoutUrl(null);
+      setPendingInterval(selectedInterval);
       setPendingPlan(plan);
     } else {
-      handleSubscribe(plan.id);
+      handleSubscribe(plan.id, selectedInterval);
     }
   };
 
@@ -402,7 +464,7 @@ export default function BuyScansPage() {
           <h1 className="text-3xl font-bold">Choose your plan</h1>
           {/* data-verse: Romans 8:28 */}
           <p data-verse="Romans 8:28" className="text-muted-foreground text-sm">
-            Pick a plan based on how many ad campaigns you run per month. Cancel anytime from this page.
+            Pick a plan based on how many ad campaigns you run per month. Pay yearly and get 2 months free. Cancel anytime from this page.
           </p>
         </div>
 
@@ -432,14 +494,64 @@ export default function BuyScansPage() {
           </div>
         )}
 
+        <div className="flex justify-center">
+          <div
+            role="group"
+            aria-label="Billing period"
+            className="inline-flex rounded-full border border-border bg-card p-1"
+          >
+            {(['month', 'year'] as Interval[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={selectedInterval === option}
+                onClick={() => setSelectedInterval(option)}
+                className={`min-h-[44px] px-5 rounded-full text-sm font-semibold transition-colors ${
+                  selectedInterval === option
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground/70 hover:text-foreground'
+                }`}
+              >
+                {option === 'month' ? 'Monthly' : 'Yearly'}
+                {option === 'year' && (
+                  <span className="ml-2 text-[11px] font-bold uppercase tracking-wide opacity-90">
+                    2 months free
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {isSubscriber && currentInterval === 'year' && (
+          <div
+            role="status"
+            className="max-w-2xl mx-auto rounded-lg border border-border bg-primary/10 px-4 py-3 text-center text-sm text-primary"
+          >
+            You are on a yearly plan. You can upgrade to a larger yearly plan at any time and get a credit for the
+            unused time. Other changes take effect when your year ends: use Manage billing, or email {SUPPORT_EMAIL}.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {PLANS.map((plan, index) => {
-            const isCurrent = plan.id === currentPlan;
+            const isCurrent = isSubscriber && plan.id === currentPlan && selectedInterval === currentInterval;
             const isRecommended = plan.id === RECOMMENDED_PLAN_ID && !isCurrent;
-            const isHigher = currentIndex >= 0 ? index > currentIndex : true;
+            const kind: ChangeKind =
+              isSubscriber && currentIndex >= 0
+                ? changeKind(currentIndex, currentInterval, index, selectedInterval)
+                : 'checkout';
+            const isBlocked = isSubscriber && kind === 'blocked' && !isCurrent;
 
-            let label = `Get ${plan.name}`;
-            if (isSubscriber) label = isHigher ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`;
+            let label = `Get ${plan.name}${selectedInterval === 'year' ? ' yearly' : ''}`;
+            if (isSubscriber) {
+              if (kind === 'inplace') {
+                label = index === currentIndex ? 'Switch to yearly' : `Upgrade to ${plan.name}`;
+              } else {
+                label = `Switch to ${plan.name}`;
+              }
+            }
+            if (isBlocked) label = 'At the end of your year';
             if (loadingPlan === plan.id) label = 'Redirecting…';
             if (isCurrent) label = 'Current plan';
 
@@ -460,14 +572,38 @@ export default function BuyScansPage() {
                   </span>
                 )}
                 <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">{plan.name}</h2>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-xs text-muted-foreground">/mo {CURRENCY}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 mb-3">${perScan(plan)} per scan</p>
+                {selectedInterval === 'year' ? (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold">${yearlyPrice(plan)}</span>
+                      <span className="text-xs text-muted-foreground">/yr {CURRENCY}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ${yearlyPerMonth(plan)}/mo, billed once a year
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">${yearlyPerScan(plan)} per scan</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-xs text-muted-foreground">/mo {CURRENCY}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 mb-3">${perScan(plan)} per scan</p>
+                  </>
+                )}
                 <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
                 <ul className="space-y-1.5 mb-5 text-xs">
-                  <li className="font-semibold">{plan.scans} scans / month</li>
+                  {selectedInterval === 'year' ? (
+                    <>
+                      <li className="font-semibold">{plan.scans} scans added every month</li>
+                      <li className="text-muted-foreground">
+                        {plan.scans * 12} scans a year. Unused scans carry over until your year ends.
+                      </li>
+                    </>
+                  ) : (
+                    <li className="font-semibold">{plan.scans} scans / month</li>
+                  )}
                   <li className="text-muted-foreground">
                     Up to {deepScans(plan)} deep scans ({DEEP_SCAN_COST} scans each)
                   </li>
@@ -478,7 +614,7 @@ export default function BuyScansPage() {
                 <button
                   type="button"
                   onClick={() => handlePlanClick(plan)}
-                  disabled={isCurrent || loadingPlan !== null || portalLoading}
+                  disabled={isCurrent || isBlocked || loadingPlan !== null || portalLoading}
                   className={`mt-auto w-full min-h-[44px] py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     isCurrent
                       ? 'bg-muted text-muted-foreground border border-border'
@@ -627,11 +763,7 @@ export default function BuyScansPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {pendingPlan
-                ? `${pendingIsUpgrade ? 'Upgrade' : 'Switch'} to ${pendingPlan.name}?`
-                : 'Switch plan?'}
-            </DialogTitle>
+            <DialogTitle>{pendingTitle}</DialogTitle>
             <DialogDescription>
               {pendingIsUpgrade
                 ? 'Please read this before you continue. Your card on file is charged as soon as you confirm below.'
@@ -641,9 +773,19 @@ export default function BuyScansPage() {
           {pendingPlan && (
             <ul className="list-disc pl-5 space-y-2 text-sm text-foreground">
               <li>
-                {pendingPlan.name} is ${pendingPlan.price} {CURRENCY} per month, with {pendingPlan.scans} scans.
+                {pendingYearly
+                  ? `${pendingPlan.name} is $${yearlyPrice(pendingPlan)} ${CURRENCY} once a year ($${yearlyPerMonth(pendingPlan)} a month, 2 months free), with ${pendingPlan.scans} scans added every month.`
+                  : `${pendingPlan.name} is $${pendingPlan.price} ${CURRENCY} per month, with ${pendingPlan.scans} scans.`}
               </li>
-              <li>It starts today, with a new billing period, and you get all {pendingPlan.scans} scans right away.</li>
+              <li>It starts today, with a new billing period{pendingYearly ? ' that lasts a year' : ''}.</li>
+              {pendingYearly ? (
+                <li>
+                  You get {pendingPlan.scans} scans now and {pendingPlan.scans} more on the same day of each following
+                  month. Unused scans carry over until your year ends; when the year renews, leftovers are not kept.
+                </li>
+              ) : (
+                <li>You get all {pendingPlan.scans} scans right away.</li>
+              )}
               <li>Your scan count is replaced. Scans left on your current plan do not carry over.</li>
               {pendingIsUpgrade ? (
                 <>
@@ -673,7 +815,7 @@ export default function BuyScansPage() {
             </button>
             <button
               type="button"
-              onClick={() => pendingPlan && handleSubscribe(pendingPlan.id)}
+              onClick={() => pendingPlan && handleSubscribe(pendingPlan.id, pendingInterval)}
               disabled={loadingPlan !== null}
               className="min-h-[44px] px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
