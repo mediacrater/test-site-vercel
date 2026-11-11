@@ -3,7 +3,7 @@ import { Check, Minus } from "lucide-react"
 import { PRICING_SIGNUP_URL } from "@/lib/site-links"
 
 const plans = [
-  { name: "Free", price: "$0", period: "/mo", description: "Get started with no commitment", cta: "Get started", popular: false },
+  { name: "Free trial", price: "$0", period: "for 14 days", description: "5 scans to try it. No credit card required", cta: "Start free trial", popular: false },
   { name: "Startup", price: "$10", period: "/mo", description: "For solo dropshippers testing creatives", cta: "Get Startup", popular: false },
   { name: "Established", price: "$40", period: "/mo", description: "For brands running consistent paid campaigns", cta: "Get Established", popular: false },
   { name: "Scaler", price: "$80", period: "/mo", description: "For media buyers scaling across multiple offers", cta: "Get Scaler", popular: false },
@@ -17,7 +17,7 @@ const scanFeatureRows: { label: string; sub?: string; values: CellValue[] }[] = 
   { label: "All platforms supported", values: [true, true, true, true, true] },
   { label: "Violation timestamps & fixes", values: [true, true, true, true, true] },
   { label: "Scan type", values: ["Regular", "Regular + Deep", "Regular + Deep", "Regular + Deep", "Regular + Deep"] },
-  { label: "Monthly scans", values: ["3", "20", "100", "250", "1000"] },
+  { label: "Scans", sub: "Trial: 5 in total. Plans: per month", values: ["5", "20", "100", "250", "1000"] },
   { label: "Campaigns / month", values: ["1", "3–6", "20–33", "50–83", "200–300+"] },
   { label: "Priority processing", values: [false, true, true, true, true] },
   { label: "Scan history", values: [false, true, true, true, true] },
