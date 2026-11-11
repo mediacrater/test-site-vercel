@@ -35,7 +35,7 @@ export default function SettingsPage() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('plan, scans_remaining, subscription_cancel_at, subscription_renews_at')
+        .select('plan, scans_remaining, subscription_cancel_at, subscription_renews_at, billing_interval, next_scan_grant_at, scan_grants_left')
         .eq('id', session.user.id)
         .single();
       setProfile(profileData);
