@@ -63,7 +63,7 @@ const STEPS = [
 const FAQS = [
   {
     q: "Is it really free?",
-    a: "Yes. The free plan includes 3 scans a month and doesn't ask for a card. Paid plans start at $10 a month for 20 scans and add deep scans, audio analysis and scan history.",
+    a: "Yes, to try. Every new account gets a 14-day free trial with 5 scans, and we don't ask for a card. After the trial you need a paid plan to keep scanning. Paid plans start at $10 a month for 20 scans and add deep scans, audio analysis and scan history.",
   },
   {
     q: "Can it guarantee my ads get approved?",
@@ -157,7 +157,7 @@ export default function PromotionPage() {
                   <SignupCta position="hero" />
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  3 free scans a month. No credit card. Sign up with email or Google.
+                  14-day free trial with 5 scans. No credit card. Sign up with email or Google.
                 </p>
                 <a
                   href="#demo"
@@ -190,7 +190,7 @@ export default function PromotionPage() {
             <div className="mt-10 max-w-4xl">
               <DemoVideo />
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                The demo also shows paid features: batch scans, deep analysis and scan history. The free plan covers
+                The demo also shows paid features: batch scans, deep analysis and scan history. The free trial covers
                 single scans.
               </p>
             </div>
@@ -360,7 +360,7 @@ export default function PromotionPage() {
               <div id="final-cta">
                 <SignupCta position="final" />
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">3 free scans a month. No credit card.</p>
+              <p className="mt-3 text-sm text-muted-foreground">14-day free trial with 5 scans. No credit card.</p>
             </div>
           </div>
         </section>
