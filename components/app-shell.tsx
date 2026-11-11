@@ -16,6 +16,11 @@
 // CHANGES (tab close guard): useScanLeaveGuard() lives here so the
 // "Leave site?" prompt protects an active scan on every app page, not just
 // the Dashboard (scans keep running while you browse Scan History/Settings).
+//
+// CHANGES (free plan sunset): inline banner replaced by <FreePlanEndingBanner />,
+// shown only to free-plan users and auto-hidden after the cutoff date.
+// CHANGES (sign out): router.refresh() added so cached authenticated pages
+// are not served after sign-out; hamburger button gets aria-expanded/controls.
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -32,6 +37,7 @@ import { ApiHostClearance } from './ApiHostClearance';
 import { useScanLeaveGuard } from '@/hooks/use-scan-leave-guard';
 import { TrialBanner } from '@/components/trial-banner';
 import { TrialEndedDialog } from '@/components/trial-ended-dialog';
+import { FreePlanEndingBanner } from '@/components/free-plan-ending-banner';
 
 const EXTENSION_LINK =
   'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=app_mobile_nav';
@@ -61,8 +67,10 @@ export function AppShell({
   const accountLocked = useAccountLocked();
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Sign out failed:', error.message);
     router.push('/signin');
+    router.refresh();
   }
 
   return (
@@ -76,11 +84,9 @@ export function AppShell({
       <div className="flex-1 min-w-0">
         <AppTopBar userEmail={userEmail} plan={plan} scansRemaining={scansRemaining} accountLocked={accountLocked} />
         <TrialBanner scansRemaining={scansRemaining} />
+        <FreePlanEndingBanner plan={plan} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
-          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900] tracking-[0.2px]">
-            Major update underway: expect intermittent delays.
-          </div>
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <Link href="/" className="font-bold text-sm">
             Mediacrater
@@ -107,6 +113,8 @@ export function AppShell({
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
               className="p-2 text-muted-foreground hover:text-foreground"
               aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-nav-panel"
             >
               {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -114,7 +122,7 @@ export function AppShell({
         </div>
 
         {mobileNavOpen && (
-          <div className="lg:hidden border-b border-border bg-background px-4 py-3 space-y-1">
+          <div id="mobile-nav-panel" className="lg:hidden border-b border-border bg-background px-4 py-3 space-y-1">
             {NAV_ITEMS.map((item) => {
               const active = pathname === item.href;
               const Icon = item.icon;
