@@ -55,7 +55,7 @@ export function AdAccountInsurance() {
               >
                 Try Mediacrater free
               </Link>
-              <span className="text-sm text-ink-muted">No credit card required. 3 free scans every month.</span>
+              <span className="text-sm text-ink-muted">No credit card required. 14-day free trial with 5 scans.</span>
             </div>
           </div>
         </div>
