@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function CookiePolicy() {
   return (
-    <PolicyShell title="Cookie Policy" updated="Last updated: October 2026">
+    <PolicyShell title="Cookie Policy" updated="Last updated: November 2026">
     <section>
       <h2>The short version</h2>
       <p>
-        Mediacrater uses cookies to keep you signed in, to keep the free plan fair, to remember
+        Mediacrater uses cookies to keep you signed in, to keep the free trial fair, to remember
         which of our own short links (like <code>mediacrater.com/ig</code>) brought you here,
         and (if you come from one of our affiliates and choose to accept) to credit that
         affiliate. We don&apos;t sell data, and we don&apos;t track you across other websites.
@@ -57,7 +57,7 @@ export default function CookiePolicy() {
       <h2>Cookies that are always on (required for the site to work)</h2>
       <p>
         These are necessary for core functionality: signing in, staying signed in, keeping
-        your account secure, and enforcing the free plan. Because they're required for the
+        your account secure, and enforcing the free trial. Because they're required for the
         service to function, they're not subject to the choice below.
       </p>
       <div className="table-wrap">
@@ -78,7 +78,7 @@ export default function CookiePolicy() {
             <tr>
               <td>Device identifier cookie</td>
               <td>
-                Identifies this browser so the free plan cannot be reset by opening extra
+                Identifies this browser so the free trial cannot be reset by opening extra
                 accounts. Not used for ads. Not your login session. It stays after you sign out.
               </td>
               <td>13 months</td>
