@@ -1,154 +1,286 @@
+//app/buy-scans/page.tsx
 'use client';
 
-// app/buy-scans/page.tsx
+// The web app's own checkout entry point. It is a different route from
+// /buy-tokens (which stays as-is for the extension) so it is obvious in
+// analytics and in the URL bar which surface a checkout came from.
 //
-// The web app's own checkout entry point — deliberately a different
-// route/name from /buy-tokens (which stays as-is for the extension) so
-// it's obvious at a glance, in analytics and in the URL bar, which
-// surface a given checkout came from.
+// This page is authenticated: identity comes from the signed-in Supabase
+// session, never from a URL parameter. Being signed in IS the gate, and
+// create-checkout-webapp enforces it again on the server.
 //
-// Unlike /buy-tokens, this page is authenticated: identity comes from
-// the signed-in Supabase session (same as the rest of the dashboard),
-// never from a URL parameter. There's no "open this from the right
-// place or the buttons stay disabled" state here — being signed in IS
-// the gate, enforced server-side by create-checkout-webapp itself
+// What this version changes (everything else works as before):
+//   - tells the truth about deep scans (2 scans each), rollover, trial and cancelling
+//   - shows the person's trial status, so "See plans" lands with context
+//   - existing subscribers get a confirmation step that spells out what a
+//     plan change does (new billing cycle today, old subscription cancelled
+//     after the new payment, no credit for unused time)
+//   - price per scan, campaign-size hint, one recommended plan
+//   - "Manage billing or cancel" for subscribers (billing portal)
+//   - bigger tap targets, aria-expanded FAQ, role="alert" errors, working
+//     skip link (id="main-content")
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
-import { Check, Minus } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
+import { useTrialState } from '@/lib/mediacrater/useTrialState';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
-const PLANS = [
+// ---------------------------------------------------------------------------
+// Settings you may want to change
+// ---------------------------------------------------------------------------
+
+// Shown next to prices. Change it if Stripe charges in another currency.
+const CURRENCY = 'USD';
+
+// What the server charges for a deep scan (see scanCost in scanVideo.js).
+const DEEP_SCAN_COST = 2;
+
+// Most ad campaigns are tested in batches of 3 to 5 ads. Used for the
+// "about N campaigns" hint on each plan.
+const ADS_PER_CAMPAIGN = 5;
+
+// One plan gets a "Recommended" badge. Set to null to remove it. This is a
+// recommendation, not a claim about what other people buy.
+const RECOMMENDED_PLAN_ID: string | null = 'established';
+
+const SUPPORT_EMAIL = 'hello.mediacrater@gmail.com';
+
+// Same variables the trial banner uses (set in Vercel).
+const TRIAL_DAYS = Number(process.env.NEXT_PUBLIC_TRIAL_DAYS) || 14;
+const TRIAL_SCANS = Number(process.env.NEXT_PUBLIC_TRIAL_SCANS) || 5;
+const TRIAL_CUTOVER_ISO = process.env.NEXT_PUBLIC_TRIAL_CUTOVER_ISO || '';
+
+// ---------------------------------------------------------------------------
+// Plans
+// ---------------------------------------------------------------------------
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number; // per month
+  scans: number; // per month
+  description: string;
+}
+
+const PLANS: Plan[] = [
   {
     id: 'startup',
     name: 'Startup',
-    price: '$10',
-    period: '/mo',
+    price: 10,
     scans: 20,
     description: 'For solo dropshippers testing new creatives',
   },
   {
     id: 'established',
     name: 'Established',
-    price: '$40',
-    period: '/mo',
+    price: 40,
     scans: 100,
     description: 'For brands running consistent paid campaigns',
   },
   {
     id: 'scaler',
     name: 'Scaler',
-    price: '$80',
-    period: '/mo',
+    price: 80,
     scans: 250,
     description: 'For media buyers scaling across multiple offers',
   },
   {
     id: 'agency',
     name: 'Agency',
-    price: '$200',
-    period: '/mo',
+    price: 200,
     scans: 1000,
     description: 'For agencies managing multiple client accounts',
   },
 ];
 
-type CellValue = boolean | string;
+const perScan = (plan: Plan) => (plan.price / plan.scans).toFixed(2);
+const deepScans = (plan: Plan) => Math.floor(plan.scans / DEEP_SCAN_COST);
+const campaigns = (plan: Plan) => Math.floor(plan.scans / ADS_PER_CAMPAIGN);
 
-const scanFeatureRows: { label: string; values: CellValue[] }[] = [
-  { label: 'Video & image scanning', values: [true, true, true, true] },
-  { label: 'All platforms supported', values: [true, true, true, true] },
-  { label: 'Violation timestamps & fixes', values: [true, true, true, true] },
-  { label: 'Scan type', values: ['Regular + Deep', 'Regular + Deep', 'Regular + Deep', 'Regular + Deep'] },
-  { label: 'Monthly scans', values: ['20', '100', '250', '1000'] },
-  { label: 'Priority support', values: [true, true, true, true] },
-  { label: 'Audio analysis', values: [true, true, true, true] },
+const INCLUDED_IN_EVERY_PLAN = [
+  'Video & image scanning',
+  'All platforms supported',
+  'Violation timestamps & fixes',
+  'Regular and Deep scans',
+  'Audio analysis',
+  'Priority support',
 ];
 
-const extensionFeatureRows: { label: string; values: CellValue[] }[] = [
-  { label: 'Unlimited individual downloads', values: [true, true, true, true] },
-  { label: 'Batch ZIP downloads', values: [true, true, true, true] },
-  { label: 'Local creative library storage', values: [true, true, true, true] },
+const EXTENSION_FEATURES = [
+  'Unlimited individual downloads',
+  'Batch ZIP downloads',
+  'Local creative library storage',
 ];
 
-const FAQ_ITEMS = [
-  {
-    question: 'What counts as one scan?',
-    answer:
-      'One scan = one ad analyzed against one platform. A video or image submitted for Meta compliance check uses 1 scan regardless of length or file size.',
-  },
-  {
-    question: 'What happens to my scans if I upgrade mid-cycle?',
-    answer:
-      "Your scan count resets immediately to your new plan's full allocation on the day you upgrade. Your billing cycle also resets from that day.",
-  },
-  {
-    question: 'What happens if I downgrade or cancel?',
-    answer:
-      'You keep your current plan and scan count until the end of your billing cycle. After that, your scan count resets to the new plan (or the free plan, if cancelled).',
-  },
-  {
-    question: 'Is my payment secure?',
-    answer: 'Yes. All payments are processed by Stripe. We never store or see your card details.',
-  },
+const COMPARISON_ROWS: { label: string; value: (plan: Plan) => string }[] = [
+  { label: 'Price per month', value: (p) => `$${p.price}` },
+  { label: 'Scans per month', value: (p) => String(p.scans) },
+  { label: `Deep scans (${DEEP_SCAN_COST} scans each)`, value: (p) => `up to ${deepScans(p)}` },
+  { label: 'Price per scan', value: (p) => `$${perScan(p)}` },
+  { label: `Campaigns of ${ADS_PER_CAMPAIGN} ads`, value: (p) => `about ${campaigns(p)}` },
 ];
 
-function Cell({ value }: { value: CellValue }) {
-  if (typeof value === 'boolean') {
-    return value ? (
-      <Check className="w-4 h-4 mx-auto text-emerald-500" strokeWidth={2.5} />
-    ) : (
-      <Minus className="w-4 h-4 mx-auto text-muted-foreground/30" strokeWidth={2} />
-    );
+// ---------------------------------------------------------------------------
+// FAQ (some answers depend on whether the free trial is live)
+// ---------------------------------------------------------------------------
+
+function buildFaq(trialLive: boolean): { question: string; answer: string }[] {
+  const items: { question: string; answer: string }[] = [
+    {
+      question: 'What counts as one scan?',
+      answer:
+        `A regular scan checks one ad (a video or an image) against one platform's policies and uses 1 scan, regardless of length or file size. ` +
+        `A deep scan is a more thorough analysis and uses ${DEEP_SCAN_COST} scans. ` +
+        `So a plan with 20 scans gives you 20 regular scans, or 10 deep scans, or a mix. ` +
+        `Videos must be under 2 minutes. If a scan fails, you are not charged.`,
+    },
+  ];
+
+  if (trialLive) {
+    items.push({
+      question: 'How does the free trial work?',
+      answer:
+        `New accounts get ${TRIAL_DAYS} days and ${TRIAL_SCANS} scans, with no credit card. ` +
+        `The trial ends when the ${TRIAL_DAYS} days pass or the ${TRIAL_SCANS} scans are used, whichever comes first. ` +
+        `Free trials are limited to one per person: our automated systems check for accounts linked by device or network.`,
+    });
   }
-  return <span className="text-sm font-medium text-foreground">{value}</span>;
-}
 
-function FeatureSectionRow({
-  title,
-  description,
-  colSpan,
-}: {
-  title: string;
-  description: string;
-  colSpan: number;
-}) {
-  return (
-    <tr className="border-y border-primary/20 bg-primary/[0.04]">
-      <th colSpan={colSpan} scope="colgroup" className="px-6 py-4 text-left">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            {title}
-          </span>
-          <span className="text-xs font-normal normal-case tracking-normal text-muted-foreground">
-            {description}
-          </span>
-        </div>
-      </th>
-    </tr>
+  items.push(
+    {
+      question: 'Do unused scans roll over?',
+      answer:
+        'No. Your scans are refreshed to the full amount of your plan each time your billing period renews. Unused scans do not carry over to the next period.',
+    },
+    {
+      question: 'What happens if I switch plans?',
+      answer:
+        "The new plan starts today and is billed today. You get its full scan allowance right away, and your current subscription is cancelled automatically once the new payment succeeds. " +
+        "Unused time on your old plan is not credited, so switching close to your renewal date wastes the least. You'll see a confirmation before anything is charged.",
+    },
+    {
+      question: 'What happens if I cancel?',
+      answer: trialLive
+        ? 'You keep your plan and your remaining scans until the end of the billing period you paid for. After that your account returns to the free plan with no scans left. The free trial cannot be restarted.'
+        : 'You keep your plan and your remaining scans until the end of the billing period you paid for. After that your account returns to the free plan.',
+    },
+    {
+      question: 'How do I cancel or update my card?',
+      answer:
+        'Use "Manage billing or cancel" on this page, or Manage Plan in Settings. It opens Stripe\'s secure billing portal.',
+    },
+    {
+      question: 'Which currency is used, and are taxes included?',
+      answer: `Prices are in ${CURRENCY} per month. Any applicable taxes are calculated and shown at checkout, before you pay.`,
+    },
+    {
+      question: 'Is my payment secure?',
+      answer: 'Yes. All payments are processed by Stripe. We never store or see your card details.',
+    },
+    {
+      question: 'I have another question.',
+      answer: `Email ${SUPPORT_EMAIL} and we will get back to you.`,
+    }
   );
+
+  return items;
 }
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
+function FAQItem({ id, question, answer }: { id: string; question: string; answer: string }) {
   const [open, setOpen] = useState(false);
+  const panelId = `${id}-panel`;
   return (
     <div className="border-b border-border last:border-0">
-      <button onClick={() => setOpen(!open)} className="w-full flex justify-between items-center py-4 text-left gap-4">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={panelId}
+        className="w-full flex justify-between items-center py-4 text-left gap-4 min-h-[44px]"
+      >
         <span className="font-medium text-sm">{question}</span>
-        <span className="text-muted-foreground text-lg flex-shrink-0">{open ? '−' : '+'}</span>
+        <span aria-hidden="true" className="text-muted-foreground text-lg flex-shrink-0">
+          {open ? '−' : '+'}
+        </span>
       </button>
-      {open && <p className="text-sm text-muted-foreground pb-4 leading-relaxed">{answer}</p>}
+      <div id={panelId} hidden={!open}>
+        <p className="text-sm text-muted-foreground pb-4 leading-relaxed">{answer}</p>
+      </div>
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Trial notice: shown above the plans, only when it helps
+// ---------------------------------------------------------------------------
+
+function TrialNotice({
+  phase,
+  daysLeft,
+  endReason,
+  scansRemaining,
+}: {
+  phase: string;
+  daysLeft: number | null;
+  endReason: string | null;
+  scansRemaining: number | null;
+}) {
+  if (phase === 'trial') {
+    const days = daysLeft ?? 0;
+    return (
+      <div
+        role="status"
+        className="max-w-2xl mx-auto rounded-lg border border-border bg-primary/10 px-4 py-3 text-center text-sm text-primary"
+      >
+        Your free trial: {days} day{days === 1 ? '' : 's'} left
+        {typeof scansRemaining === 'number'
+          ? `, ${scansRemaining} scan${scansRemaining === 1 ? '' : 's'} left`
+          : ''}
+        . Subscribe any time and your plan starts right away.
+      </div>
+    );
+  }
+
+  if (phase === 'ended') {
+    return (
+      <div
+        role="status"
+        className="max-w-2xl mx-auto rounded-lg border border-[#fde68a] dark:border-[#4d2900] bg-amber-100 dark:bg-transparent px-4 py-3 text-center text-sm text-amber-700 dark:text-[#fbbf24]"
+      >
+        {endReason === 'linked'
+          ? 'A free trial has already been used on this device or network. Free trials are limited to one per person. Pick a plan to keep scanning.'
+          : 'Your free trial has ended. Pick a plan to keep scanning.'}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function BuyScansPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<string>('free');
+  const [scansRemaining, setScansRemaining] = useState<number | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const trial = useTrialState(scansRemaining);
 
   useEffect(() => {
     const init = async () => {
@@ -159,12 +291,25 @@ export default function BuyScansPage() {
         router.push('/signin');
         return;
       }
-      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', session.user.id).single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan, scans_remaining')
+        .eq('id', session.user.id)
+        .single();
       setCurrentPlan(profile?.plan || 'free');
+      setScansRemaining(typeof profile?.scans_remaining === 'number' ? profile.scans_remaining : null);
       setLoading(false);
     };
     init();
   }, [router]);
+
+  const isSubscriber = currentPlan !== 'free';
+  const currentIndex = PLANS.findIndex((p) => p.id === currentPlan);
+
+  // Evaluated on render (not at build time): the cancel answer changes after the cutover.
+  const cutoverTime = Date.parse(TRIAL_CUTOVER_ISO);
+  const trialLive = Number.isFinite(cutoverTime) && Date.now() >= cutoverTime;
+  const faqItems = buildFaq(trialLive);
 
   const handleSubscribe = async (planId: string) => {
     setError(null);
@@ -196,13 +341,38 @@ export default function BuyScansPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setLoadingPlan(null);
+      setPendingPlan(null);
+    }
+  };
+
+  // Free accounts go straight to checkout. Subscribers see what a switch does first.
+  const handlePlanClick = (plan: Plan) => {
+    if (isSubscriber) {
+      setError(null);
+      setPendingPlan(plan);
+    } else {
+      handleSubscribe(plan.id);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setError(null);
+    setPortalLoading(true);
+    try {
+      const url = await getBillingPortalUrl();
+      window.location.href = url;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not open the billing portal. Please try again.');
+      setPortalLoading(false);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground font-medium">Loading...</p>
+        <p role="status" className="text-muted-foreground font-medium">
+          Loading...
+        </p>
       </div>
     );
   }
@@ -210,130 +380,264 @@ export default function BuyScansPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="max-w-6xl mx-auto px-4 pt-32 pb-16 space-y-14">
+      <main id="main-content" className="max-w-6xl mx-auto px-4 pt-32 pb-16 space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold">Choose your plan</h1>
-          <p id="Romans 8:28" className="text-muted-foreground text-sm">
-            Pick a plan based on how many ad campaigns you run per month. Change or cancel anytime.
+          {/* data-verse: Romans 8:28 */}
+          <p data-verse="Romans 8:28" className="text-muted-foreground text-sm">
+            Pick a plan based on how many ad campaigns you run per month. Cancel anytime from this page.
           </p>
         </div>
 
+        <TrialNotice
+          phase={trial.phase}
+          daysLeft={trial.daysLeft}
+          endReason={trial.endReason}
+          scansRemaining={scansRemaining}
+        />
+
         {error && (
-          <div className="max-w-md mx-auto p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400 text-center">
+          <div
+            role="alert"
+            className="max-w-md mx-auto p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400 text-center"
+          >
             {error}
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {PLANS.map((plan) => {
+          {PLANS.map((plan, index) => {
             const isCurrent = plan.id === currentPlan;
+            const isRecommended = plan.id === RECOMMENDED_PLAN_ID && !isCurrent;
+            const isHigher = currentIndex >= 0 ? index > currentIndex : true;
+
+            let label = `Get ${plan.name}`;
+            if (isSubscriber) label = isHigher ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`;
+            if (loadingPlan === plan.id) label = 'Redirecting…';
+            if (isCurrent) label = 'Current plan';
+
             return (
               <div
                 key={plan.id}
-                className={`rounded-xl border p-5 flex flex-col ${
-                  isCurrent ? 'border-primary bg-primary/5' : 'border-border bg-card'
+                className={`relative rounded-xl border p-5 flex flex-col ${
+                  isCurrent
+                    ? 'border-primary bg-primary/5'
+                    : isRecommended
+                      ? 'border-primary bg-card shadow-md ring-1 ring-primary/30'
+                      : 'border-border bg-card'
                 }`}
               >
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">{plan.name}</p>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-2xl font-bold">{plan.price}</span>
-                  <span className="text-xs text-muted-foreground">{plan.period}</span>
+                {isRecommended && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+                    Recommended
+                  </span>
+                )}
+                <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">{plan.name}</h2>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-xs text-muted-foreground">/mo {CURRENCY}</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">${perScan(plan)} per scan</p>
                 <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
-                <p className="text-xs font-semibold mb-4">{plan.scans} scans / month</p>
+                <ul className="space-y-1.5 mb-5 text-xs">
+                  <li className="font-semibold">{plan.scans} scans / month</li>
+                  <li className="text-muted-foreground">
+                    Up to {deepScans(plan)} deep scans ({DEEP_SCAN_COST} scans each)
+                  </li>
+                  <li className="text-muted-foreground">
+                    About {campaigns(plan)} campaigns of {ADS_PER_CAMPAIGN} ads
+                  </li>
+                </ul>
                 <button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={isCurrent || loadingPlan !== null}
-                  className={`mt-auto w-full py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  type="button"
+                  onClick={() => handlePlanClick(plan)}
+                  disabled={isCurrent || loadingPlan !== null || portalLoading}
+                  className={`mt-auto w-full min-h-[44px] py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     isCurrent
                       ? 'bg-muted text-muted-foreground border border-border'
                       : 'bg-primary text-primary-foreground hover:bg-primary/90'
                   }`}
                 >
-                  {isCurrent ? 'Current Plan' : loadingPlan === plan.id ? 'Redirecting…' : `Get ${plan.name}`}
+                  {label}
                 </button>
               </div>
             );
           })}
         </div>
 
-        <div className="rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] border-collapse text-sm">
-              <thead>
-                <tr className="bg-card">
-                  <th className="px-6 py-3 text-left border-r border-b border-border">
-                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      Features
-                    </span>
-                  </th>
-                  {PLANS.map((plan) => (
-                    <th key={plan.id} className="px-4 py-3 text-center border-r last:border-r-0 border-b border-border">
+        {isSubscriber && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleManageBilling}
+              disabled={portalLoading || loadingPlan !== null}
+              className="min-h-[44px] px-4 text-sm font-medium text-primary underline underline-offset-2 hover:opacity-80 disabled:opacity-50"
+            >
+              {portalLoading ? 'Opening…' : 'Manage billing or cancel'}
+            </button>
+          </div>
+        )}
+
+        <section aria-labelledby="compare-heading" className="space-y-4">
+          <h2 id="compare-heading" className="text-xl font-bold text-center">
+            Compare plans
+          </h2>
+          <div className="rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] border-collapse text-sm">
+                <thead>
+                  <tr className="bg-card">
+                    <th scope="col" className="px-6 py-3 text-left border-r border-b border-border">
                       <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        {plan.name}
+                        Plan
                       </span>
                     </th>
+                    {PLANS.map((plan) => (
+                      <th
+                        key={plan.id}
+                        scope="col"
+                        className="px-4 py-3 text-center border-r last:border-r-0 border-b border-border"
+                      >
+                        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          {plan.name}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON_ROWS.map((row, rowIdx) => (
+                    <tr key={row.label} className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}>
+                      <th scope="row" className="px-6 py-3 text-left border-r border-border font-medium text-foreground/80">
+                        {row.label}
+                      </th>
+                      {PLANS.map((plan) => (
+                        <td
+                          key={plan.id}
+                          className="px-4 py-3 text-center border-r last:border-r-0 border-border font-medium text-foreground"
+                        >
+                          {row.value(plan)}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {scanFeatureRows.map((row, rowIdx) => (
-                  <tr key={row.label} className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}>
-                    <td className="px-6 py-3 border-r border-border">
-                      <span className="text-foreground/80 font-medium">{row.label}</span>
-                    </td>
-                    {PLANS.map((plan, planIdx) => (
-                      <td key={plan.id} className="px-4 py-3 text-center border-r last:border-r-0 border-border">
-                        <Cell value={row.values[planIdx]} />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-
-                <FeatureSectionRow
-                  title="Extension Features"
-                  description="Included with every paid Mediacrater plan"
-                  colSpan={PLANS.length + 1}
-                />
-
-                {extensionFeatureRows.map((row, rowIdx) => (
-                  <tr key={row.label} className={rowIdx % 2 === 0 ? 'bg-card' : 'bg-secondary/40'}>
-                    <td className="px-6 py-3 border-r border-border">
-                      <span className="text-foreground/80 font-medium">{row.label}</span>
-                    </td>
-                    {PLANS.map((plan, planIdx) => (
-                      <td key={plan.id} className="px-4 py-3 text-center border-r last:border-r-0 border-border">
-                        <Cell value={row.values[planIdx]} />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section aria-labelledby="included-heading" className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <h2 id="included-heading" className="text-xl font-bold text-center mb-6">
+            Included in every plan
+          </h2>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Scanning</h3>
+              <ul className="space-y-2">
+                {INCLUDED_IN_EVERY_PLAN.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm">
+                    <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-500" strokeWidth={2.5} aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Extension features</h3>
+              <p className="text-xs text-muted-foreground mb-3">Included with every paid Mediacrater plan</p>
+              <ul className="space-y-2">
+                {EXTENSION_FEATURES.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm">
+                    <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-500" strokeWidth={2.5} aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
 
         <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-2 flex-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-3 h-3"
+            aria-hidden="true"
+          >
             <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           Secure checkout via Stripe
-          <span className="text-border">·</span>
+          <span aria-hidden="true" className="text-border">·</span>
           Cancel anytime
-          <span className="text-border">·</span>
-          No hidden fees
+          <span aria-hidden="true" className="text-border">·</span>
+          Prices in {CURRENCY}
         </p>
 
-        <section className="max-w-2xl mx-auto bg-card border border-border rounded-2xl p-8">
-          <h2 className="text-xl font-bold mb-2">Frequently Asked Questions</h2>
+        <section aria-labelledby="faq-heading" className="max-w-2xl mx-auto bg-card border border-border rounded-2xl p-8">
+          <h2 id="faq-heading" className="text-xl font-bold mb-2">
+            Frequently Asked Questions
+          </h2>
           <div className="mt-4">
-            {FAQ_ITEMS.map((item, i) => (
-              <FAQItem key={i} question={item.question} answer={item.answer} />
+            {faqItems.map((item, i) => (
+              <FAQItem key={item.question} id={`faq-${i}`} question={item.question} answer={item.answer} />
             ))}
           </div>
         </section>
       </main>
+
+      <Dialog
+        open={pendingPlan !== null}
+        onOpenChange={(next) => {
+          if (!next && loadingPlan === null) setPendingPlan(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {pendingPlan ? `Switch to ${pendingPlan.name}?` : 'Switch plan?'}
+            </DialogTitle>
+            <DialogDescription>
+              Please read this before you continue. You will not be charged until you confirm on the next page.
+            </DialogDescription>
+          </DialogHeader>
+          {pendingPlan && (
+            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground">
+              <li>
+                {pendingPlan.name} is ${pendingPlan.price} {CURRENCY} per month, with {pendingPlan.scans} scans.
+              </li>
+              <li>It starts today, with a new billing period, and you get all {pendingPlan.scans} scans right away.</li>
+              <li>Your scan count is replaced. Scans left on your current plan do not carry over.</li>
+              <li>Your current subscription is cancelled automatically once the new payment succeeds.</li>
+              <li>Unused time on your current plan is not credited.</li>
+            </ul>
+          )}
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setPendingPlan(null)}
+              disabled={loadingPlan !== null}
+              className="min-h-[44px] px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:bg-secondary transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => pendingPlan && handleSubscribe(pendingPlan.id)}
+              disabled={loadingPlan !== null}
+              className="min-h-[44px] px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loadingPlan !== null ? 'Redirecting…' : 'Continue to checkout'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
