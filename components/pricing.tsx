@@ -77,7 +77,7 @@ export function Pricing() {
               Simple, transparent pricing
             </h2>
             <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-muted-foreground">
-              Pick a plan based on how many campaigns you run per month. Cancel or change anytime.
+              Pick a plan based on how many campaigns you run per month. Pay yearly and get 2 months free. Cancel anytime.
             </p>
           </div>
           <p className="text-[0.95rem] text-muted-foreground">Prices are listed in USD.</p>
