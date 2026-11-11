@@ -126,7 +126,7 @@ export function OwnYourAccounts() {
             </Link>
           )}
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">No credit card required. 3 free scans every month.</p>
+        <p className="mt-3 text-sm text-muted-foreground">No credit card required. 14-day free trial with 5 scans.</p>
       </div>
     </section>
   )
