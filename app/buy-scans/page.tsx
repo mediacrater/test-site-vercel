@@ -47,7 +47,7 @@ const DEEP_SCAN_COST = 2;
 
 // Most ad campaigns are tested in batches of 3 to 5 ads. Used for the
 // "about N campaigns" hint on each plan.
-const ADS_PER_CAMPAIGN = 3;
+const ADS_PER_CAMPAIGN = 5;
 
 // One plan gets a "Recommended" badge. Set to null to remove it. This is a
 // recommendation, not a claim about what other people buy.
@@ -165,8 +165,10 @@ function buildFaq(trialLive: boolean): { question: string; answer: string }[] {
     {
       question: 'What happens if I switch plans?',
       answer:
-        "The new plan starts today and is billed today. You get its full scan allowance right away, and your current subscription is cancelled automatically once the new payment succeeds. " +
-        "Unused time on your old plan is not credited, so switching close to your renewal date wastes the least. You'll see a confirmation before anything is charged.",
+        "Upgrading to a bigger plan takes effect immediately. Your card on file is charged the new plan's price minus a credit for the unused time on your current plan, " +
+        "a new billing period starts today, and you get the new plan's full scan allowance right away (your scan count is replaced, not added to). " +
+        "Moving to a smaller plan is done on our secure checkout page: it starts a new billing period today, and unused time on the old plan is not credited, " +
+        "so switching close to your renewal date wastes the least. Either way you see a confirmation before anything is charged.",
     },
     {
       question: 'What happens if I cancel?',
@@ -280,6 +282,8 @@ export default function BuyScansPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set when a bank needs 3D Secure and an in-place upgrade is not possible.
+  const [fallbackCheckoutUrl, setFallbackCheckoutUrl] = useState<string | null>(null);
   const trial = useTrialState(scansRemaining);
 
   useEffect(() => {
@@ -311,8 +315,13 @@ export default function BuyScansPage() {
   const trialLive = Number.isFinite(cutoverTime) && Date.now() >= cutoverTime;
   const faqItems = buildFaq(trialLive);
 
+  // Bigger plan = upgraded in place (credit for unused time). Smaller plan = checkout page, no credit.
+  const pendingIndex = pendingPlan ? PLANS.findIndex((p) => p.id === pendingPlan.id) : -1;
+  const pendingIsUpgrade = pendingPlan !== null && currentIndex >= 0 && pendingIndex > currentIndex;
+
   const handleSubscribe = async (planId: string) => {
     setError(null);
+    setFallbackCheckoutUrl(null);
     setLoadingPlan(planId);
     try {
       const {
@@ -336,7 +345,14 @@ export default function BuyScansPage() {
       );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to start checkout');
+      if (!response.ok) {
+        // The bank wants extra confirmation, which an in-place upgrade cannot
+        // collect. The server hands back a ready checkout link to offer.
+        if (data.code === 'needs_authentication' && typeof data.checkoutUrl === 'string') {
+          setFallbackCheckoutUrl(data.checkoutUrl);
+        }
+        throw new Error(data.error || 'Failed to start checkout');
+      }
       window.location.href = data.url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
@@ -349,6 +365,7 @@ export default function BuyScansPage() {
   const handlePlanClick = (plan: Plan) => {
     if (isSubscriber) {
       setError(null);
+      setFallbackCheckoutUrl(null);
       setPendingPlan(plan);
     } else {
       handleSubscribe(plan.id);
@@ -402,6 +419,16 @@ export default function BuyScansPage() {
             className="max-w-md mx-auto p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm text-red-800 dark:text-red-400 text-center"
           >
             {error}
+            {fallbackCheckoutUrl && (
+              <div className="pt-2">
+                <a
+                  href={fallbackCheckoutUrl}
+                  className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Continue to secure checkout
+                </a>
+              </div>
+            )}
           </div>
         )}
 
@@ -601,10 +628,14 @@ export default function BuyScansPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {pendingPlan ? `Switch to ${pendingPlan.name}?` : 'Switch plan?'}
+              {pendingPlan
+                ? `${pendingIsUpgrade ? 'Upgrade' : 'Switch'} to ${pendingPlan.name}?`
+                : 'Switch plan?'}
             </DialogTitle>
             <DialogDescription>
-              Please read this before you continue. You will not be charged until you confirm on the next page.
+              {pendingIsUpgrade
+                ? 'Please read this before you continue. Your card on file is charged as soon as you confirm below.'
+                : 'Please read this before you continue. You will not be charged until you confirm on the next page.'}
             </DialogDescription>
           </DialogHeader>
           {pendingPlan && (
@@ -614,8 +645,21 @@ export default function BuyScansPage() {
               </li>
               <li>It starts today, with a new billing period, and you get all {pendingPlan.scans} scans right away.</li>
               <li>Your scan count is replaced. Scans left on your current plan do not carry over.</li>
-              <li>Your current subscription is cancelled automatically once the new payment succeeds.</li>
-              <li>Unused time on your current plan is not credited.</li>
+              {pendingIsUpgrade ? (
+                <>
+                  <li>
+                    You pay {pendingPlan.name}&apos;s price minus a credit for the unused time on your current plan.
+                    The exact amount, plus any taxes, is on your receipt.
+                  </li>
+                  <li>Your current plan is replaced; you are not charged twice.</li>
+                  <li>If your bank asks for extra confirmation, we will send you to our secure checkout page instead.</li>
+                </>
+              ) : (
+                <>
+                  <li>Your current subscription is cancelled automatically once the new payment succeeds.</li>
+                  <li>Unused time on your current plan is not credited.</li>
+                </>
+              )}
             </ul>
           )}
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
@@ -633,7 +677,9 @@ export default function BuyScansPage() {
               disabled={loadingPlan !== null}
               className="min-h-[44px] px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {loadingPlan !== null ? 'Redirecting…' : 'Continue to checkout'}
+              {loadingPlan !== null
+                ? pendingIsUpgrade ? 'Upgrading…' : 'Redirecting…'
+                : pendingIsUpgrade ? 'Upgrade and pay now' : 'Continue to checkout'}
             </button>
           </div>
         </DialogContent>
