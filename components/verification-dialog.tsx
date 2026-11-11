@@ -161,10 +161,10 @@ function VerificationDialogContent() {
           <div className="space-y-4">
             <div className="rounded-lg bg-primary/10 border-l-4 border-primary p-4">
               <p className="text-sm font-semibold text-foreground">
-                🎉 3 free scans added to your account!
+                🎉 Your 14-day free trial has started!
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Free plan includes 3 scans per month.
+                It includes 5 scans and needs no credit card. It ends after 14 days or when the scans are used.
               </p>
             </div>
 
