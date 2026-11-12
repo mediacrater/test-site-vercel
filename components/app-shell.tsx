@@ -78,11 +78,8 @@ export function AppShell({
         <TrialBanner scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
-          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[
-#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[
-#fde68a] dark:border-[
-#4d2900] tracking-[0.2px]">
-            Update: The free plan ends on the 25th of November and will be replaced with a limited time free trial.
+          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900] tracking-[0.2px]">
+            Major update underway: expect intermittent delays.
           </div>
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <Link href="/" className="font-bold text-sm">
@@ -126,9 +123,9 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className={flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
                     active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary'
-                  }}
+                  }`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
