@@ -22,6 +22,7 @@ import {
   Loader2,
   Pause,
   Settings as SettingsIcon,
+  play,
   XCircle,
 } from 'lucide-react';
 
@@ -40,6 +41,11 @@ const NAV_ITEMS = [
     href: '/scan-history',
     label: 'Scan History',
     icon: History,
+  },
+  {
+    href: 'https://www.youtube.com/watch?v=t8k6-XgiBig&t',
+    label: 'Video tutorial',
+    icon: play,
   },
   {
     href: '/settings',
