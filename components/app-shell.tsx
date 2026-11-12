@@ -16,11 +16,6 @@
 // CHANGES (tab close guard): useScanLeaveGuard() lives here so the
 // "Leave site?" prompt protects an active scan on every app page, not just
 // the Dashboard (scans keep running while you browse Scan History/Settings).
-//
-// CHANGES (free plan sunset): inline banner replaced by <FreePlanEndingBanner />,
-// shown only to free-plan users and auto-hidden after the cutoff date.
-// CHANGES (sign out): router.refresh() added so cached authenticated pages
-// are not served after sign-out; hamburger button gets aria-expanded/controls.
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -66,10 +61,8 @@ export function AppShell({
   const accountLocked = useAccountLocked();
 
   async function handleSignOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error('Sign out failed:', error.message);
+    await supabase.auth.signOut();
     router.push('/signin');
-    router.refresh();
   }
 
   return (
@@ -85,6 +78,12 @@ export function AppShell({
         <TrialBanner scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
+          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[
+#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[
+#fde68a] dark:border-[
+#4d2900] tracking-[0.2px]">
+            Update: The free plan ends on the 25th of November and will be replaced with a limited time free trial.
+          </div>
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <Link href="/" className="font-bold text-sm">
             Mediacrater
@@ -111,8 +110,6 @@ export function AppShell({
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
               className="p-2 text-muted-foreground hover:text-foreground"
               aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileNavOpen}
-              aria-controls="mobile-nav-panel"
             >
               {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -120,7 +117,7 @@ export function AppShell({
         </div>
 
         {mobileNavOpen && (
-          <div id="mobile-nav-panel" className="lg:hidden border-b border-border bg-background px-4 py-3 space-y-1">
+          <div className="lg:hidden border-b border-border bg-background px-4 py-3 space-y-1">
             {NAV_ITEMS.map((item) => {
               const active = pathname === item.href;
               const Icon = item.icon;
@@ -129,9 +126,9 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  className={flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
                     active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary'
-                  }`}
+                  }}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
