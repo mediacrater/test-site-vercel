@@ -37,7 +37,6 @@ import { ApiHostClearance } from './ApiHostClearance';
 import { useScanLeaveGuard } from '@/hooks/use-scan-leave-guard';
 import { TrialBanner } from '@/components/trial-banner';
 import { TrialEndedDialog } from '@/components/trial-ended-dialog';
-import { FreePlanEndingBanner } from '@/components/free-plan-ending-banner';
 
 const EXTENSION_LINK =
   'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=app_mobile_nav';
@@ -84,7 +83,6 @@ export function AppShell({
       <div className="flex-1 min-w-0">
         <AppTopBar userEmail={userEmail} plan={plan} scansRemaining={scansRemaining} accountLocked={accountLocked} />
         <TrialBanner scansRemaining={scansRemaining} />
-        <FreePlanEndingBanner plan={plan} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
