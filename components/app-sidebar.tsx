@@ -22,7 +22,7 @@ import {
   Loader2,
   Pause,
   Settings as SettingsIcon,
-  play,
+  Play,
   XCircle,
 } from 'lucide-react';
 
