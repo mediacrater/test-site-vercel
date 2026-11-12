@@ -45,7 +45,7 @@ const NAV_ITEMS = [
   {
     href: 'https://www.youtube.com/watch?v=t8k6-XgiBig&t?utm_source=dashboard',
     label: 'Video tutorial',
-    icon: play,
+    icon: Play,
   },
   {
     href: '/settings',
