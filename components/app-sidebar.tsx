@@ -87,7 +87,7 @@ const NAV_ITEMS: NavItem[] = [
 // Shown only until onboarding is completed. Sits right after "Video tutorial".
 const ONBOARDING_NAV_ITEM: NavItem = {
   href: '/onboarding',
-  label: 'Onboarding questions',
+  label: 'Onboarding',
   icon: ClipboardList,
 };
 
