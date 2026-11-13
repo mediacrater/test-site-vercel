@@ -102,14 +102,6 @@ export function SettingsPanel({
     }
   }
 
-  async function handleSignOut() {
-    if (onSignOut) {
-      onSignOut();
-    } else {
-      console.log('Sign out triggered');
-    }
-  }
-
   const upgradeUrl = '/buy-scans';
 
   return (
@@ -176,12 +168,6 @@ export function SettingsPanel({
                 Active
               </span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 text-[13px] font-semibold rounded-lg border border-border hover:bg-secondary transition-colors"
-            >
-              Sign Out
-            </button>
           </div>
 
           {error && (
