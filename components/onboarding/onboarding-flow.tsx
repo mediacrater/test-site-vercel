@@ -556,6 +556,15 @@ export function OnboardingFlow() {
 
   return (
     <Frame onSkip={handleSkip} skipping={skipping}>
+        <Frame onSkip={handleSkip} skipping={skipping}>
+      {/* Intro line above the progress counter. Hidden for paid accounts:
+          they are never shown a plan to pick, so the promise would be untrue. */}
+      {!isPaid && (
+        <p className="mb-4 text-base font-semibold text-foreground">
+          Tell us about yourself and we&apos;ll help you pick the right plan
+        </p>
+      )}
+
       <Progress current={stepIndex + 1} total={total} />
 
       <h1
