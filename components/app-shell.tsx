@@ -78,9 +78,6 @@ export function AppShell({
         <TrialBanner scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
-          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900] tracking-[0.2px]">
-            The free plan ends on November 25, 2026 and is being replaced by a 14-day free trial.
-          </div>
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <Link href="/" className="font-bold text-sm">
             Mediacrater
