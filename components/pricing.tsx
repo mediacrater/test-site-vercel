@@ -1,13 +1,31 @@
 //components/pricing.tsx
+//
+// CHANGES (onboarding): the paid plans' names, prices and scan amounts are
+// read from lib/mediacrater/plans.ts (the same file the buy page and the
+// onboarding plan screen use), so a price can no longer differ between pages.
+// The table shows exactly what it showed before.
 import { Check, Minus } from "lucide-react"
 import { PRICING_SIGNUP_URL } from "@/lib/site-links"
+import { PLANS, type PlanId } from "@/lib/mediacrater/plans"
+
+// Wording for this table only.
+const PLAN_BLURBS: Record<PlanId, string> = {
+  startup: "For solo dropshippers testing creatives",
+  established: "For brands running consistent paid campaigns",
+  scaler: "For media buyers scaling across multiple offers",
+  agency: "For agencies managing multiple client accounts",
+}
 
 const plans = [
   { name: "Free trial", price: "$0", period: "for 14 days", description: "5 scans to try it. No credit card required", cta: "Start free trial", popular: false },
-  { name: "Startup", price: "$10", period: "/mo", description: "For solo dropshippers testing creatives", cta: "Get Startup", popular: false },
-  { name: "Established", price: "$40", period: "/mo", description: "For brands running consistent paid campaigns", cta: "Get Established", popular: false },
-  { name: "Scaler", price: "$80", period: "/mo", description: "For media buyers scaling across multiple offers", cta: "Get Scaler", popular: false },
-  { name: "Agency", price: "$200", period: "/mo", description: "For agencies managing multiple client accounts", cta: "Get Agency", popular: false },
+  ...PLANS.map((plan) => ({
+    name: plan.name,
+    price: `$${plan.price}`,
+    period: "/mo",
+    description: PLAN_BLURBS[plan.id],
+    cta: `Get ${plan.name}`,
+    popular: false,
+  })),
 ]
 
 type CellValue = boolean | string
@@ -17,7 +35,7 @@ const scanFeatureRows: { label: string; sub?: string; values: CellValue[] }[] = 
   { label: "All platforms supported", values: [true, true, true, true, true] },
   { label: "Violation timestamps & fixes", values: [true, true, true, true, true] },
   { label: "Scan type", values: ["Regular", "Regular + Deep", "Regular + Deep", "Regular + Deep", "Regular + Deep"] },
-  { label: "Scans", sub: "Trial: 5 in total. Plans: per month", values: ["5", "20", "100", "250", "1000"] },
+  { label: "Scans", sub: "Trial: 5 in total. Plans: per month", values: ["5", ...PLANS.map((plan) => String(plan.scans))] },
   { label: "Campaigns / month", values: ["1", "3–6", "20–33", "50–83", "200–300+"] },
   { label: "Priority processing", values: [false, true, true, true, true] },
   { label: "Scan history", values: [false, true, true, true, true] },

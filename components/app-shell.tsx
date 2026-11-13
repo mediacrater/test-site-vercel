@@ -16,11 +16,15 @@
 // CHANGES (tab close guard): useScanLeaveGuard() lives here so the
 // "Leave site?" prompt protects an active scan on every app page, not just
 // the Dashboard (scans keep running while you browse Scan History/Settings).
+//
+// CHANGES (onboarding): the mobile menu gets the same "Onboarding questions"
+// item the desktop sidebar has (components/app-sidebar.tsx), under the same
+// rule: shown until onboarding is completed.
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, LayoutDashboard, History, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, X, LayoutDashboard, History, Settings as SettingsIcon, ClipboardList } from 'lucide-react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppTopBar } from '@/components/app-topbar';
 import { useAccountLocked } from '@/lib/mediacrater/useAccountLocked';
@@ -32,6 +36,7 @@ import { ApiHostClearance } from './ApiHostClearance';
 import { useScanLeaveGuard } from '@/hooks/use-scan-leave-guard';
 import { TrialBanner } from '@/components/trial-banner';
 import { TrialEndedDialog } from '@/components/trial-ended-dialog';
+import { shouldShowOnboardingNavItem, useOnboardingRow } from '@/lib/onboarding/useOnboardingRow';
 
 const EXTENSION_LINK =
   'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=app_mobile_nav';
@@ -41,6 +46,8 @@ const NAV_ITEMS = [
   { href: '/scan-history', label: 'Scan History', icon: History },
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
+
+const ONBOARDING_NAV_ITEM = { href: '/onboarding', label: 'Onboarding questions', icon: ClipboardList };
 
 export function AppShell({
   userEmail,
@@ -59,6 +66,11 @@ export function AppShell({
 
   useScanLeaveGuard();
   const accountLocked = useAccountLocked();
+  const onboarding = useOnboardingRow();
+  // Mobile menu: Dashboard, Scan History, (Onboarding questions), Settings.
+  const mobileNavItems = shouldShowOnboardingNavItem(onboarding)
+    ? [...NAV_ITEMS.slice(0, 2), ONBOARDING_NAV_ITEM, ...NAV_ITEMS.slice(2)]
+    : NAV_ITEMS;
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -78,6 +90,9 @@ export function AppShell({
         <TrialBanner scansRemaining={scansRemaining} />
 
         {/* Mobile top bar — sidebar + desktop top bar are both lg:-only */}
+          <div className="bg-amber-100 dark:bg-transparent text-amber-700 dark:text-[#fbbf24] text-center py-2 px-5 text-xs font-semibold border-b border-[#fde68a] dark:border-[#4d2900] tracking-[0.2px]">
+            The free plan ends on November 25, 2026 and is being replaced by a 14-day free trial.
+          </div>
         <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <Link href="/" className="font-bold text-sm">
             Mediacrater
@@ -112,7 +127,7 @@ export function AppShell({
 
         {mobileNavOpen && (
           <div className="lg:hidden border-b border-border bg-background px-4 py-3 space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {mobileNavItems.map((item) => {
               const active = pathname === item.href;
               const Icon = item.icon;
               return (

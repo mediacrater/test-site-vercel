@@ -19,6 +19,14 @@
 //   - "Manage billing or cancel" for subscribers (billing portal)
 //   - bigger tap targets, aria-expanded FAQ, role="alert" errors, working
 //     skip link (id="main-content")
+//
+// CHANGES (onboarding):
+//   - the plans, prices and yearly maths moved to lib/mediacrater/plans.ts so
+//     the onboarding plan screen shows exactly the same numbers. Nothing about
+//     them changed.
+//   - the "Recommended" badge goes on the plan the person was recommended in
+//     onboarding, when there is one. Everyone else still sees it on
+//     RECOMMENDED_PLAN_ID.
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,6 +35,20 @@ import { Check } from 'lucide-react';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
 import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
 import { useTrialState } from '@/lib/mediacrater/useTrialState';
+import {
+  CURRENCY,
+  DEEP_SCAN_COST,
+  PLANS,
+  deepScans,
+  intervalFor,
+  perScan,
+  yearlyPerMonth,
+  yearlyPerScan,
+  yearlyPrice,
+  type Interval,
+  type Plan,
+} from '@/lib/mediacrater/plans';
+import { refreshOnboardingRow } from '@/lib/onboarding/useOnboardingRow';
 import {
   Dialog,
   DialogContent,
@@ -39,11 +61,7 @@ import {
 // Settings you may want to change
 // ---------------------------------------------------------------------------
 
-// Shown next to prices. Change it if Stripe charges in another currency.
-const CURRENCY = 'USD';
-
-// What the server charges for a deep scan (see scanCost in scanVideo.js).
-const DEEP_SCAN_COST = 2;
+// CURRENCY and DEEP_SCAN_COST are in lib/mediacrater/plans.ts.
 
 // Most ad campaigns are tested in batches of 3 to 5 ads. Used for the
 // "about N campaigns" hint on each plan.
@@ -61,62 +79,9 @@ const TRIAL_SCANS = Number(process.env.NEXT_PUBLIC_TRIAL_SCANS) || 5;
 const TRIAL_CUTOVER_ISO = process.env.NEXT_PUBLIC_TRIAL_CUTOVER_ISO || '';
 
 // ---------------------------------------------------------------------------
-// Plans
+// Plans: PLANS, intervalFor and the yearly price helpers are in
+// lib/mediacrater/plans.ts
 // ---------------------------------------------------------------------------
-
-interface Plan {
-  id: string;
-  name: string;
-  price: number; // per month
-  scans: number; // per month
-  description: string;
-  monthlyOnly?: boolean; // no yearly plan (Agency)
-}
-
-const PLANS: Plan[] = [
-  {
-    id: 'startup',
-    name: 'Startup',
-    price: 10,
-    scans: 20,
-    description: 'For solo dropshippers testing new creatives',
-  },
-  {
-    id: 'established',
-    name: 'Established',
-    price: 40,
-    scans: 100,
-    description: 'For brands running consistent paid campaigns',
-  },
-  {
-    id: 'scaler',
-    name: 'Scaler',
-    price: 80,
-    scans: 250,
-    description: 'For media buyers scaling across multiple offers',
-  },
-  {
-    id: 'agency',
-    name: 'Agency',
-    price: 200,
-    scans: 1000,
-    description: 'For agencies managing multiple client accounts',
-    monthlyOnly: true,
-  },
-];
-
-type Interval = 'month' | 'year';
-
-// The interval a plan is actually sold at when the visitor has picked `wanted`.
-// Agency is monthly only, so it stays monthly even on the Yearly toggle.
-const intervalFor = (plan: Plan, wanted: Interval): Interval => (plan.monthlyOnly ? 'month' : wanted);
-
-// A yearly plan costs 10 monthly payments: two months free. Keep in sync with
-// the yearly prices in Stripe.
-const YEARLY_MONTHS_PAID = 10;
-const yearlyPrice = (plan: Plan) => plan.price * YEARLY_MONTHS_PAID;
-const yearlyPerMonth = (plan: Plan) => (yearlyPrice(plan) / 12).toFixed(2);
-const yearlyPerScan = (plan: Plan) => (yearlyPrice(plan) / (plan.scans * 12)).toFixed(2);
 
 // How a plan change is done. Must match decideUpgradePath in the
 // create-checkout-webapp function:
@@ -138,8 +103,6 @@ function changeKind(
   return targetIndex >= currentIndex ? 'inplace' : 'checkout';
 }
 
-const perScan = (plan: Plan) => (plan.price / plan.scans).toFixed(2);
-const deepScans = (plan: Plan) => Math.floor(plan.scans / DEEP_SCAN_COST);
 const campaigns = (plan: Plan) => Math.floor(plan.scans / ADS_PER_CAMPAIGN);
 
 const INCLUDED_IN_EVERY_PLAN = [
@@ -334,6 +297,9 @@ export default function BuyScansPage() {
   const [error, setError] = useState<string | null>(null);
   // Set when a bank needs 3D Secure and an in-place upgrade is not possible.
   const [fallbackCheckoutUrl, setFallbackCheckoutUrl] = useState<string | null>(null);
+  // Onboarding: the plan this person was recommended, if they answered the
+  // questions. Falls back to the site-wide default.
+  const [recommendedPlanId, setRecommendedPlanId] = useState<string | null>(RECOMMENDED_PLAN_ID);
   const trial = useTrialState(scansRemaining);
 
   useEffect(() => {
@@ -357,6 +323,15 @@ export default function BuyScansPage() {
       }
       setScansRemaining(typeof profile?.scans_remaining === 'number' ? profile.scans_remaining : null);
       setLoading(false);
+
+      // Onboarding: after the page is usable, so a slow or failed read never
+      // holds it up. refreshOnboardingRow() never throws and does nothing
+      // when onboarding is switched off.
+      const onboarding = await refreshOnboardingRow();
+      const recommended = onboarding.row?.recommended_plan;
+      if (recommended && PLANS.some((p) => p.id === recommended)) {
+        setRecommendedPlanId(recommended);
+      }
     };
     init();
   }, [router]);
@@ -543,7 +518,7 @@ export default function BuyScansPage() {
           {PLANS.map((plan, index) => {
             const planInterval = intervalFor(plan, selectedInterval);
             const isCurrent = isSubscriber && plan.id === currentPlan && planInterval === currentInterval;
-            const isRecommended = plan.id === RECOMMENDED_PLAN_ID && !isCurrent;
+            const isRecommended = plan.id === recommendedPlanId && !isCurrent;
             const kind: ChangeKind =
               isSubscriber && currentIndex >= 0
                 ? changeKind(currentIndex, currentInterval, index, planInterval)

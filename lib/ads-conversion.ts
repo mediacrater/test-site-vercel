@@ -4,16 +4,14 @@
 // components/google-tag.tsx. If the tag isn't there (flag off, ad blocker),
 // this does nothing and returns false.
 
-// Monthly list prices from components/pricing.tsx. Keep in sync. Keys are the
-// lowercase profile.plan values.
-// Limit: this reports the list price, not what Stripe actually charged (a
-// promo code like MCDEAL25 lowers the real first payment).
-const PLAN_VALUES: Record<string, number> = {
-  startup: 10,
-  established: 40,
-  scaler: 80,
-  agency: 200,
-}
+// Monthly list prices, read from lib/mediacrater/plans.ts (the one place they
+// are written down). Keys are the lowercase profile.plan values.
+// Limit: this reports the monthly list price, not what Stripe actually charged
+// (a promo code like MCDEAL25 lowers the real first payment, and a yearly plan
+// charges ten times this).
+import { PLANS } from "@/lib/mediacrater/plans"
+
+const PLAN_VALUES: Record<string, number> = Object.fromEntries(PLANS.map((plan) => [plan.id, plan.price]))
 
 type Gtag = (command: "event", eventName: string, params?: Record<string, unknown>) => void
 

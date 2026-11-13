@@ -6,11 +6,18 @@
 // shortcuts — those were navigation within a small popup and don't
 // translate to a full page. This is the modern equivalent: jump to any
 // page or run a common action by typing, without touching the mouse.
+//
+// CHANGES (onboarding): "Take the interactive tour" opens the dashboard with
+// ?tour=1, which components/onboarding/tutorial-dialog.tsx picks up. It is the
+// way back to the tour after the first-run popup. Listed only when onboarding
+// is switched on, and the tour itself only runs on screens wide enough to have
+// the sidebar.
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, History, Settings as SettingsIcon, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, History, Settings as SettingsIcon, LogOut, ExternalLink, MousePointerClick } from 'lucide-react';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { ONBOARDING_ENABLED } from '@/lib/onboarding/config';
 
 const EXTENSION_LINK =
   'https://chromewebstore.google.com/detail/mediacrater-ad-compliance/fgekklkpomdcadiaekpigidkimnkjpnf?utm_medium=command_palette';
@@ -26,6 +33,16 @@ const COMMANDS: Command[] = [
   { id: 'dashboard', label: 'Go to Dashboard', icon: LayoutDashboard, run: (r) => r.push('/dashboard') },
   { id: 'history', label: 'Go to Scan History', icon: History, run: (r) => r.push('/scan-history') },
   { id: 'settings', label: 'Go to Settings', icon: SettingsIcon, run: (r) => r.push('/settings') },
+  ...(ONBOARDING_ENABLED
+    ? [
+        {
+          id: 'tour',
+          label: 'Take the interactive tour',
+          icon: MousePointerClick,
+          run: (r: ReturnType<typeof useRouter>) => r.push('/dashboard?tour=1'),
+        },
+      ]
+    : []),
   {
     id: 'extension',
     label: 'Get the Chrome extension',

@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // /db is the Supabase rewrite in next.config.mjs. It should never be crawled.
-      disallow: ["/api/", "/db/", "/dashboard", "/settings", "/scan-history", "/auth/"],
+      disallow: ["/api/", "/db/", "/dashboard", "/settings", "/scan-history", "/onboarding", "/auth/"],
     },
     sitemap: "https://mediacrater.com/sitemap.xml",
   }

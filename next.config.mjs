@@ -56,6 +56,12 @@ const GOOGLE_TAG_CONNECT = [
 ];
 const GOOGLE_TAG_FRAME = 'https://td.doubleclick.net';
 
+// Video players shown in an iframe, each loaded only after a click:
+//   - youtube-nocookie.com: the "Watch the tutorial" popup on the dashboard
+//     (components/onboarding/tutorial-dialog.tsx)
+//   - player.vimeo.com: the demo on /promotion (components/promotion/demo-video.tsx)
+const VIDEO_FRAMES = ['https://www.youtube-nocookie.com', 'https://player.vimeo.com'];
+
 function buildCsp() {
   const directives = {
     'default-src': ["'self'"],
@@ -70,8 +76,9 @@ function buildCsp() {
     'img-src': ["'self'", 'data:', 'blob:', supabaseOrigin, 'https:'],
     'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", supabaseOrigin, vpsOrigin, TURNSTILE, CF_INSIGHTS_CONNECT, GOOGLE_TAG_CONNECT],
-    // Turnstile widget + the VPS cf-ok clearance iframe (ApiHostClearance.tsx).
-    'frame-src': [TURNSTILE, vpsOrigin, GOOGLE_TAG_FRAME],
+    // Turnstile widget + the VPS cf-ok clearance iframe (ApiHostClearance.tsx)
+    // + the two click-to-play video players.
+    'frame-src': [TURNSTILE, vpsOrigin, GOOGLE_TAG_FRAME, VIDEO_FRAMES],
     // Audio extraction worker; blob: covers bundlers that start workers from blob URLs.
     'worker-src': ["'self'", 'blob:'],
     // https: = createVideoUrlThumbnail() loads pasted video URLs to grab a frame.

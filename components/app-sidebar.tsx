@@ -1,6 +1,16 @@
 'use client';
 
 // components/app-sidebar.tsx
+//
+// CHANGES (onboarding):
+//   - "Onboarding questions" appears under "Video tutorial" for accounts that
+//     have not completed onboarding (skipped it, left half-way, or never saw
+//     it), and disappears once it is completed. Hidden while the state is
+//     loading or cannot be read, and when onboarding is switched off.
+//   - data-tour on the Scan History and Settings links, so the interactive
+//     tour can point at them. No visual change.
+//   - the Video tutorial link's address had "&t?utm_source=dashboard", which
+//     is not a valid parameter. Now "&utm_source=dashboard".
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,6 +27,7 @@ import {
 
 import {
   CheckCircle2,
+  ClipboardList,
   History,
   LayoutDashboard,
   Loader2,
@@ -24,14 +35,30 @@ import {
   Settings as SettingsIcon,
   Play,
   XCircle,
+  type LucideIcon,
 } from 'lucide-react';
+
+import {
+  shouldShowOnboardingNavItem,
+  useOnboardingRow,
+} from '@/lib/onboarding/useOnboardingRow';
 
 import {
   useBackgroundScanState,
   type BackgroundScanState,
 } from '@/lib/mediacrater/backgroundScanStore';
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** Opens in a new tab. */
+  external?: boolean;
+  /** Name the interactive tour uses to find this link (lib/onboarding/tour.ts). */
+  tour?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     href: '/dashboard',
     label: 'Dashboard',
@@ -41,9 +68,10 @@ const NAV_ITEMS = [
     href: '/scan-history',
     label: 'Scan History',
     icon: History,
+    tour: 'nav-history',
   },
   {
-    href: 'https://www.youtube.com/watch?v=t8k6-XgiBig&t?utm_source=dashboard',
+    href: 'https://www.youtube.com/watch?v=t8k6-XgiBig&utm_source=dashboard',
     label: 'Video tutorial',
     icon: Play,
     external: true,
@@ -52,8 +80,16 @@ const NAV_ITEMS = [
     href: '/settings',
     label: 'Settings',
     icon: SettingsIcon,
+    tour: 'nav-settings',
   },
 ];
+
+// Shown only until onboarding is completed. Sits right after "Video tutorial".
+const ONBOARDING_NAV_ITEM: NavItem = {
+  href: '/onboarding',
+  label: 'Onboarding questions',
+  icon: ClipboardList,
+};
 
 function DashboardScanStatus({
   scan,
@@ -186,6 +222,18 @@ export function AppSidebar() {
   const backgroundScan =
     useBackgroundScanState();
 
+  const onboarding =
+    useOnboardingRow();
+
+  const navItems: NavItem[] =
+    shouldShowOnboardingNavItem(onboarding)
+      ? NAV_ITEMS.flatMap((item) =>
+          item.label === 'Video tutorial'
+            ? [item, ONBOARDING_NAV_ITEM]
+            : [item]
+        )
+      : NAV_ITEMS;
+
   useEffect(
     () => setMounted(true),
     []
@@ -217,7 +265,7 @@ export function AppSidebar() {
       </Link>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {NAV_ITEMS.map(
+        {navItems.map(
           (item) => {
             const active =
               !item.external &&
@@ -258,6 +306,7 @@ export function AppSidebar() {
                 key={item.href}
                 href={item.href}
                 className={className}
+                data-tour={item.tour}
               >
                 <Icon
                   className="w-4 h-4 shrink-0"

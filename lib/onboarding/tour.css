@@ -1,0 +1,120 @@
+/* //lib/onboarding/tour.css
+ *
+ * Makes the interactive tour's bubbles (driver.js) look like the rest of the
+ * app. Everything here is scoped to .mc-tour, the class lib/onboarding/tour.ts
+ * gives its bubbles, so nothing else on the site is affected. The colours are
+ * the design tokens from app/globals.css, so light and dark both work.
+ */
+
+.driver-popover.mc-tour {
+  --driver-popover-font-family: var(--font-hyper), ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 260px;
+  max-width: 320px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
+.driver-popover.mc-tour .driver-popover-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  padding-right: 24px; /* room for the close button */
+}
+
+.driver-popover.mc-tour .driver-popover-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.mc-tour .driver-popover-close-btn {
+  color: var(--muted-foreground);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.driver-popover.mc-tour .driver-popover-close-btn:hover,
+.driver-popover.mc-tour .driver-popover-close-btn:focus-visible {
+  color: var(--foreground);
+}
+
+.driver-popover.mc-tour .driver-popover-footer {
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.driver-popover.mc-tour .driver-popover-progress-text {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.mc-tour .driver-popover-footer-btn {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.driver-popover.mc-tour .driver-popover-footer-btn:hover,
+.driver-popover.mc-tour .driver-popover-footer-btn:focus-visible {
+  background-color: var(--secondary);
+}
+
+.driver-popover.mc-tour .driver-popover-footer-btn:focus-visible,
+.driver-popover.mc-tour .driver-popover-close-btn:focus-visible,
+.driver-popover.mc-tour .mc-tour-skip:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Next / Done is the main action. */
+.driver-popover.mc-tour .driver-popover-next-btn {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.driver-popover.mc-tour .driver-popover-next-btn:hover,
+.driver-popover.mc-tour .driver-popover-next-btn:focus-visible {
+  background-color: var(--primary);
+  filter: brightness(1.1);
+}
+
+/* "Skip tour", added by tour.ts on every step but the last. */
+.driver-popover.mc-tour .mc-tour-skip {
+  all: unset;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 4px;
+}
+
+.driver-popover.mc-tour .mc-tour-skip:hover {
+  color: var(--foreground);
+}
+
+/* The little arrow: only the side that shows takes the bubble's colour. */
+.driver-popover.mc-tour .driver-popover-arrow-side-left {
+  border-left-color: var(--card);
+}
+.driver-popover.mc-tour .driver-popover-arrow-side-right {
+  border-right-color: var(--card);
+}
+.driver-popover.mc-tour .driver-popover-arrow-side-top {
+  border-top-color: var(--card);
+}
+.driver-popover.mc-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--card);
+}

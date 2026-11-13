@@ -2,6 +2,20 @@
 //
 // CHANGES (browser warning): <BrowserSupportWarning /> mounts once the
 // dashboard has loaded, so it doesn't pop up over the loading state.
+//
+// CHANGES (onboarding):
+//   - the gate. After the profile loads, an account that has never seen the
+//     onboarding questions (or started them and neither finished nor skipped)
+//     is sent to /onboarding. It is the only place that redirect happens, so
+//     every way of arriving here (sign-in, sign-up, Google, email
+//     verification) is covered. It never fires for a visit that came to scan a
+//     link (?scan_url), came back from checkout (?checkout) or asked for the
+//     tour (?tour), for a locked account, or when the onboarding row cannot be
+//     read. Off entirely unless NEXT_PUBLIC_ONBOARDING=on.
+//   - <TutorialDialog /> mounts with the loaded dashboard ("Watch the
+//     tutorial" popup and the interactive tour).
+//   - data-tour="scan-box" marks the scan block for the tour. It changes
+//     nothing visually.
 
 'use client';
 
@@ -42,6 +56,20 @@ import {
 } from '@/lib/mediacrater/supabaseClient';
 
 import { trackPurchaseConversion } from '@/lib/ads-conversion';
+
+import {
+  TutorialDialog,
+} from '@/components/onboarding/tutorial-dialog';
+
+import {
+  ONBOARDING_ENABLED,
+  isOnboardingUnavailable,
+} from '@/lib/onboarding/config';
+
+import {
+  refreshOnboardingRow,
+  shouldAutoOpenOnboarding,
+} from '@/lib/onboarding/useOnboardingRow';
 
 interface UserProfile
   extends WorkspaceProfile {
@@ -124,6 +152,47 @@ function DashboardContent() {
       null
     );
 
+  // Onboarding gate. Read once, on the first render: the scanner and the
+  // checkout banner both remove their parameter from the address afterwards,
+  // and the visit must still count as "came here for something else".
+  const arrivedWithPurpose =
+    useRef(
+      Boolean(
+        searchParams.get('scan_url') ||
+        searchParams.get('checkout') ||
+        searchParams.get('tour')
+      )
+    ).current;
+
+  // The gate is worked out once per visit. The effect below can run more than
+  // once (the address changes, React re-runs effects in development); every
+  // run gets this same answer instead of asking again.
+  const onboardingGate =
+    useRef<Promise<boolean> | null>(null);
+
+  const shouldSendToOnboarding =
+    (
+      profileData: UserProfile | null
+    ): Promise<boolean> => {
+      if (!ONBOARDING_ENABLED) return Promise.resolve(false);
+
+      if (!onboardingGate.current) {
+        onboardingGate.current = (async () => {
+          if (arrivedWithPurpose) return false;
+          if (isOnboardingUnavailable()) return false;
+          // A locked account has something more urgent to deal with first.
+          if (profileData?.account_status === 'action_required') return false;
+
+          // Never throws. If the row cannot be read (network, migration not
+          // run), the answer is "no" and the dashboard opens as usual.
+          const onboarding = await refreshOnboardingRow();
+          return shouldAutoOpenOnboarding(onboarding);
+        })();
+      }
+
+      return onboardingGate.current;
+    };
+
   useEffect(() => {
     if (
       searchParams.get(
@@ -161,9 +230,17 @@ function DashboardContent() {
           session.user
         );
 
-        await fetchUserData(
-          session.user.id
-        );
+        const profileData =
+          await fetchUserData(
+            session.user.id
+          );
+
+        // Onboarding gate: keep showing "Loading your dashboard..." while the
+        // browser moves to /onboarding, instead of flashing the dashboard.
+        if (await shouldSendToOnboarding(profileData)) {
+          router.replace('/onboarding');
+          return;
+        }
 
         setLoading(false);
       };
@@ -205,7 +282,7 @@ function DashboardContent() {
   const fetchUserData =
     async (
       userId: string
-    ) => {
+    ): Promise<UserProfile | null> => {
       try {
         const {
           data:
@@ -232,6 +309,8 @@ function DashboardContent() {
           setProfile(
             profileData
           );
+
+          return profileData as UserProfile;
         }
       } catch (err) {
         console.error(
@@ -239,6 +318,8 @@ function DashboardContent() {
           err
         );
       }
+
+      return null;
     };
 
   const conversionSent = useRef(false);
@@ -295,6 +376,7 @@ function DashboardContent() {
       }
     >
       <BrowserSupportWarning />
+      <TutorialDialog />
 
       {showCheckoutSuccess && (
         <div className="mb-6 flex items-center justify-between gap-4 px-4 py-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
@@ -339,7 +421,10 @@ function DashboardContent() {
         </p>
       </div>
 
-      <div className="mb-10">
+      <div
+        className="mb-10"
+        data-tour="scan-box"
+      >
         <h2 className="text-lg font-bold mb-4">
           Run Ad Compliance Scan
         </h2>

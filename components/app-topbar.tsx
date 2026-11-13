@@ -12,6 +12,9 @@
 // its own pill, not just another line of body text. Only rendered when
 // scansRemaining is a real number (i.e. actually signed in with a loaded
 // profile) — never shown mid-load or signed out.
+//
+// CHANGES (onboarding): data-tour="account-menu" on the email button, so the
+// interactive tour can point at it. No visual or behavior change.
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -80,6 +83,7 @@ export function AppTopBar({
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
+            data-tour="account-menu"
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors max-w-[200px]"
           >
