@@ -13,9 +13,11 @@ import { AppShell } from '@/components/app-shell';
 import { SettingsPanel, type SettingsProfile } from '@/components/settings-panel';
 import { getBillingPortalUrl } from '@/lib/mediacrater/billing';
 import { supabase } from '@/lib/mediacrater/supabaseClient';
+import { useI18n } from '@/lib/i18n/use-i18n';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export default function SettingsPage() {
   if (loading || !userId || !email || !profile) {
     return (
       <AppShell userEmail={email}>
-        <p className="text-muted-foreground text-sm">Loading...</p>
+        <p className="text-muted-foreground text-sm">{t('common.loading')}</p>
       </AppShell>
     );
   }
